@@ -122,13 +122,15 @@ export default function RLiquidity() {
 
 
 
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }}>
-        <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c" }}>
+        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
+        <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c",borderRadius: "10px" }} className="home__main">
+
             <Typography
               variant="h5"
               sx={{ fontWeight: "600", color: "white" }}
               gutterBottom
-              style={{ textAlign: "left" }}
+              style={{ textAlign: "left", margin:"12px 0px" }}
+
             >
               Remove Liquidity 
             </Typography>
@@ -425,8 +427,8 @@ export default function RLiquidity() {
           </Item>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }}>
-        <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c" }}>
+        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2}} className="chart__main">
+        <Item sx={{ pl: 3, pr: 3,pb:2,mb:4 }} style={{ backgroundColor: "#12122c",borderRadius: "10px" }} className="chart">
               <ChartHome  />
               {/* <img src={graph} style={{ maxWidth: "100%" }} /> */}
           </Item>

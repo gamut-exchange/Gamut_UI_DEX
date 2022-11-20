@@ -1,6 +1,7 @@
 import { Button, Grid, Stack,Paper, styled, Hidden } from '@mui/material'
 import React, {useState} from 'react'
 import { Link, useLocation } from 'react-router-dom';
+import "./Navigation.css"
 
 function SwapCmp() {
   const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
@@ -104,9 +105,10 @@ function SwapCmp() {
         <Grid sx={{ overflowX: 'scroll' }} item xs={12} sm={12} md={9} lg={8} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor }}
+            
+            style={{ backgroundColor: "transparent", color: darkFontColor }} className="swap_b"
           >
-            <Stack spacing={2} direction="row">
+            <Stack spacing={2} direction="row" className="swap_b" >
            
 
             <Link to="/Liquidty" style={{textDecoration:"none"}}>

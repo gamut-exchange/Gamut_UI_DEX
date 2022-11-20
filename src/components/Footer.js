@@ -14,8 +14,8 @@ function Footer() {
         color: theme.palette.text.secondary,
       }));
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: "30px", marginLeft: "15px" }}>
-        <Grid container  sx={{maxWidth: "1205px",backgroundColor: backgroundColor}} spacing={2}>
+    <div style={{ display: "flex", justifyContent: "center", marginTop: "30px", marginLeft: "15px" }} >
+        <Grid container  sx={{maxWidth: "1205px",backgroundColor: backgroundColor}} spacing={2} id="footer">
   <Grid item xs={12} md={4}>
     <Item  style={{ backgroundColor: "transparent"}}> <img
               src={logo}

@@ -119,12 +119,12 @@ function Navigation(props) {
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
+            sx={{ mr: 2, display: { md: "none" } }}
           >
             <MenuIcon />
           </IconButton>
 
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+          <Box sx={{ display: { xs: "none", sm: "none", md: "block", lg: "block" } }}>
             {/* {navItems.map((item) => ( */}
             <Link to="/" style={{textDecoration:"none"}}>
               <Button
@@ -187,7 +187,7 @@ function Navigation(props) {
             keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: "block", sm: "none" },
+            display: { xs: "block", sm: "block", md: "none",lg: "none" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: "100%",

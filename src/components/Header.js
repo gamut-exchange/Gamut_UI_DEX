@@ -66,7 +66,7 @@ function Header() {
         <Grid
           item
           xs={5}
-          sm={12}
+          sm={5}
           md={6}
           lg={6}
           sx={{ display: "flex", justifyContent: "flex-start" }}
@@ -88,6 +88,7 @@ function Header() {
         <Grid
           item
           xs={5}
+          sm={5}
           md={6}
           lg={6}
           sx={{ display: "flex", justifyContent: "flex-end" }}
@@ -98,7 +99,7 @@ function Header() {
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
             <Stack spacing={2} direction="row">
-            <Hidden only="xs">
+            <Hidden mdDown="true">
               <Button
                 size="large"
                 variant="outlined"
@@ -118,7 +119,7 @@ function Header() {
                 size="large"
                 color="primary"
                 variant="contained"
-                sx={{ width: 200, padding: 2, fontWeight: "bold" }}
+                sx={{ width: 200, padding: 2, fontWeight: "550" }}
                 style={{
                   background:
                     "linear-gradient(to right bottom, #13a8ff, #0074f0)",
@@ -128,7 +129,7 @@ function Header() {
               </Button>
               </Hidden>
 
-              <Hidden smUp="true">
+              <Hidden mdUp="true">
               <Button
                 size="large"
                 variant="outlined"
@@ -149,10 +150,11 @@ function Header() {
         </Grid>
 
 {/* Mobile menu  */}
-<Hidden smUp="true">
+<Hidden mdUp="true">
         <Grid  item
           xs={2}
-          md={6}
+          sm={2}
+          md={2}
           lg={6}
           sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Navigation />
@@ -162,7 +164,7 @@ function Header() {
         {/* Header Section 1 End  */}
 
         {/* APP bar start  main menu*/}
-<Hidden smDown="true">
+<Hidden mdDown="true">
         <Navigation />
         </Hidden>
         {/* App Bar closed */}

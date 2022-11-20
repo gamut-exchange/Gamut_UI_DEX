@@ -5,6 +5,8 @@ import Paper from "@mui/material/Paper";
 import ChartHome from "./ChartHome";
 import History from "./History";
 // import Test from './Test'
+import './Navigation.css'
+
 
 import Grid from "@mui/material/Grid";
 import {
@@ -103,14 +105,16 @@ export default function Home() {
         container
         sx={{ maxWidth: "1220px" }}
         border={0}
-        columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
+        columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
+        
       >
-        <Grid item xs={12} sm={12} md={6} lg={4}>
+        <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
+            
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
-            <Stack spacing={2} direction="row">
+            <Stack spacing={2} direction="row" className="swap_bh">
               <Button
                 size="large"
                 variant="contained"
@@ -144,13 +148,13 @@ export default function Home() {
           {/* <Item>xs=4</Item> */}
         </Grid>
 
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }}>
-          <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c" }}>
+        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
+          <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c",borderRadius: "10px" }} className="home__main">
             <Typography
               variant="h5"
               sx={{ fontWeight: "600", color: "white" }}
               gutterBottom
-              style={{ textAlign: "left" }}
+              style={{ textAlign: "left", margin:"12px 0px" }}
             >
               Trade On-Chain
             </Typography>
@@ -401,8 +405,8 @@ export default function Home() {
           </Item>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }}>
-        <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c" }}>
+        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
+        <Item sx={{ pl: 3, pr: 3,pb:2,mb:4 }} style={{ backgroundColor: "#12122c",borderRadius: "10px" }} className="chart" >
             <ChartHome />
             {/* <img src={graph} style={{ maxWidth: "100%" }} /> */}
           </Item>

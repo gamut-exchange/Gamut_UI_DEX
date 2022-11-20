@@ -35,7 +35,7 @@ const Item = styled(Paper)(({ theme }) => ({
 
   return (
     <>
-    <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c",textAlign:"left" }}>
+    <Item sx={{ pl: 3, pr: 3,pb:2,pt:3 }} style={{ backgroundColor: "#12122c",textAlign:"left",borderRadius:"10px" }} className="history">
             <span style={{ textAlign: "start", color: "white" }}>History:</span>
 
             <div style={{ float: "right", display: "inline" }}>
@@ -139,7 +139,7 @@ const Item = styled(Paper)(({ theme }) => ({
               sx={{minHeight:"20px" }}
               expanded={expanded === "panel2"}
               onChange={handleAccord("panel2")}
-              style={{ backgroundColor: "#12122c", color: "white" }}
+              style={{ backgroundColor: "#12122c", color: "white",borderRadiu: "10px" }}
             >
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
