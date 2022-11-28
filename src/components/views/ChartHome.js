@@ -1,65 +1,168 @@
 import { createChart, ColorType } from "lightweight-charts";
 import React, { useEffect, useRef } from "react";
 
-const ChartHome = () => {
-  const initialData = [
-    { time: "2018-12-22", value: 32.51 },
-    { time: "2018-12-23", value: 31.11 },
-    { time: "2018-12-24", value: 27.02 },
-    { time: "2018-12-25", value: 27.32 },
-    { time: "2018-12-26", value: 25.17 },
-    { time: "2018-12-27", value: 28.89 },
-    { time: "2018-12-28", value: 25.46 },
-    { time: "2018-12-29", value: 23.92 },
-    { time: "2018-12-30", value: 22.68 },
-    { time: "2018-12-31", value: 22.67 }
-  ];
+const ChartHome = (chartData) => {
+  const chartRef = useRef();
+  const switchRef = useRef();
 
-  const backgroundColor = "#12122c";
-  const lineColor = "#2962FF";
-  const textColor = "white";
-  const areaTopColor = "#2962FF";
-  const areaBottomColor = "rgba(41, 98, 255, 0.28)";
-  const chartContainerRef = useRef();
-  useEffect(() => {
-    const handleResize = () => {
-      chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-    };
+  var chart;
+  var areaSeries = null;
 
-    const chart = createChart(chartContainerRef.current, {
+  function syncToInterval() {
+    if (areaSeries) {
+      chart.removeSeries(areaSeries);
+      areaSeries = null;
+    }
+    areaSeries = chart.addAreaSeries({
+      topColor: "#4caf4f66",
+      bottomColor: "rgba(97, 255, 102, 0.04)",
+      lineColor: "rgba(76, 175, 80, 1)",
+      lineWidth: 2,
+    });
+    areaSeries.setData(chartData.chartData);
+  }
+
+  const loadChart = () => {
+    if (chartRef.current.children[0]) {
+      chartRef.current.removeChild(chartRef.current.children[0]);
+    }
+
+    chart = createChart(chartRef.current, {
+      // width: 500,
+      height: 400,
       layout: {
-        background: { type: ColorType.Solid, color: backgroundColor },
-        textColor
+        backgroundColor: "#000000",
+        textColor: "#d1d4dc",
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 300
+      grid: {
+        vertLines: {
+          visible: false,
+        },
+        horzLines: {
+          color: "rgba(42, 46, 57, 0.5)",
+        },
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      crosshair: {
+        horzLine: {
+          visible: false,
+        },
+      },
     });
-    chart.timeScale().fitContent();
+    syncToInterval();
+  };
 
-    const newSeries = chart.addAreaSeries({
-      lineColor,
-      topColor: areaTopColor,
-      bottomColor: areaBottomColor
+  const filterChart = (timeIntervel) => {
+    console.log("Formatted Data:", chartData.chartData);
+    // const timeNow = Math.floor(Date.now() / 1000 - timeIntervel);
+    var previousTime = chartData.chartData[0]?.time;
+    console.log("Start Time:", previousTime);
+    const filteredData = chartData.chartData.filter((data) => {
+      if (data?.time >= previousTime + timeIntervel) {
+        previousTime = data?.time;
+        return data?.time;
+      }
     });
-    newSeries.setData(initialData);
+    console.log("Filtered Data:", filteredData);
+    if (areaSeries) {
+      chart.removeSeries(areaSeries);
+      areaSeries = null;
+    }
+    areaSeries = chart.addAreaSeries({
+      topColor: "rgba(76, 175, 80, 0.56)",
+      bottomColor: "rgba(76, 175, 80, 0.04)",
+      lineColor: "rgba(76, 175, 80, 1)",
+      lineWidth: 2,
+    });
+    if (timeIntervel === 0) {
+      areaSeries.setData(chartData.chartData);
+    } else {
+      areaSeries.setData(filteredData);
+    }
+    // console.log("Filtering...", timeNow, "FilteredData:", filteredData);
+  };
 
-    window.addEventListener("resize", handleResize);
+  useEffect(() => {
+    if (chartData.chartData && chartData.chartData.length !== 0)
+      loadChart();
+  }, [chartData.chartData]);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
+  return (
+    <div>
+      <div ref={chartRef} className="w-full" />
+      <div ref={switchRef} />
+      <div className="flex items-center flex-wrap gap-1 mt-2">
+        <button
+          onClick={() => filterChart(0)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          No Filter
+        </button>
+        <button
+          onClick={() => filterChart(900)}
+          // onClick={() => filterChart(1)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          15Min
+        </button>
+        <button
+          onClick={() => filterChart(3600)}
+          // onClick={() => filterChart(4)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          1H
+        </button>
+        <button
+          onClick={() => filterChart(14400)}
+          // onClick={() => filterChart(8)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          4H
+        </button>
+        <button
+          onClick={() => filterChart(86400)}
+          // onClick={() => filterChart(16)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          1D
+        </button>
+        <button
+          onClick={() => filterChart(604800)}
+          // onClick={() => filterChart(20)}
+          className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+        >
+          1W
+        </button>
+        {/* <button
+                onClick={() => filterChart(2628000)}
+                // onClick={() => filterChart(24)}
+                className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+              >
+                1M
+              </button> */}
+        {/* <button
+                onClick={() => filterChart(7884000)}
+                className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+              >
+                3M
+              </button>
+              <button
+                onClick={() => filterChart(15770000)}
+                className="border border-green-600 rounded-md px-2 hover:bg-green-600 hover:text-white dark:text-grey-dark active:bg-green-900 mr-2"
+              >
+                6M
+              </button> */}
+      </div>
+    </div>
+  )
 
-      chart.remove();
-    };
-  }, [
-    initialData,
-    backgroundColor,
-    lineColor,
-    textColor,
-    areaTopColor,
-    areaBottomColor
-  ]);
-
-  return <div ref={chartContainerRef} />;
 };
 
 // function App(props) {

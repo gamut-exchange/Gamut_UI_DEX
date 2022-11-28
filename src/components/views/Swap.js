@@ -1,27 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useWeb3React } from "@web3-react/core";
 import tw from "twin.macro";
 import { styled } from "@mui/material/styles";
-import Paper from "@mui/material/Paper";
-import Modal from "@mui/material/Modal";
-import TextField from "@mui/material/TextField";
-import ChartHome from "./ChartHome";
 import History from "./History";
-// import Test from './Test'
 import './Navigation.css'
-import Grid from "@mui/material/Grid";
 import {
+  Grid,
+  Paper,
+  Modal,
+  TextField,
   Button,
   FormControl,
   Typography,
+  Slider,
+  InputBase
 } from "@mui/material";
 import { Stack } from "@mui/system";
-import InputBase from "@mui/material/InputBase";
 import {
   ArrowCircleDownRounded,
   Settings,
 } from "@mui/icons-material";
+import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { createChart } from "lightweight-charts";
+import {
+  getTokenBalance,
+  getPoolAddress,
+  getPoolData,
+  swapTokens,
+  batchSwapTokens,
+  tokenApproval,
+  approveToken,
+  getSwapFeePercent,
+  calculateSwap,
+  calcOutput,
+  getMiddleToken
+} from "../../config/web3";
+import { useTokenPricesData } from "../../config/chartData";
 import { uniList } from "../../config/constants";
+import { poolList } from "../../config/constants";
+import { contractAddresses } from "../../config/constants";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -73,14 +92,43 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 //   drop down style close
 
 export default function Swap() {
-  const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
-  const [darkFontColorSec, setDarkFontColorSec] = useState("#13a8ff");
-  const [query, setQuery] = useState("");
+  const selected_chain = useSelector((state) => state.selectedChain);
+  const { account, connector } = useWeb3React();
+  const dispatch = useDispatch();
+  const darkFontColor = "#FFFFFF";
+  const grayColor = "#6d6d7d";
   const [setting, setSetting] = useState(false);
-  const [grayColor, setGrayColor] = useState("#6d6d7d");
   const [mopen, setMopen] = useState(false);
-  const [age, setAge] = React.useState("0");
-  const [filterData, setFilterData] = useState(uniList["goerli"]);
+  const [inValue, setInValue] = useState(0);
+  const [selected, setSelected] = React.useState(0);
+  const [query, setQuery] = useState("");
+  const [valueEth, setValueEth] = useState(0);
+  const [poolAddress, setPoolAddress] = useState([]);
+  const [inToken, setInToken] = useState(uniList[selected_chain][0]);
+  const [outToken, setOutToken] = useState(uniList[selected_chain][1]);
+  const [inBal, setInBal] = useState(0);
+  const [outBal, setOutBal] = useState(0);
+  const [fee, setFee] = useState(0);
+  const [approval, setApproval] = useState(false);
+  const [approvedVal, setApprovedVal] = useState(0);
+  const [filterData, setFilterData] = useState(uniList[selected_chain]);
+  const [limitedout, setLimitedout] = useState(false);
+  const [swapFee, setSwapFee] = useState(0);
+  const [middleToken, setMiddleToken] = useState(null);
+  const [middleTokenSymbol, setMiddleTokenSymbol] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+  const [swapping, setSwapping] = useState(false);
+  const [tokenPr, setTokenPr] = useState(0);
+  const [slippage, setSlippage] = useState(0.01);
+  const [slippageFlag, setSlippageFlag] = useState(false);
+  const [deadline, setDeadline] = useState(900);
+  const [deadlineFlag, setDeadlineFlag] = useState(false);
+  const [noChartData, setNoChartData] = useState(false);
+
+  const pricesData = useTokenPricesData(poolAddress);
+  const chartRef = useRef();
+  const switchRef = useRef();
+  const dark = false;
 
   const StyledModal = tw.div`
     flex
@@ -94,16 +142,573 @@ export default function Swap() {
     sm:w-1/3 w-11/12
   `;
 
-  const handleMopen = () => {
-    // setSelected(val);
+  const handleMopen = (val) => {
+    setSelected(val);
     setMopen(true);
   };
 
   const handleClose = () => setMopen(false);
-
-  const handleChange = (event) => {
-    setAge(event.target.value);
+  const handleValue = async (event) => {
+    setInValue(event.target.value * 1);
+    setFee(event.target.value * swapFee);
+    checkApproved(inToken, event.target.value);
   };
+
+  const filterToken = (e) => {
+    let search_qr = e.target.value;
+    setQuery(search_qr);
+    if (search_qr.length != 0) {
+      const filterDT = uniList[selected_chain].filter((item) => {
+        return item["symbol"].toLowerCase().indexOf(search_qr) != -1;
+      });
+      setFilterData(filterDT);
+    } else {
+      setFilterData(uniList[selected_chain]);
+    }
+  };
+
+  const checkApproved = async (token, val) => {
+    const provider = await connector.getProvider();
+    const approval = await tokenApproval(
+      account,
+      provider,
+      token["address"],
+      contractAddresses[selected_chain]["router"]
+    );
+
+    setApproval(approval * 1 >= val * 1);
+    setApprovedVal(Number(approval));
+  };
+
+  const calcSlippage = async (inToken, poolData, input, output) => {
+    let balance_from;
+    let balance_to;
+    let weight_from;
+    let weight_to;
+
+    if (inToken["address"] == poolData.tokens[0]) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+    } else {
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+    }
+
+    let pricePool = balance_from / weight_from / (balance_to / weight_to);
+    let priceTrade = input / output;
+
+    let slip = (1 - pricePool / priceTrade) * 100;
+
+    return slip;
+  };
+
+  const selectToken = async (token, selected) => {
+    handleClose();
+    var bal = 0;
+    if (selected === 0) {
+      if (token["address"] !== inToken["address"]) {
+        setInToken(token);
+      }
+    } else if (selected == 1) {
+      if (token["address"] !== outToken["address"]) {
+        setOutToken(token);
+      }
+    }
+    if (account) {
+      const provider = await connector.getProvider();
+      bal = await getTokenBalance(provider, token["address"], account);
+      if (selected == 0) {
+        setInBal(bal);
+        let tempData = uniList[selected_chain].filter((item) => {
+          return item["address"] !== token["address"];
+        });
+        setFilterData(tempData);
+        checkApproved(token, inValue);
+
+        let inLimBal = bal.toString().replaceAll(",", "");
+        let outLimBal = outBal.toString().replaceAll(",", "");
+        if (
+          Number(inValue) <= Number(inLimBal) &&
+          Number(valueEth) <= Number(outLimBal)
+        )
+          setLimitedout(false);
+        else setLimitedout(true);
+      } else if (selected == 1) {
+        setOutBal(bal);
+        let tempData = uniList[selected_chain].filter((item) => {
+          return item["address"] !== token["address"];
+        });
+
+        setFilterData(tempData);
+      }
+    }
+  };
+
+  const reverseToken = async () => {
+    let tempToken = outToken;
+    await selectToken(inToken, 1);
+    await selectToken(tempToken, 0);
+  };
+
+  const findMiddleToken = async () => {
+    const provider = await connector.getProvider();
+    var suitableRouter = await getMiddleToken(inValue, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    setMiddleToken(suitableRouter);
+    getMiddleTokenSymbol(suitableRouter);
+    return suitableRouter;
+  };
+
+  const executeSwap = async () => {
+    if (account && inToken["address"] !== outToken["address"]) {
+      const provider = await connector.getProvider();
+      const limit = valueEth * (1-slippage);
+      debugger;
+      setSwapping(true);
+      if (middleToken)
+        await batchSwapTokens(
+          provider,
+          inToken["address"],
+          outToken["address"],
+          middleToken,
+          inValue * 1,
+          account,
+          limit,
+          deadline,
+          contractAddresses[selected_chain]["router"]
+        );
+      else
+        await swapTokens(
+          provider,
+          inToken["address"],
+          outToken["address"],
+          inValue * 1,
+          account,
+          limit,
+          deadline,
+          contractAddresses[selected_chain]["router"]
+        );
+      setSwapping(false);
+    }
+  };
+
+  const approveTk = async (amount) => {
+    if (account) {
+      const provider = await connector.getProvider();
+      setUnlocking(true);
+      const approvedToken = await approveToken(
+        account,
+        provider,
+        inToken["address"],
+        amount * 1.01,
+        contractAddresses[selected_chain]["router"]
+      );
+      setUnlocking(false);
+      setApproval(approvedToken >= inValue);
+    }
+  };
+
+  const setInLimit = (point) => {
+    if (inBal) {
+      let val = inBal.toString().replaceAll(",", "");
+      setInValue(Number(val) / point);
+      if (point == 1)
+        setLimitedout(false);
+      else
+        setLimitedout(true);
+    }
+  };
+
+  const getMiddleTokenSymbol = (tokens) => {
+    if (tokens) {
+      if (tokens.length == 2) {
+        const result1 = uniList[selected_chain].filter((item) => {
+          return item.address === tokens[0]["address"];
+        });
+
+        const result2 = uniList[selected_chain].filter((item) => {
+          return item.address === tokens[1]["address"];
+        });
+
+        setMiddleTokenSymbol([result1[0].symbol, result2[0].symbol]);
+      } else {
+        const result1 = uniList[selected_chain].filter((item) => {
+          return item.address === tokens[0]["address"];
+        });
+
+        setMiddleTokenSymbol([result1[0].symbol]);
+      }
+    } else {
+      setMiddleTokenSymbol(["", ""]);
+    }
+  };
+
+  const getStatusData = async (value) => {
+    if (account && inToken !== outToken) {
+      let inLimBal = inBal.toString().replaceAll(",", "");
+      let outLimBal = outBal.toString().replaceAll(",", "");
+      const provider = await connector.getProvider();
+      const midToken = await findMiddleToken();
+      if (midToken) {
+        if (value * 1 != 0) {
+          let amountOut = await calcOutput(
+            midToken,
+            provider,
+            value,
+            inToken,
+            outToken,
+            contractAddresses[selected_chain]["hedgeFactory"],
+            swapFee
+          );
+          amountOut =
+            amountOut * 1 === 0
+              ? 0
+              : numFormat(amountOut);
+          setValueEth(amountOut);
+          setTokenPr(numFormat(amountOut / value));
+          if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
+          else setLimitedout(false);
+        }
+
+        let tokenPr = await calcOutput(
+          midToken,
+          provider,
+          1,
+          inToken,
+          outToken,
+          contractAddresses[selected_chain]["hedgeFactory"],
+          swapFee
+        );
+        setTokenPr(numFormat(tokenPr));
+
+        if (midToken.length == 1) {
+          const poolAddress1 = await getPoolAddress(
+            provider,
+            inToken["address"],
+            midToken[0]["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
+          );
+          const poolAddress2 = await getPoolAddress(
+            provider,
+            midToken[0]["address"],
+            outToken["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
+          );
+          setPoolAddress([
+            poolAddress1.toLowerCase(),
+            poolAddress2.toLowerCase(),
+          ]);
+        } else {
+          const poolAddress1 = await getPoolAddress(
+            provider,
+            inToken["address"],
+            midToken[0]["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
+          );
+          const poolAddress2 = await getPoolAddress(
+            provider,
+            midToken[0]["address"],
+            midToken[1]["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
+          );
+          const poolAddress3 = await getPoolAddress(
+            provider,
+            midToken[1]["address"],
+            outToken["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
+          );
+          setPoolAddress([
+            poolAddress1.toLowerCase(),
+            poolAddress2.toLowerCase(),
+            poolAddress3.toLowerCase(),
+          ]);
+        }
+      } else {
+
+        const poolAddress = await getPoolAddress(
+          provider,
+          inToken["address"],
+          outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(
+          provider,
+          poolAddress
+        );
+
+        if (value * 1 != 0) {
+          let amountOut = await calculateSwap(
+            inToken["address"],
+            poolData,
+            value
+          );
+
+          amountOut =
+            amountOut * 1 === 0
+              ? 0
+              : numFormat(amountOut);
+          setValueEth(amountOut);
+          setTokenPr(numFormat(amountOut / value));
+          if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
+          else setLimitedout(false);
+        }
+
+        setPoolAddress([poolAddress.toLowerCase()]);
+        var tokenPr = await calculateSwap(
+          inToken["address"],
+          poolData,
+          1);
+        setTokenPr(numFormat(tokenPr));
+      }
+    } else if (inToken !== outToken) {
+      for (var i = 0; i < poolList[selected_chain].length; i++) {
+        if (
+          (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
+            poolList[selected_chain][i]["symbols"][1] === outToken["symbol"]) ||
+          (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
+            poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
+        ) {
+          setPoolAddress([
+            poolList[selected_chain][i]["address"].toLowerCase(),
+          ]);
+          break;
+        }
+      }
+    } else {
+      setPoolAddress([]);
+    }
+  };
+
+  const numFormat = (val) => {
+    if (Number(val) > 1)
+      return Number(val).toFixed(2) * 1;
+    else if (Number(val) > 0.001)
+      return Number(val).toFixed(4) * 1;
+    else if (Number(val) > 0.00001)
+      return Number(val).toFixed(6) * 1;
+    else
+      return Number(val).toFixed(8) * 1;
+  }
+
+  useEffect(() => {
+    if (account) {
+      const getInfo = async () => {
+        const provider = await connector.getProvider();
+        let inBal = await getTokenBalance(
+          provider,
+          inToken["address"],
+          account
+        );
+        let outBal = await getTokenBalance(
+          provider,
+          outToken["address"],
+          account
+        );
+        setInBal(inBal);
+        setOutBal(outBal);
+        checkApproved(inToken, inValue);
+        const swapFeePercent = await getSwapFeePercent(
+          provider,
+          poolList[selected_chain][0]["address"]
+        );
+        setSwapFee(swapFeePercent * 0.01);
+      };
+      getInfo();
+    }
+  }, [account, ""]);
+
+  useEffect(() => {
+    getStatusData(inValue);
+    const intervalId = setInterval(() => {
+      getStatusData(inValue);
+    }, 120000);
+    return () => clearInterval(intervalId);
+  }, [inToken, outToken, inValue]);
+
+  useEffect(() => {
+    setFilterData(uniList[selected_chain]);
+    selectToken(uniList[selected_chain][0], 0);
+    selectToken(uniList[selected_chain][1], 1);
+  }, [dispatch, selected_chain]);
+
+  const formattedPricesData = useMemo(() => {
+    if (pricesData && pricesData.prices) {
+      var result = [];
+      const poolTokenPrices = pricesData.prices;
+      if (poolAddress.length === 1) {
+        poolTokenPrices.map((item, index) => {
+          if (item.token0.symbol === inToken["symbol"]) {
+            result.push({
+              time: parseInt(item.timestamp, 10),
+              value: numFormat(item.token0Price),
+            });
+          } else {
+            result.push({
+              time: parseInt(item.timestamp, 10),
+              value: numFormat(item.token1Price),
+            });
+          }
+        });
+      } else if (poolAddress.length === 2) {
+        for (var i = 1; i < poolTokenPrices.length; i++) {
+          if (poolTokenPrices[i].pool.id === poolAddress[0]) {
+            for (var j = i - 1; j >= 0; j--)
+              if (poolTokenPrices[j].pool.id === poolAddress[1]) {
+                var tempPrice =
+                  poolTokenPrices[i].token0.symbol === inToken["symbol"]
+                    ? poolTokenPrices[i].token0Price
+                    : poolTokenPrices[i].token1Price;
+                var lastPrice =
+                  poolTokenPrices[j].token0.symbol === outToken["symbol"]
+                    ? tempPrice * poolTokenPrices[j].token1Price
+                    : tempPrice * poolTokenPrices[j].token0Price;
+                result.push({
+                  time: parseInt(poolTokenPrices[i].timestamp, 10),
+                  value: numFormat(lastPrice),
+                });
+                break;
+              }
+          }
+        }
+      } else if (poolAddress.length === 3) {
+        for (var i = 2; i < poolTokenPrices.length; i++) {
+          if (poolTokenPrices[i].pool.id === poolAddress[0]) {
+            var tempArr = [];
+            for (var j = i - 1; j >= 0; j--)
+              if (
+                poolTokenPrices[j].pool.id === poolAddress[1] ||
+                poolTokenPrices[j].pool.id === poolAddress[2]
+              ) {
+                if (tempArr.length === 0) tempArr.push(poolTokenPrices[j]);
+                else if (tempArr[0].pool.id !== poolTokenPrices[j].pool.id) {
+                  if (poolTokenPrices[j].pool.id === poolAddress[1]) {
+                    var tempPrice1 =
+                      poolTokenPrices[i].token0.symbol === inToken["symbol"]
+                        ? poolTokenPrices[i].token0Price
+                        : poolTokenPrices[i].token1Price;
+                    var tempPrice2 =
+                      poolTokenPrices[j].token0.symbol ===
+                        poolTokenPrices[i].token0.symbol ||
+                        poolTokenPrices[j].token0.symbol ===
+                        poolTokenPrices[i].token1.symbol
+                        ? poolTokenPrices[j].token0Price * tempPrice1
+                        : poolTokenPrices[j].token1Price * tempPrice1;
+                    var lastPrice =
+                      tempArr[0].token0.symbol === outToken["symbol"]
+                        ? tempPrice2 * tempArr[0].token0Price
+                        : tempPrice2 * tempArr[0].token1Price;
+                    result.push({
+                      time: parseInt(poolTokenPrices[i].timestamp, 10),
+                      value: numFormat(lastPrice),
+                    });
+                    break;
+                  } else {
+                    var tempPrice1 =
+                      poolTokenPrices[i].token0.symbol === inToken["symbol"]
+                        ? poolTokenPrices[i].token0Price
+                        : poolTokenPrices[i].token1Price;
+                    var tempPrice2 =
+                      tempArr[0].token0.symbol ===
+                        poolTokenPrices[i].token0.symbol ||
+                        tempArr[0].token0.symbol ===
+                        poolTokenPrices[i].token1.symbol
+                        ? tempArr[0].token0Price * tempPrice1
+                        : tempArr[0].token1Price * tempPrice1;
+                    var lastPrice =
+                      poolTokenPrices[j].token0.symbol === outToken["symbol"]
+                        ? tempPrice2 * poolTokenPrices[j].token0Price
+                        : tempPrice2 * poolTokenPrices[j].token1Price;
+                    result.push({
+                      time: parseInt(poolTokenPrices[i].timestamp, 10),
+                      value: numFormat(lastPrice),
+                    });
+                    break;
+                  }
+                }
+              }
+          }
+        }
+      }
+      return result;
+    } else {
+      return [];
+    }
+  }, [pricesData]);
+
+  // Chart --->
+  var chart;
+  var areaSeries = null;
+
+  function syncToInterval() {
+    if (areaSeries) {
+      chart.removeSeries(areaSeries);
+      areaSeries = null;
+    }
+    areaSeries = dark
+      ? chart.addAreaSeries({
+        topColor: "#4caf4f66",
+        bottomColor: "rgba(97, 255, 102, 0.04)",
+        lineColor: "rgba(76, 175, 80, 1)",
+        lineWidth: 2,
+      })
+      : chart.addAreaSeries({
+        topColor: "rgba(76, 175, 80, 0.56)",
+        bottomColor: "rgba(76, 175, 80, 0.04)",
+        lineColor: "rgba(76, 175, 80, 1)",
+        lineWidth: 2,
+      });
+    areaSeries.setData(formattedPricesData);
+  }
+
+  const loadChart = () => {
+    if (chartRef.current.children[0]) {
+      chartRef.current.removeChild(chartRef.current.children[0]);
+    }
+
+    chart = createChart(chartRef.current, {
+      // width: 500,
+      height: 400,
+      layout: {
+        backgroundColor: "#12122c",
+        textColor: "#d1d4dc",
+      },
+      grid: {
+        vertLines: {
+          visible: false,
+        },
+        horzLines: {
+          color: "rgba(42, 46, 57, 0.5)",
+        },
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      crosshair: {
+        horzLine: {
+          visible: false,
+        },
+      },
+    });
+    syncToInterval();
+  };
+
+  useEffect(() => {
+    if (formattedPricesData && formattedPricesData.length != 0) {
+      setNoChartData(false);
+      loadChart();
+    }
+    else
+      setNoChartData(true);
+  }, [formattedPricesData]);
+  // Chart <---
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -112,12 +717,10 @@ export default function Swap() {
         sx={{ maxWidth: "1220px" }}
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
-
       >
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
@@ -134,7 +737,6 @@ export default function Swap() {
               </Button>
               <Button
                 size="large"
-
                 variant="contained"
                 sx={{
                   width: 200,
@@ -153,7 +755,6 @@ export default function Swap() {
         <Grid item xs={12} md={6} lg={8}>
           {/* <Item>xs=4</Item> */}
         </Grid>
-
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
             <Typography
@@ -164,9 +765,6 @@ export default function Swap() {
             >
               Trade On-Chain
             </Typography>
-
-            {/* Drop down Start  */}
-
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -183,25 +781,25 @@ export default function Swap() {
               >
                 From
               </span>
-
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
-                  onClick={handleMopen}
+                  onClick={() => handleMopen(0)}
                   style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
-                      src="./icons/btc.svg"
+                      src={inToken["logoURL"]}
                       alt=""
                       className="w-8"
                     />
                   }
                 >
-                  BTC
+                  {inToken["symbol"]}
                 </Button>
                 <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={0}
+                  type="number"
+                  value={inValue}
+                  inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
+                  onChange={handleValue}
                   style={{
                     color: "#FFFFFF",
                     width: "65%",
@@ -211,31 +809,25 @@ export default function Swap() {
                   }}
                 />
               </div>
-
               <div>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance Connect wallet
+                  Balance: {inBal}
                 </span>
 
                 <span style={{ float: "right", color: grayColor }}>
-                  25% 50% 75% 100%
+                  <a href="javascript:void(0)" onClick={() => setInLimit(4)}>25%</a>
+                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(2)}>50%</a>
+                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1.3333)}>75%</a>
+                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1)}>100%</a>
                 </span>
               </div>
-
             </FormControl>
-            {/* </FormControl> */}
-
-            {/* Drop down close */}
             <div>
               <ArrowCircleDownRounded
+                onClick={reverseToken}
                 sx={{ color: "white", fontSize: "32px", mt: 3, mb: 1 }}
               />
             </div>
-
-
-
-            {/* Drop down Start  */}
-
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -252,25 +844,24 @@ export default function Swap() {
               >
                 To
               </span>
-
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
-                  onClick={handleMopen}
+                  onClick={() => handleMopen(1)}
                   style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
-                      src="./icons/btc.svg"
+                      src={outToken["logoURL"]}
                       alt=""
                       className="w-8"
                     />
                   }
                 >
-                  BTC
+                  {outToken["symbol"]}
                 </Button>
                 <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={0}
+                  type="number"
+                  value={valueEth}
+                  readOnly={true}
                   style={{
                     color: "#FFFFFF",
                     width: "65%",
@@ -283,19 +874,16 @@ export default function Swap() {
 
               <div style={{ display: "block", textAlign: "left" }}>
                 <span style={{ color: grayColor }}>
-                  Balance Connect wallet
+                  Balance: {outBal}
                 </span>
               </div>
-
               <div style={{ color: "white", display: "block", textAlign: "left" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
-                    paddingTop: "3px",
-                    marginBottom: "-3px",
                   }}
                 />{" "}
-                1 BTC = 20 USDC
+                1 {inToken["symbol"]} = {tokenPr} {outToken["symbol"]}
                 <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
                   <Settings />
                 </span>
@@ -303,31 +891,39 @@ export default function Swap() {
               <br />
             </FormControl>
             {
-              setting ?
+              setting ? (
                 <div>
-                  <div className="s">
+                  <div className="s" style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      0.1 0.25 0.5 custom
+                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.1); }} style={{ color: slippage == 0.1 ? "lightblue" : "" }}>0.1</a>
+                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage == 0.25 ? "lightblue" : "" }}>0.25</a>
+                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage == 0.5 ? "lightblue" : "" }}>0.5</a>
+                      <a href="javascript:void(0);" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
+                    {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
-                  <br />
-                  <div style={{ marginTop: "7px" }}>
+                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Time Deadline:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      30sec 1min 2min custom
+                      <a href="javascript:void(0);" onClick={() => { setDeadline(30); }} style={{ color: deadline == 30 ? "lightblue" : "" }}>30sec</a>
+                      <a href="javascript:void(0);" onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline == 60 ? "lightblue" : "" }}>1min</a>
+                      <a href="javascript:void(0);" onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline == 120 ? "lightblue" : "" }}>2min</a>
+                      <a href="javascript:void(0);" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
+                    {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
                   </div>
                   <br />
-                  <hr style={{ border: "1px solid #6d6d7d" }} />
+                  <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} />
                   <br />
                 </div>
-                // </Item>
-                : null
+              )
+                :
+                null
             }
             <div style={{ textAlign: "left" }}>
               <span style={{ textAlign: "start", color: "white" }}>
@@ -338,40 +934,130 @@ export default function Swap() {
               </div>
               <div>
                 <span style={{ textAlign: "start", color: "white" }}>
-                  Expected Output:
-                </span>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
-                </div>
-              </div>
-              <div>
-                <span style={{ textAlign: "start", color: "white" }}>
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth*(1-slippage))}</span>
                 </div>
               </div>
-              <Button
-                size="large"
-                variant="contained"
-                sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                style={{
-                  background:
-                    "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                  textAlign: "center",
-                }}
-              >
-                SWAP
-              </Button>
+              <div>
+                {limitedout || Number(inValue) == 0 ? (
+                  <Button
+                    size="large"
+                    variant="contained"
+                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    className="btn-disabled font-bold"
+                    disabled={true}
+                    style={{
+                      textAlign: "center",
+                      background:
+                        "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                      color: "#ddd"
+                    }}
+                  >
+                    Insufficient Balance
+                  </Button>
+                ) : (
+                  <>
+                    {approval ? (
+                      <Button
+                        size="large"
+                        variant="contained"
+                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        onClick={executeSwap}
+                        style={{
+                          background: swapping ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                          color: swapping ? "#ddd" : "#fff",
+                          textAlign: "center",
+                        }}
+                        className={
+                          swapping
+                            ? "btn-disabled font-bold w-full dark:text-black flex-1"
+                            : "btn-primary font-bold w-full dark:text-black flex-1"
+                        }
+                        disabled={swapping}
+                      >
+                        {swapping ? "Swap in progress" : "Swap Now"}
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="flex">
+                          <Button
+                            size="large"
+                            variant="contained"
+                            sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                            onClick={() =>
+                              approveTk(Number(inValue - approval))
+                            }
+                            style={{
+                              background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                              color: (limitedout || unlocking) ? "#ddd" : "#fff",
+                              textAlign: "center",
+                              marginRight: "8px"
+                            }}
+                            className={
+                              approval
+                                ? "btn-primary flex-1"
+                                : ((limitedout || unlocking) ? "flex-1" : "flex-1")
+                            }
+                            disabled={limitedout || unlocking}
+                          >
+                            {unlocking ? "Unlocking..." : "Unlock " + Math.ceil(inValue - approvedVal) + " " + inToken["value"]}
+                          </Button>
+                          <Button
+                            size="large"
+                            variant="contained"
+                            sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                            onClick={() => approveTk(9999999999)}
+                            style={{
+                              background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                              color: (limitedout || unlocking) ? "#ddd" : "#fff",
+                              textAlign: "center",
+                              marginLeft: "8px"
+                            }}
+                            className={
+                              approval
+                                ? "flex-1"
+                                : ((limitedout || unlocking) ? "flex-1" : "flex-1")
+                            }
+                            disabled={limitedout || unlocking}
+                          >
+                            {unlocking ? "Unlocking..." : "Infinite Unlock"}
+                          </Button>
+                        </div>
+                        <div className="text-red-700 flex items-center pt-1.5">
+                          <div>
+                            <svg
+                              className="fill-current h-6 w-6 mr-4"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" />
+                            </svg>
+                          </div>
+                          <p className="text-small">
+                            To proceed swapping, please unlock{" "}
+                            {inToken["value"].toUpperCase()} first.
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart" >
-            <ChartHome />
-            {/* <img src={graph} style={{ maxWidth: "100%" }} /> */}
-          </Item>
+          <div className="flex-1 w-full mx-auto mb-4 p-6" style={{ backgroundColor: "#12122c", borderRadius: "10px" }} >
+            {noChartData &&
+              <div style={{ minHeight: "374px", textAlign: "center" }}>
+                <CircularProgress style={{ marginTop: 160 }} />
+              </div>
+            }
+            <div ref={chartRef} className="w-full" />
+            {/* <div ref={switchRef} /> */}
+          </div>
           <History />
         </Grid>
         <Modal
@@ -385,7 +1071,7 @@ export default function Swap() {
             <TextField
               autoFocus={true}
               value={query}
-              // onChange={filterToken}
+              onChange={filterToken}
               label="Search"
               InputProps={{
                 type: "search",
@@ -396,15 +1082,15 @@ export default function Swap() {
               }}
             />
             <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{overflowY:"scroll"}}>
+            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
               {filterData.map((item) => {
                 const { address, logoURL, symbol } = item;
                 return (
                   <li
                     key={address}
                     className="flex gap-x-1 thelist"
-                    style={{cursor:"pointer", padding:"5px"}}
-                  // onClick={() => selectToken(item, selected)}
+                    style={{ cursor: "pointer", padding: "5px" }}
+                    onClick={() => selectToken(item, selected)}
                   >
                     <div className="relative flex">
                       <img src={logoURL} alt="" />

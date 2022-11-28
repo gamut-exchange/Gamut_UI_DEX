@@ -120,7 +120,7 @@ function Navigation(props) {
               <Button
                 // key={item}
                 sx={{ color: active == "home" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600" }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("home")}
               >
                 {/* {item} */}
@@ -131,7 +131,7 @@ function Navigation(props) {
             <Button
               // key={item}
               sx={{ color: active == "about" ? menuColor : "white", pr: 5 }}
-              style={{ fontSize: 20, fontWeight: "600" }}
+              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
               onClick={() => setActive("about")}
             // {3==3?style={color:"red"}:""}
             >
@@ -143,7 +143,7 @@ function Navigation(props) {
             <Button
               // key={item}
               sx={{ color: active == "contact" ? menuColor : "white", pr: 5 }}
-              style={{ fontSize: 20, fontWeight: "600" }}
+              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
               onClick={() => setActive("contact")}
             >
               {/* {item} */}
@@ -154,7 +154,7 @@ function Navigation(props) {
               <Button
                 // key={item}
                 sx={{ color: active == "liquidity" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600" }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
                 onClick={() => setActive("liquidity")}
               >
                 {/* {item} */}
