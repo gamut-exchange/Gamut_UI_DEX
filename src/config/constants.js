@@ -32,13 +32,13 @@ export const uniList = {
 
 export const poolList = {
 	'goerli': [
-		{value: "other", address:"0x362b81498cf2eEDEAeE54E7B0215eecA8440B974", symbols:["BTC", "DAI"], logoURLs:["./icons/btc.svg", "./icons/dai.svg"]},
-		{value: "other", address:"0x88C61Ba7Ed87228d74fB52Bf081c9918675b664D", symbols:["DAI", "USDT"], logoURLs:["./icons/dai.svg", "./icons/usdc.svg"]}
+		{value: "other", address:"0x362b81498cf2eEDEAeE54E7B0215eecA8440B974", symbols:["BTC", "DAI"], logoURLs:["../icons/btc.svg", "../icons/dai.svg"]},
+		{value: "other", address:"0x88C61Ba7Ed87228d74fB52Bf081c9918675b664D", symbols:["DAI", "USDT"], logoURLs:["../icons/dai.svg", "../icons/usdc.svg"]}
 	],
 	'fantom': [
-		{value: "btc-eth", address:"0x4D72553001fE88371aEc189455E1Ed18849b8bA2", symbols:["ETH", "BTC"], logoURLs:["./icons/eth.svg", "./icons/btc.svg"]},
-		{value: "usdc-btc", address:"0x97edF4e1Aad15Ab44E4194b6E271E49d3E2e36c8", symbols:["BTC", "USDC"], logoURLs:["./icons/btc.svg", "./icons/usdc.svg"]},
-		{value: "eth-dai", address:"0x758E5f4caeD36BF1d0Bb23C31387cfF11498D16D", symbols:["ETH", "DAI"], logoURLs:["./icons/eth.svg", "./icons/dai.svg"]},
-		{value: "usdc-dai", address:"0xC604a85346523d4e66aBF9c215CFfb13dd154286", symbols:["USDC", "DAI"], logoURLs:["./icons/usdc.svg", "./icons/dai.svg"]}
+		{value: "btc-eth", address:"0x4D72553001fE88371aEc189455E1Ed18849b8bA2", symbols:["ETH", "BTC"], logoURLs:["../icons/eth.svg", "../icons/btc.svg"]},
+		{value: "usdc-btc", address:"0x97edF4e1Aad15Ab44E4194b6E271E49d3E2e36c8", symbols:["BTC", "USDC"], logoURLs:["../icons/btc.svg", "../icons/usdc.svg"]},
+		{value: "eth-dai", address:"0x758E5f4caeD36BF1d0Bb23C31387cfF11498D16D", symbols:["ETH", "DAI"], logoURLs:["../icons/eth.svg", "../icons/dai.svg"]},
+		{value: "usdc-dai", address:"0xC604a85346523d4e66aBF9c215CFfb13dd154286", symbols:["USDC", "DAI"], logoURLs:["../icons/usdc.svg", "../icons/dai.svg"]}
 	]
 }

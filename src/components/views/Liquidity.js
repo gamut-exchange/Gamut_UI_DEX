@@ -759,7 +759,7 @@ export default function Liquidity() {
                       valueLabelDisplay="auto"
                     />
                   </div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
+                  {/* <div className="s" style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Max Slippage:
                     </span>
@@ -770,8 +770,8 @@ export default function Liquidity() {
                       <a href="javascript:void(0);" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
+                  </div> */}
+                  {/* <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Time Deadline:
                     </span>
@@ -782,16 +782,16 @@ export default function Liquidity() {
                       <a href="javascript:void(0);" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} />
+                  </div> */}
+                  {/* <br /> */}
+                  {/* <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} /> */}
                   <br />
                 </div>
               )
                 : null
             }
             <div style={{ textAlign: "left" }}>
-              <span style={{ textAlign: "start", color: "white" }}>
+              {/* <span style={{ textAlign: "start", color: "white" }}>
                 Price Impact:
               </span>
 
@@ -812,19 +812,124 @@ export default function Liquidity() {
                 <div style={{ float: "right", display: "inline" }}>
                   <span style={{ textAlign: "right", color: "white" }}>0</span>
                 </div>
+              </div> */}
+              <div>
+                {account && (
+                  <>
+                    {isExist && !limitedout && Number(value) != 0 ? (
+                      <>
+                        {approval ? (
+                          <Button
+                            size="large"
+                            variant="contained"
+                            sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                            onClick={executeAddPool}
+                            style={{
+                              background: (adding) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                              color: (adding) ? "#ddd" : "#fff",
+                              textAlign: "center",
+                              marginRight: "8px"
+                            }}
+                            className={
+                              adding ? "btn-disabled font-bold w-full dark:text-black flex-1 mt-20" :
+                                "btn-primary font-bold w-full dark:text-black flex-1 mt-20"
+                            }
+                            disabled={limitedout || !isExist || adding}
+                          >
+                            {adding ? "Adding Liquidity" : "Add Liquidity"}
+                          </Button>
+                        ) : (
+                          <div className="mt-2 flex">
+                            <Button
+                              size="large"
+                              variant="contained"
+                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                              onClick={() => { !approval1 ? approveTK1(Number(value - approvedVal1)) : approveTK2(Number(valueEth - approvedVal2)) }}
+                              style={{
+                                background: (unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                color: (unlocking) ? "#ddd" : "#fff",
+                                textAlign: "center",
+                                marginRight: "8px",
+                                maxHeight: 57
+                              }}
+                              className={
+                                unlocking ? "btn-disabled font-bold w-full dark:text-black flex-1 mr-2" :
+                                  "btn-primary font-bold w-full dark:text-black flex-1 mr-2"
+                              }
+                              disabled={unlocking}
+                            >
+                              {unlocking ? "Unlocking..." : (!approval1 ? "Unlock " + Number(value - approvedVal1).toFixed(4)
+                                .toString()
+                                .concat("", inToken["value"].toUpperCase())
+                                : "Unlock " + Number(valueEth - approvedVal2).toFixed(4)
+                                  .toString()
+                                  .concat("", outToken["value"].toUpperCase()))}
+                            </Button>
+                            <Button
+                              size="large"
+                              variant="contained"
+                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                              onClick={() => { !approval1 ? approveTK1(9999999) : approveTK2(9999999) }}
+                              style={{
+                                background: (unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                color: (unlocking) ? "#ddd" : "#fff",
+                                textAlign: "center",
+                                marginRight: "8px",
+                                maxHeight: 57
+                              }}
+                              className={
+                                unlocking ? "btn-disabled font-bold w-full dark:text-black flex-1 mr-2" :
+                                  "btn-primary font-bold w-full dark:text-black flex-1 mr-2"
+                              }
+                              disabled={unlocking}
+                            >
+                              {unlocking ? "Unlocking..." : "Infinite Unlock"}
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="flex mt-2">
+                        <Button
+                          size="large"
+                          variant="contained"
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          className="btn-disabled font-bold w-full dark:text-black mt-20 flex-1"
+                          style={{
+                            background: "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                            color: "#ddd",
+                            textAlign: "center",
+                            marginRight: "8px",
+                            maxHeight: 57
+                          }}
+                        >
+                          {""}
+                          {!isExist ? "Invalid Pair" : "Insufficient Blanance"}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!account && (
+                  <Button
+                    size="large"
+                    variant="contained"
+                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    onClick={clickConWallet}
+                    style={{
+                      background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      color: "#fff",
+                      textAlign: "center",
+                      marginRight: "8px",
+                      maxHeight: 57
+                    }}
+                    className="btn-primary font-bold w-full dark:text-black flex-1"
+                  >
+                    {"Connect to Wallet"}
+                  </Button>
+                )}
               </div>
-              <Button
-                size="large"
-                variant="contained"
-                sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                style={{
-                  background:
-                    "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                  textAlign: "center",
-                }}
-              >
-                SWAP
-              </Button>
             </div>
           </Item>
         </Grid>
