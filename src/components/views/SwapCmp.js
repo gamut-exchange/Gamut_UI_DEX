@@ -26,10 +26,10 @@ function SwapCmp() {
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
-            <Stack spacing={2} style={{flexDirection:isMobile ? "column" : "row"}}>
+            <Stack spacing={2} direction="row">
               <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size={isMobile ? "small" : "large"}
+                  size="large"
                   variant="contained"
                   sx={{
                     width:200,
@@ -45,7 +45,7 @@ function SwapCmp() {
               </Link>
               <Link to="/remove_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size={isMobile ? "small" : "large"}
+                  size="large"
                   variant="contained"
                   sx={{
                     width:200,
@@ -62,14 +62,14 @@ function SwapCmp() {
 
               <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size={isMobile ? "small" : "large"}
+                  size="large"
                   variant="contained"
                   sx={{
                     width:200,
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname == "/create_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/create_liquidity")}
                 >

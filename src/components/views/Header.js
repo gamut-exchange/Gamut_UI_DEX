@@ -312,7 +312,7 @@ function Header(props) {
                   Goerli
                 </MenuItem>
               </Menu>
-              <Hidden mdDown="true">
+              <Hidden mdDown={true}>
                 {/* <Button
                   size="large"
                   color="primary"
@@ -400,7 +400,7 @@ function Header(props) {
                   </Box>
                 </Box>
               </Hidden>
-              <Hidden mdUp="true" style={{ marginLeft: 20, marginRight: 0 }}>
+              <Hidden mdUp={true} style={{ marginLeft: 20, marginRight: 0 }}>
                 <Grid item
                   xs={2}
                   sm={2}
@@ -450,7 +450,7 @@ function Header(props) {
         {/* Header Section 1 End  */}
 
         {/* APP bar start  main menu*/}
-        <Hidden mdDown="true">
+        <Hidden mdDown={true}>
           <Navigation />
         </Hidden>
         {/* App Bar closed */}

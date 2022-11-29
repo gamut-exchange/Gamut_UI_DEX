@@ -198,7 +198,6 @@ export default function RLiquidity() {
         provider,
         selectedItem["address"]
       );
-      console.log(poolData["weights"][0]);
       const weightA = fromWeiVal(provider, poolData["weights"][0], "18");
       setWeightA(weightA);
       setScale((weightA * 100).toPrecision(6));
@@ -261,8 +260,6 @@ export default function RLiquidity() {
     let removeingPercentage = inValue / (Number(totalLkTk) + 0.0000000001);
     let standardOutA = removeingPercentage * poolData.balances[0];
     let standardOutB = removeingPercentage * poolData.balances[1];
-
-    // console.log("pool data", poolData, weightA)
     let reqWeightA = (1 - weightA) * 10 ** 18;
     let reqWeightB = weightA * 10 ** 18;
     let outA = 0;
@@ -283,8 +280,6 @@ export default function RLiquidity() {
 
     const vaueA = Math.floor(outA).toLocaleString("fullwide", { useGrouping: false });
     const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
-    // console.log(vaueA);
-    console.log(vaueB);
     const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
     setOutTokenA(Number(amount1));
