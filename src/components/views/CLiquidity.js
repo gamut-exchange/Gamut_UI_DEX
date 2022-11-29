@@ -1,34 +1,29 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-// import createSimpleSwitcher from './ChartHome'
-import History from './History';
-
-import Grid from "@mui/material/Grid";
+import tw from "twin.macro";
 import {
+  Paper,
+  Grid,
+  Modal,
+  TextField,
   Button,
   FormControl,
-  InputLabel,
-  ListItemIcon,
-  ListItemText,
-  NativeSelect,
   Typography,
+  Slider
 } from "@mui/material";
-import { Stack } from "@mui/system";
-import Select from "@mui/material/Select";
-import InputBase from "@mui/material/InputBase";
-import MenuItem from "@mui/material/MenuItem";
 import {
-  ArrowCircleDown,
-  ArrowCircleDownRounded,
+  AddCircleOutline,
   CurrencyBitcoin,
-  ForkRight,
 } from "@mui/icons-material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import {
+  getPoolAddress,
+  createPool
+} from "../../config/web3";
 import SwapCmp from "./SwapCmp";
-
+import { uniList } from "../../config/constants";
+import { contractAddresses } from "../../config/constants";
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -39,80 +34,146 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-// drop down style start
-const BootstrapInput = styled(InputBase)(({ theme }) => ({
-  "label + &": {
-    marginTop: theme.spacing(3),
-  },
-  "& .MuiInputBase-input": {
-    borderRadius: 4,
-    position: "relative",
-    backgroundColor: "#07071c",
-    border: "0px solid #ced4da",
-    fontSize: 20,
-    textAlign: "start",
-    padding: "10px 16px 10px 12px",
-    transition: theme.transitions.create(["border-color", "box-shadow"]),
-    // Use the system font instead of the default Roboto font.
-    fontFamily: [
-      "-apple-system",
-      "BlinkMacSystemFont",
-      '"Segoe UI"',
-      "Roboto",
-      '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-      '"Apple Color Emoji"',
-      '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"',
-    ].join(","),
-    "&:focus": {
-      borderRadius: 4,
-      borderColor: "#80bdff",
-      boxShadow: "0 0 0 0.2rem rgba(0,123,255,.25)",
-      color:"white"
-    },
-  },
-  icon: {
-    color: "white",
-  },
-}));
-
-//   drop down style close
-
 export default function CLiquidity() {
-  const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
-  const [darkFontColorSec, setDarkFontColorSec] = useState("#13a8ff");
-  const [grayColor,setGrayColor]=useState("#6d6d7d");
+  const selected_chain = useSelector((state) => state.selectedChain);
+  const { account, connector } = useWeb3React();
 
-  // drop down js start
-  const [age, setAge] = React.useState("0");
-  const handleChange = (event) => {
-    setAge(event.target.value);
+  const [mopen, setMopen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = React.useState(0);
+  const [inToken, setInToken] = useState(uniList[selected_chain][0]);
+  const [outToken, setOutToken] = useState(uniList[selected_chain][1]);
+  const [filterData, setFilterData] = useState(uniList[selected_chain]);
+  const [pairStatus, setPairStatus] = useState(0);
+  const [weight, setWeight] = useState(50);
+
+  const dispatch = useDispatch();
+
+  const StyledModal = tw.div`
+    flex
+    flex-col
+    relative
+    m-auto
+    top-1/4
+    p-6
+    min-h-min
+    transform -translate-x-1/2 -translate-y-1/2
+    sm:w-1/3 w-11/12
+  `;
+
+  const handleMopen = (val) => {
+    setSelected(val);
+    setMopen(true);
   };
 
-  //   Dropdown js close
+  const handleClose = () => setMopen(false);
 
+  const handleSlider = (event, newValue) => {
+    setWeight(newValue);
+  };
 
+  const filterToken = (e) => {
+    let search_qr = e.target.value;
+    setQuery(search_qr);
+    if (search_qr.length != 0) {
+      const filterDT = uniList[selected_chain].filter((item) => {
+        return item["symbol"].toLowerCase().indexOf(search_qr) != -1;
+      });
+      setFilterData(filterDT);
+    } else {
+      setFilterData(uniList[selected_chain]);
+    }
+  };
+
+  const selectToken = async (token, selected) => {
+    handleClose();
+    if (selected === 0) {
+      setInToken(token);
+    } else if (selected === 1) {
+      setOutToken(token);
+    }
+    if (account) {
+      const provider = await connector.getProvider();
+      if (selected === 0) {
+        if (token['address'].toLowerCase() === outToken['address'].toLowerCase())
+          setPairStatus(1);
+        else {
+          try {
+            const poolAddr = await getPoolAddress(
+              provider,
+              token["address"],
+              outToken["address"],
+              contractAddresses[selected_chain]["hedgeFactory"]
+            );
+            if (poolAddr === "0x0000000000000000000000000000000000000000")
+              setPairStatus(2);
+            else
+              setPairStatus(0);
+          } catch (error) {
+            setPairStatus(2);
+          }
+        }
+      } else if (selected === 1) {
+        if (token['address'].toLowerCase() === inToken['address'].toLowerCase())
+          setPairStatus(1);
+        else {
+          try {
+            const poolAddr = await getPoolAddress(
+              provider,
+              token["address"],
+              inToken["address"],
+              contractAddresses[selected_chain]["hedgeFactory"]
+            );
+            if (poolAddr === "0x0000000000000000000000000000000000000000")
+              setPairStatus(2);
+            else
+              setPairStatus(0);
+          } catch (error) {
+            setPairStatus(2);
+          }
+        }
+      }
+    }
+  };
+
+  const executeCreatePool = async () => {
+    const provider = await connector.getProvider();
+    try {
+      await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
+      setPairStatus(0);
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
+  const clickConWallet = () => {
+    document.getElementById("connect_wallet_btn").click();
+  };
+
+  useEffect(() => {
+    setFilterData(uniList[selected_chain]);
+    selectToken(uniList[selected_chain][0], 0);
+    selectToken(uniList[selected_chain][1], 1);
+  }, [account, dispatch, selected_chain]);
 
   return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
+    <div style={{ display: "flex", justifyContent: "center", paddingBottom: "30px" }}>
       <Grid
         container
-        sx={{maxWidth:"1220px"}}
+        sx={{ maxWidth: "1220px" }}
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
       >
-       <SwapCmp />
+        <SwapCmp />
 
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
-        <Item sx={{ pl: 3, pr: 3,pb:2 }} style={{ backgroundColor: "#12122c",borderRadius: "10px" }} className="home__main">
+        <Grid item xs={12} sm={12} md={5} sx={{ mt: 10 }} className="home__mainC">
+          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
 
             <Typography
               variant="h5"
               sx={{ fontWeight: "600", color: "white" }}
               gutterBottom
-              style={{ textAlign: "left", margin:"12px 0px" }}
+              style={{ textAlign: "left", margin: "12px 0px" }}
 
             >
               Create Pool
@@ -125,221 +186,193 @@ export default function CLiquidity() {
               style={{ alignItems: "flex-start", display: "inline" }}
               variant="standard"
             >
-              <span
-                style={{
-                  color: "white",
-                  fontWeight: "500",
-                  fontSize: "16px",
-                  display: "block",
-                  textAlign: "left",
-                }}
+              <Button
+                style={{ width: "40%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                onClick={() => handleMopen(0)}
+                startIcon={
+                  <img
+                    alt=""
+                    src={inToken['logoURL']}
+                    className="w-8"
+                  />
+                }
               >
-                
-              </span>
-
-              <div style={{ backgroundColor: "#12122c" }}>
-                <Select
-                  labelId="demo-customized-select-label"
-                  id="demo-customized-select"
-                  value={age}
-                  onChange={handleChange}
-                  input={<BootstrapInput />}
-                  style={{ width: "35%", float: "left", border: "0px" }}
-                >
-                  <MenuItem value={0}></MenuItem>
-
-                  <MenuItem value={0}>
-                    {" "}
-                    <CurrencyBitcoin
-                      sx={{ color: "#fc8416", marginBottom: "-5px" }}
-                    />{" "}
-                    <span style={{ color: "#FFFFFF", display: "inline" }}>
-                      BTC
-                    </span>{" "}
-                  </MenuItem>
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
-                <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={0}
-                  style={{
-                    color: "#FFFFFF",
-                    width: "65%",
-                    float: "left",
-                    borderLeft: "1px solid white",
-                    borderRadius: "14px",
-                    textAlign:"right"
-                  }}
+                {inToken['symbol']}
+              </Button>
+              <div style={{ padding: "0px", width: "20%", textAlign: "center", display: "inline" }}>
+                <AddCircleOutline
+                  sx={{ color: "white", marginTop: "4px", fontSize: "32px" }}
                 />
               </div>
-
-              <div style={{textAlign:"left"}}>
-                <span style={{  color: grayColor }}>
-                  Balance Connect wallet
-                </span>
-
-               
-              </div>
-            
-            </FormControl>
-            {/* </FormControl> */}
-
-            {/* Drop down close */}
-<br />
-           {/* Drop down Start  */}
-
-           <FormControl
-              sx={{ m: 0 }}
-              style={{ alignItems: "flex-start", display: "inline" }}
-              variant="standard"
-            >
-              <span
-                style={{
-                  color: "white",
-                  fontWeight: "500",
-                  fontSize: "16px",
-                  display: "block",
-                  textAlign: "left",
-                }}
+              <Button
+                style={{ width: "40%", float: "right", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                onClick={() => handleMopen(1)}
+                startIcon={
+                  <img
+                    alt=""
+                    src={outToken['logoURL']}
+                    className="w-8"
+                  />
+                }
               >
-                
+                {outToken['symbol']}
+              </Button>
+            </FormControl>
+            <div style={{ textAlign: "left", marginTop: "27px" }}>
+              <span style={{ color: "white" }}>
+                Weight: {weight}% ({inToken["symbol"]}) + {100 - weight}% ({outToken["symbol"]})
               </span>
-
-              <div style={{ backgroundColor: "#12122c" }}>
-                <Select
-                  labelId="demo-customized-select-label"
-                  id="demo-customized-select"
-                  value={age}
-                  onChange={handleChange}
-                  input={<BootstrapInput />}
-                  style={{ width: "35%", float: "left", border: "0px" }}
-                >
-                  <MenuItem value={0}></MenuItem>
-
-                  <MenuItem value={0}>
-                    {" "}
-                    <CurrencyBitcoin
-                      sx={{ color: "#fc8416", marginBottom: "-5px" }}
-                    />{" "}
-                    <span style={{ color: "#FFFFFF", display: "inline" }}>
-                      BTC
-                    </span>{" "}
-                  </MenuItem>
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
-                <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={0}
-                  style={{
-                    color: "#FFFFFF",
-                    width: "65%",
-                    float: "left",
-                    borderLeft: "1px solid white",
-                    borderRadius: "14px",
-                  }}
-                />
-              </div>
-
-              <div style={{textAlign:"left"}}>
-                <span style={{  color: grayColor }}>
-                  Balance Connect wallet
+              <Slider
+                size="small"
+                value={weight}
+                onChange={handleSlider}
+                defaultValue={50}
+                step={1}
+                min={10}
+                max={90}
+                aria-label="Small"
+                valueLabelDisplay="auto"
+              />
+              <div>
+                <span style={{ textAlign: "start", color: "white", fontSize: "18px" }}>
+                  Trading Fee:{" "}
                 </span>
 
-               
+                <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
+                  <span style={{ textAlign: "right", color: "#6d6d7d" }}>0.1%</span>
+                </div>
               </div>
-            
-            </FormControl>
-            {/* </FormControl> */}
-
-            {/* Drop down close */}
-
-  <div style={{textAlign:"left",marginTop:"27px"}}>
-            
-            <span style={{ textAlign: "start", color: "white", fontSize: "18px" }}>
-              Weight  <CurrencyBitcoin sx={{ color: "#fc8416", marginBottom: "-4px" }} />{" "}
-            </span>
-
-            <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
-              <span style={{ textAlign: "right", color: "#6d6d7d" }}>50%</span>
-            </div>
-
-            <div>
-            <span style={{ textAlign: "start", color: "white", fontSize: "18px" }}>
-              Weight  <CurrencyBitcoin sx={{ color: "#fc8416", marginBottom: "-4px" }} />{" "}
-            </span>
-
-            <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
-              <span style={{ textAlign: "right", color: "#6d6d7d" }}>50%</span>
-            </div>
-            </div>
-
-           
-            <div>
-            <span style={{ textAlign: "start", color: "white", fontSize: "18px" }}>
-              Trading Fee:  <CurrencyBitcoin sx={{ color: "#fc8416", marginBottom: "-4px" }} />{" "}
-            </span>
-
-            <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
-              <span style={{ textAlign: "right", color: "#6d6d7d" }}>0.1%</span>
-            </div>
-            </div>
-            <Button
-              size="large"
-              variant="contained"
-              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-              style={{
-                background:
-                  "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                textAlign: "center",
-              }}
-            >
-              CREATE POOL
-            </Button>
-
-            <Button
-              size="large"
-              variant="contained"
-              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2, mb: 2 }}
-              style={{
-                background:
-                  "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                textAlign: "center",
-              }}
-            >
-              ADD LIQUIDITY
-            </Button>
-
+              {account &&
+                <>
+                  {pairStatus === 0 &&
+                    <Button
+                      size="large"
+                      variant="contained"
+                      sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                      style={{
+                        color: "white",
+                        background:
+                          "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                        textAlign: "center",
+                      }}
+                      disabled={true}
+                    >
+                      Existing Pair
+                    </Button>
+                  }
+                  {pairStatus === 1 &&
+                    <Button
+                      size="large"
+                      variant="contained"
+                      sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                      onClick={executeCreatePool}
+                      style={{
+                        color: "white",
+                        background:
+                          "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                        textAlign: "center",
+                      }}
+                    >
+                      Same Token Pair
+                    </Button>
+                  }
+                  {pairStatus === 2 &&
+                    <Button
+                      size="large"
+                      variant="contained"
+                      onClick={executeCreatePool}
+                      sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                      style={{
+                        background:
+                          "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                        textAlign: "center",
+                      }}
+                    >
+                      CREATE POOL
+                    </Button>
+                  }
+                </>
+              }
+              {!account && (
+                <Button
+                  size="large"
+                  variant="contained"
+                  sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                  onClick={clickConWallet}
+                  style={{
+                    background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                    color: "#fff",
+                    textAlign: "center",
+                    marginRight: "8px",
+                    maxHeight: 57
+                  }}
+                  className="btn-primary font-bold w-full dark:text-black flex-1"
+                >
+                  {"Connect to Wallet"}
+                </Button>
+              )}
             </div>
           </Item>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }}>
+        <Grid item xs={12} sm={12} md={7} sx={{ mt: 10 }}>
           <Item
             sx={{ mb: 3, justifyContent: "flex-start" }}
             style={{ backgroundColor: "transparent", color: "white" }}
           >
-            <div style={{textAlign: "left"}}>
-             <h1 style={{marginLeft:"18px"}}>Pool Creation Guide </h1>
-             <ol>
-                <li style={{fontSize: "19px"}}>
-                    Choose two token which have no existing liquidity Pool.
+            <div style={{ textAlign: "left" }}>
+              <h1>Pool Creation Guide </h1>
+              <ol>
+                <li style={{ fontSize: "19px" }}>
+                  Choose two token which have no existing liquidity Pool.
                 </li>
-                <li style={{fontSize: "19px"}}>
-                    Set the amount of each token you wish to add
-                </li>
-             </ol>
+              </ol>
 
-             </div>
+            </div>
           </Item>
-
-         
         </Grid>
+        <Modal
+          open={mopen}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <StyledModal className="bg-modal">
+            <h3 className="model-title mb-6 text-wight" style={{ color: "#fff" }}>Select Token</h3>
+            <TextField
+              autoFocus={true}
+              value={query}
+              onChange={filterToken}
+              label="Search"
+              InputProps={{
+                type: "search",
+                style: { color: "#ddd" },
+              }}
+              InputLabelProps={{
+                style: { color: "#ddd" },
+              }}
+            />
+            <hr className="my-6" />
+            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
+              {filterData.map((item) => {
+                const { address, logoURL, symbol } = item;
+                return (
+                  <li
+                    key={address}
+                    className="flex gap-x-1 thelist"
+                    style={{ cursor: "pointer", padding: "5px" }}
+                    onClick={() => selectToken(item, selected)}
+                  >
+                    <div className="relative flex">
+                      <img src={logoURL} alt="" />
+                    </div>
+                    <p className="text-light-primary text-lg">{symbol}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </StyledModal>
+        </Modal>
       </Grid>
     </div>
   );

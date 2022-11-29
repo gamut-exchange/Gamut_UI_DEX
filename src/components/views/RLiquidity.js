@@ -263,10 +263,8 @@ export default function RLiquidity() {
     let standardOutB = removeingPercentage * poolData.balances[1];
 
     // console.log("pool data", poolData, weightA)
-
     let reqWeightA = (1 - weightA) * 10 ** 18;
     let reqWeightB = weightA * 10 ** 18;
-
     let outA = 0;
     let outB = 0;
     if (reqWeightB < Number(poolData.weights[1])) {
@@ -487,20 +485,20 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: "48px" }}
+                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: "48px", fontSize:"10px", fontWeight:"bold" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
                         src={selectedItem["logoURLs"][0]}
                         alt=""
                         style={{ float: "left" }}
-                        className="w-6"
+                        className="w-4 md:w-6"
                       />
                       <img
                         src={selectedItem["logoURLs"][1]}
                         alt=""
                         style={{ float: "left", marginLeft: -5 }}
-                        className="w-6"
+                        className="w-4 md:w-6"
                       />
                     </div>
                   }
@@ -525,14 +523,14 @@ export default function RLiquidity() {
                   readOnly={true}
                 />
               </div>
-              <div>
+              {/* <div>
                 <span style={{ float: "left", color: grayColor }}>
                   Balance: {poolAmount}
                 </span>
                 <span style={{ float: "right", color: grayColor }}>
                   25% 50% 75% 100%
                 </span>
-              </div>
+              </div> */}
             </FormControl>
             {/* </FormControl> */}
             <div style={{ width: "100%" }}>

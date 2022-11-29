@@ -1,12 +1,13 @@
-import { Button, Grid, Stack, Paper, styled, Hidden } from '@mui/material'
+import { Button, Grid, Stack, Paper, styled, Hidden, useMediaQuery } from '@mui/material'
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import "./Navigation.css"
 
 function SwapCmp() {
   const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
-  const [activeSwap, setActiveSwap] = useState("add_liquidity");
   const [activeSwapColor, setActiveSwapColor] = useState("linear-gradient(to right bottom, #13a8ff, #0074f0)");
+
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -16,78 +17,61 @@ function SwapCmp() {
     color: theme.palette.text.secondary,
   }));
 
-
   const location = useLocation();
-  if (location.pathname == "/liquidity/remove") {
-    console.log('pathname Swap', location.pathname)
-  }
-  else {
-    console.warn("incorrect ", location);
-  }
-
-
   return (
     <>
-
       <Hidden smDown="true">
         <Grid item xs={12} sm={12} md={9} lg={8} >
           <Item
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
-            <Stack spacing={2} direction="row">
-
-
-              <Link to="/liquidity" style={{ textDecoration: "none" }}>
+            <Stack spacing={2} style={{flexDirection:isMobile ? "column" : "row"}}>
+              <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size="large"
-
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
                   sx={{
-                    width: 200,
+                    width:200,
                     padding: 2,
                     fontWeight: "bold",
-
                     background:
-                      location.pathname == "/liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname == "/add_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidity")}
+                  onClick={() => setActiveSwapColor("/add_liquidity")}
                 >
                   Add Liquidity
                 </Button>
               </Link>
-
-
-
-              <Link to="/liquidity/remove" style={{ textDecoration: "none" }}>
+              <Link to="/remove_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size="large"
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
                   sx={{
-                    width: 200,
+                    width:200,
                     padding: 2,
                     fontWeight: "bold",
-
                     background:
-                      location.pathname == "/liquidity/remove" ? activeSwapColor : "#12122c",
+                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidity/remove")}
+                  onClick={() => setActiveSwapColor("/remove_liquidity")}
                 >
                   REMOVE LIQUIDITY
                 </Button>
               </Link>
 
-              <Link to="/liquidity/create" style={{ textDecoration: "none" }}>
+              <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
                 <Button
-                  size="large"
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
-                  sx={{ width: 200, padding: 2, fontWeight: "bold" }}
-                  style={{
+                  sx={{
+                    width:200,
+                    padding: 2,
+                    fontWeight: "bold",
                     background:
-                      location.pathname == "/liquidity/create" ? activeSwapColor : "#12122c",
+                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidtiy/create")}
-
+                  onClick={() => setActiveSwapColor("/create_liquidity")}
                 >
                   Pool Factory
                 </Button>
@@ -107,58 +91,52 @@ function SwapCmp() {
 
             style={{ backgroundColor: "transparent", color: darkFontColor }} className="swap_b"
           >
-            <Stack spacing={2} direction="row" className="swap_b" >
-
-
-              <Link to="/liquidity" style={{ textDecoration: "none" }}>
+            <Stack spacing={2} className="swap_b" style={{flexDirection:isMobile ? "column" : "row"}} >
+              <Link to="/add_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
                 <Button
-                  size="large"
-
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
                   sx={{
-                    width: 200,
+                    width:200,
                     padding: 2,
                     fontWeight: "bold",
-
                     background:
-                      location.pathname == "/liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname == "/add_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidity")}
+                  onClick={() => setActiveSwapColor("/add_liquidity")}
                 >
                   Add Liquidity
                 </Button>
               </Link>
-
-
-
-              <Link to="/liquidity/remove" style={{ textDecoration: "none" }}>
+              <Link to="/remove_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
                 <Button
-                  size="large"
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
                   sx={{
-                    width: 200,
+                    width:200,
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/liquidity/remove" ? activeSwapColor : "#12122c",
+                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidity/remove")}
+                  onClick={() => setActiveSwapColor("/remove_liquidity")}
                 >
                   REMOVE LIQUIDITY
                 </Button>
               </Link>
 
-              <Link to="/liquidity/create" style={{ textDecoration: "none" }}>
+              <Link to="/create_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
                 <Button
-                  size="large"
+                  size={isMobile ? "small" : "large"}
                   variant="contained"
-                  sx={{ width: 200, padding: 2, fontWeight: "bold" }}
-                  style={{
+                  sx={{
+                    width:200,
+                    padding: 2,
+                    fontWeight: "bold",
                     background:
-                      location.pathname == "/liquidity/create" ? activeSwapColor : "#12122c",
+                      location.pathname == "/create_liquidity" ? activeSwapColor : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/liquidtiy/create")}
-
+                  onClick={() => setActiveSwapColor("/create_liquidity")}
                 >
                   Pool Factory
                 </Button>

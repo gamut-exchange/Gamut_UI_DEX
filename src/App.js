@@ -14,14 +14,14 @@ function App() {
 
   const [bgColor,setBgColor]=useState("#07071c");
   return (
-    <div className='Dark__Theme'>
+    <div className='Dark__Theme' style={{minHeight:"100vh", padding:"4px"}}>
       <BrowserRouter>
       <Header />
       <Routes>
         <Route path="/" element={<Swap />} />
-        <Route path="/liquidity" element={<Liquidity />} />
-        <Route path="/liquidity/create" element={<CLiquidity />} />
-        <Route path="/liquidity/remove" element={<RLiquidity />} />
+        <Route path="/add_liquidity" element={<Liquidity />} />
+        <Route path="/create_liquidity" element={<CLiquidity />} />
+        <Route path="/remove_liquidity" element={<RLiquidity />} />
      </Routes>
       <Footer />
     </BrowserRouter>

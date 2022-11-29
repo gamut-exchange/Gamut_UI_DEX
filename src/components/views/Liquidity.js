@@ -32,10 +32,7 @@ import {
 import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
-
-import ChartHome from './ChartHome'
 import History from './History';
-
 import {
   LineChart,
   Line,
@@ -124,10 +121,10 @@ export default function Liquidity() {
   const [approvedVal2, setApprovedVal2] = useState(0);
   const [unlocking, setUnlocking] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [slippage, setSlippage] = useState(0.01);
-  const [slippageFlag, setSlippageFlag] = useState(false);
-  const [deadline, setDeadline] = useState(900);
-  const [deadlineFlag, setDeadlineFlag] = useState(false);
+  // const [slippage, setSlippage] = useState(0.01);
+  // const [slippageFlag, setSlippageFlag] = useState(false);
+  // const [deadline, setDeadline] = useState(900);
+  // const [deadlineFlag, setDeadlineFlag] = useState(false);
 
   const dispatch = useDispatch();
 

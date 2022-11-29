@@ -5,15 +5,23 @@ import WalletConnectors from "../../config/connectors";
 import { useWeb3React } from "@web3-react/core";
 import {
   Grid,
-  styled,
-  Paper,
   Button,
   Box,
   Hidden,
   Menu,
-  MenuItem
+  MenuItem,
+  useMediaQuery,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Toolbar,
+  IconButton,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Stack } from "@mui/system";
+import { Link } from "react-router-dom";
 import logo from "../../images/logo.svg";
 import useStyles from "../../assets/styles";
 import Navigation from "./Navigation";
@@ -22,12 +30,14 @@ import ConnectWallet from "../web3/ConnectWallet";
 import { ConnectedWallet } from "../../config/wallets";
 import { SELECT_CHAIN } from "../../redux/constants";
 
-function Header() {
+function Header(props) {
+  const { window } = props;
   const cWallet = ConnectedWallet();
   const selected_chain = useSelector((state) => state.selectedChain);
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
-  const [darkFontColorSec, setDarkFontColorSec] = useState("#13a8ff");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [wrongChain, setWrongChain] = useState(false);
   const [openWalletList, setOpenWalletList] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -48,8 +58,132 @@ function Header() {
     chainChanged,
   } = useWeb3React();
 
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawer = (
+    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
+      <div style={{display:"flex", justifyContent:"center", padding:"20px 0px"}}>
+        <img
+          src={logo}
+          width="150px"
+          alt="Logo"
+          style={{ marginTop: isMobile ? "1.8rem" : "1.1rem" }}
+        />
+      </div>
+      <List>
+        <Link to="/" style={{ textDecoration: "none", color: "white" }}>
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }}>
+              <ListItemText primary={"Home"} />
+            </ListItemButton>
+          </ListItem>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none", color: "white" }}>
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }}>
+              <ListItemText primary={"About Us"} />
+            </ListItemButton>
+          </ListItem>
+        </Link>
+        <Link to="#" style={{ textDecoration: "none", color: "white" }}>
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }}>
+              <ListItemText primary={"Contact Us"} />
+            </ListItemButton>
+          </ListItem>
+        </Link>
+        <Link to="/add_liquidity" style={{ textDecoration: "none", color: "white" }}>
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }}>
+              <ListItemText primary={"Liquidity"} />
+            </ListItemButton>
+          </ListItem>
+        </Link>
+      </List>
+      <Box className={classes.actionGroup} style={{ justifyContent: "center" }}>
+        <Box className={classes.connectWallet}>
+          {(() => {
+            if (wrongChain) {
+              return (
+                <Button
+                  variant="contained"
+                  className="btn-primary dark:text-dark-primary w-full"
+                  style={{
+                    borderRadius: "0px",
+                    height: 44,
+                    fontSize: 18,
+                  }}
+                  onClick={() => {
+                    setOpenWalletList(true);
+                  }}
+                >
+                  Wrong Chain
+                </Button>
+              );
+            } else {
+              if (account)
+                return (
+                  <Button
+                    variant="contained"
+                    className="btn-primary dark:text-dark-primary w-full"
+                    style={{
+                      borderRadius: "0px",
+                      height: 44,
+                      fontSize: 14,
+                    }}
+                    startIcon={
+                      cWallet && (
+                        <img
+                          width={22}
+                          src={cWallet.logo}
+                          alt={cWallet.name}
+                        />
+                      )
+                    }
+                    onClick={() => {
+                      setOpenWalletList(true);
+                    }}
+                  >
+                    {`${account.substring(
+                      0,
+                      8
+                    )} ... ${account.substring(
+                      account.length - 4
+                    )}`}
+                  </Button>
+                );
+              else
+                return (
+                  <Button
+                    variant="contained"
+                    id="connect_wallet_btn"
+                    className="btn-primary dark:text-dark-primary w-full"
+                    style={{
+                      borderRadius: "0px",
+                      height: 44,
+                      fontSize: 18,
+                    }}
+                    onClick={() => {
+                      setOpenWalletList(true);
+                    }}
+                  >
+                    Connect Wallet
+                  </Button>
+                );
+            }
+          })()}
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  const container =
+    window !== undefined ? () => window().document.body : undefined;
+
   const handleClick = (event) => {
-    debugger;
     setAnchorEl(event.currentTarget);
   };
 
@@ -103,9 +237,8 @@ function Header() {
   }, [chainLabel]);
 
   return (
-    <div className="s" style={{ display: "flex", justifyContent: "center", padding:"16px 0px" }}>
+    <div className="s" style={{ display: "flex", justifyContent: "center", padding: isMobile ? "5px" : "16px 0px" }}>
       {/* <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}> */}
-
       {/* Header Start  */}
       <Grid
         container
@@ -113,6 +246,7 @@ function Header() {
         columnSpacing={{ xs: 0, sm: 0, md: 0 }}
         sx={{ pb: 1 }}
         className="header"
+        style={{ justifyContent: "space-between" }}
       >
         {/* Logo Grid */}
         <Grid
@@ -131,7 +265,7 @@ function Header() {
               src={logo}
               width="150px"
               alt="Logo"
-              style={{ marginTop: "1.1rem" }}
+              style={{ marginTop: isMobile ? "1.8rem" : "1.1rem" }}
             />
           </Box>
         </Grid>
@@ -143,14 +277,14 @@ function Header() {
           sm={5}
           md={6}
           lg={6}
-          sx={{ display: "flex", justifyContent: "flex-end" }}
+          sx={{ display: "flex", justifyContent: "end" }}
 
         >
           <Box
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor }}
           >
-            <Stack spacing={2} direction="row">
+            <Stack spacing={1} direction="row" style={{ marginTop: isMobile ? "15px" : "0px" }}>
               <Button
                 id="basic-button"
                 className="transition-all duration-300"
@@ -158,7 +292,7 @@ function Header() {
                 aria-haspopup="true"
                 aria-expanded={menuOpen ? "true" : undefined}
                 onClick={handleClick}
-                style={{fontWeight:"bold", fontSize:"16px", color:"white"}}
+                style={{ fontWeight: "bold", fontSize: "16px", color: "white" }}
               >
                 {chainLabel}
               </Button>
@@ -266,22 +400,53 @@ function Header() {
                   </Box>
                 </Box>
               </Hidden>
+              <Hidden mdUp="true" style={{ marginLeft: 20, marginRight: 0 }}>
+                <Grid item
+                  xs={2}
+                  sm={2}
+                  md={2}
+                  lg={6}
+                  sx={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
+                    <IconButton
+                      color="inherit"
+                      aria-label="open drawer"
+                      onClick={handleDrawerToggle}
+                      sx={{ mr: 2, display: { md: "none" } }}
+                      style={{ padding: "0px", margin: 0 }}
+                    >
+                      <MenuIcon />
+                    </IconButton>
+                    <Box component="nav">
+                      <Drawer
+                        container={container}
+                        variant="temporary"
+                        open={mobileOpen}
+                        onClose={handleDrawerToggle}
+                        ModalProps={{
+                          keepMounted: true, // Better open performance on mobile.
+                        }}
+                        sx={{
+                          display: { xs: "block", sm: "block", md: "none", lg: "none" },
+                          "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
+                            width: "70%",
+                            backgroundColor: "#07071c"
+                          },
+                        }}
+                      >
+                        {drawer}
+                      </Drawer>
+                    </Box>
+                  </Toolbar>
+                </Grid>
+              </Hidden>
             </Stack>
           </Box>
         </Grid>
 
         {/* Mobile menu  */}
-        <Hidden mdUp="true">
-          <Grid item
-            xs={2}
-            sm={2}
-            md={2}
-            lg={6}
-            sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Navigation />
 
-          </Grid>
-        </Hidden>
         {/* Header Section 1 End  */}
 
         {/* APP bar start  main menu*/}

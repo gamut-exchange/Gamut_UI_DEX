@@ -213,7 +213,6 @@ export const joinPool = async (
 
     if (poolAddr) {
         const poolData = await getPoolData(provider, poolAddr);
-        // debugger;
         let tokenA = "";
         let tokenB = "";
         let amountA = 0;
@@ -325,6 +324,30 @@ export const removePool = async (
         console.log(e.message);
     }
 };
+
+export const createPool = async (
+    account,
+    provider,
+    tokenAddr1,
+    tokenAddr2,
+    weight1,
+    weight2,
+    contractAddr
+) => {
+    const abi = hedgeFactoryABI[0];
+    let web3 = new Web3(provider);
+    const contract = new web3.eth.Contract(abi, contractAddr);
+    const weight1_str = web3.utils.toWei(weight1.toString());
+    const weight2_str = web3.utils.toWei(weight2.toString());
+    const swap_fee = web3.utils.toWei("0.001");
+    debugger;
+    try {
+        await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account});
+    } catch (e) {
+        console.log(e.message);
+    }
+
+}
 
 const toWeiVal = async (provider, tokenAddr, val) => {
     const abi = erc20ABI[0];
