@@ -14,11 +14,12 @@
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    margin: 0;
-    /* <-- Apparently some margin are still there even though it's hidden */
+    -webkit-appearance: none!important;
+    margin: 0!important; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number] {
+    -moz-appearance:textfield!important; /* Firefox */
 }
 
 .bg-modal {

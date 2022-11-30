@@ -265,7 +265,7 @@ export default function Swap() {
   const executeSwap = async () => {
     if (account && inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
-      const limit = valueEth * (1-slippage);
+      const limit = valueEth * (1 - slippage);
       debugger;
       setSwapping(true);
       if (middleToken)
@@ -784,7 +784,7 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
@@ -847,7 +847,7 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
@@ -937,7 +937,7 @@ export default function Swap() {
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth*(1-slippage))}</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage))}</span>
                 </div>
               </div>
               <div>
@@ -1049,15 +1049,15 @@ export default function Swap() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <div className="flex-1 w-full mx-auto mb-4 p-6" style={{ backgroundColor: "#12122c", borderRadius: "10px" }} >
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             {noChartData &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <CircularProgress style={{ marginTop: 160 }} />
               </div>
             }
-            <div ref={chartRef} className="w-full" />
+            {!noChartData && <div ref={chartRef} className="w-full" />}
             {/* <div ref={switchRef} /> */}
-          </div>
+          </Item>
           <History />
         </Grid>
         <Modal

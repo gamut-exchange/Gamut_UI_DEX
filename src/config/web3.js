@@ -79,10 +79,12 @@ export const approveToken = async (
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
+    const weiVal = await toWeiVal(provider, tokenAddr, value);
+    debugger;
     try {
         await token_contract.methods["increaseAllowance"](
             contractAddr,
-            await toWeiVal(provider, tokenAddr, value)
+            weiVal
         ).send({ from: account });
     } catch (e) {
         console.log(e.message);
@@ -301,8 +303,6 @@ export const removePool = async (
     contractAddr
 ) => {
     const abi = routerABI[0];
-    const tokenAbi = erc20ABI[0];
-    const poolAbi = poolABI[0];
     let web3 = new Web3(provider);
 
     const totalAmount = await toWeiVal(provider, token1Addr, amount);
@@ -340,13 +340,46 @@ export const createPool = async (
     const weight1_str = web3.utils.toWei(weight1.toString());
     const weight2_str = web3.utils.toWei(weight2.toString());
     const swap_fee = web3.utils.toWei("0.001");
-    debugger;
     try {
-        await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account});
+        await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account });
     } catch (e) {
         console.log(e.message);
     }
 
+}
+
+export const initAddPool = async (
+    account,
+    provider,
+    token1Addr,
+    token2Addr,
+    amountA,
+    amountB,
+    routerContractAddr
+) => {
+    const abi = routerABI[0];
+    let web3 = new Web3(provider);
+
+    await approveToken(account, provider, token1Addr, amountA*1.1, routerContractAddr);
+    await approveToken(account, provider, token2Addr, amountB*1.1, routerContractAddr);
+    const initialBalances = [web3.utils.toWei(amountB.toString()), web3.utils.toWei(amountA.toString())];
+    const JOIN_KIND_INIT = "0";
+
+    const initUserData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256[]"],
+        [JOIN_KIND_INIT, initialBalances]
+    );
+
+    let contract = new web3.eth.Contract(abi, routerContractAddr);
+    try {
+        await contract.methods["joinPool"](account, [
+            [token2Addr, token1Addr],
+            initialBalances,
+            initUserData,
+        ]).send({ from: account });
+    } catch (e) {
+        console.log(e.message);
+    }
 }
 
 const toWeiVal = async (provider, tokenAddr, val) => {

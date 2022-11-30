@@ -400,13 +400,13 @@ function Header(props) {
                   </Box>
                 </Box>
               </Hidden>
-              <Hidden mdUp={true} style={{ marginLeft: 20, marginRight: 0 }}>
+              <Hidden mdUp={true}>
                 <Grid item
                   xs={2}
                   sm={2}
                   md={2}
                   lg={6}
-                  sx={{ display: "flex", justifyContent: "flex-end" }}>
+                  sx={{ display: "flex", justifyContent: "flex-end",marginLeft: 20, marginRight: 0 }}>
                   <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
                     <IconButton
                       color="inherit"

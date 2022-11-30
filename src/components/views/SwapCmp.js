@@ -20,7 +20,7 @@ function SwapCmp() {
   const location = useLocation();
   return (
     <>
-      <Hidden smDown="true">
+      <Hidden smDown={true}>
         <Grid item xs={12} sm={12} md={9} lg={8} >
           <Item
             elevation={1}
@@ -84,7 +84,7 @@ function SwapCmp() {
 
       </Hidden>
 
-      <Hidden smUp="true">
+      <Hidden smUp={true}>
         <Grid sx={{ overflowX: 'scroll' }} item xs={12} sm={12} md={9} lg={8} >
           <Item
             elevation={1}

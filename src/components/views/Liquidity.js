@@ -643,7 +643,7 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
@@ -694,7 +694,7 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
@@ -931,71 +931,73 @@ export default function Liquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <div className="flex-1 w-full mx-auto mb-4 p-6" style={{ backgroundColor: "#12122c", borderRadius: "10px" }} >
-            {formattedWeightsData[0] && (
-              <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
-                <b>{formattedWeightsData[0]["token0"]}</b> weight
-              </h3>
-            )}
-            <ResponsiveContainer width="95%" height={250}>
-              <LineChart
-                width={500}
-                height={200}
-                data={formattedWeightsData}
-                syncId="anyId"
-                margin={{
-                  top: 10,
-                  right: 30,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
-                <Tooltip content={<CustomTooltip0 />} />
-                <Line
-                  type="monotone"
-                  dataKey="weight0"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-            {formattedWeightsData[0] && (
-              <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
-                <b>{formattedWeightsData[0]["token1"]}</b> weight
-              </h3>
-            )}
-            <ResponsiveContainer width="95%" height={250}>
-              <LineChart
-                width={500}
-                height={200}
-                data={formattedWeightsData}
-                syncId="anyId"
-                margin={{
-                  top: 10,
-                  right: 30,
-                  left: 0,
-                  bottom: 0,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
-                <Tooltip content={<CustomTooltip1 />} />
-                <Line
-                  type="monotone"
-                  dataKey="weight1"
-                  stroke="#82ca9d"
-                  fill="#82ca9d"
-                  strokeWidth={2}
-                />
-                <Brush height={25} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb:4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+            <div className="flex-1 w-full mb-4">
+              {formattedWeightsData[0] && (
+                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                  <b>{formattedWeightsData[0]["token0"]}</b> weight
+                </h3>
+              )}
+              <ResponsiveContainer width="95%" height={250}>
+                <LineChart
+                  width={500}
+                  height={200}
+                  data={formattedWeightsData}
+                  syncId="anyId"
+                  margin={{
+                    top: 10,
+                    right: 30,
+                    left: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
+                  <Tooltip content={<CustomTooltip0 />} />
+                  <Line
+                    type="monotone"
+                    dataKey="weight0"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+              {formattedWeightsData[0] && (
+                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                  <b>{formattedWeightsData[0]["token1"]}</b> weight
+                </h3>
+              )}
+              <ResponsiveContainer width="95%" height={250}>
+                <LineChart
+                  width={500}
+                  height={200}
+                  data={formattedWeightsData}
+                  syncId="anyId"
+                  margin={{
+                    top: 10,
+                    right: 30,
+                    left: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
+                  <Tooltip content={<CustomTooltip1 />} />
+                  <Line
+                    type="monotone"
+                    dataKey="weight1"
+                    stroke="#82ca9d"
+                    fill="#82ca9d"
+                    strokeWidth={2}
+                  />
+                  <Brush height={25} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Item>
           <History />
         </Grid>
         <Modal

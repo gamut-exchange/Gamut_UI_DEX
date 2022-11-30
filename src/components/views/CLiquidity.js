@@ -10,16 +10,18 @@ import {
   TextField,
   Button,
   FormControl,
+  InputBase,
   Typography,
   Slider
 } from "@mui/material";
 import {
   AddCircleOutline,
-  CurrencyBitcoin,
 } from "@mui/icons-material";
 import {
   getPoolAddress,
-  createPool
+  getTokenBalance,
+  createPool,
+  initAddPool
 } from "../../config/web3";
 import SwapCmp from "./SwapCmp";
 import { uniList } from "../../config/constants";
@@ -34,7 +36,46 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+const BootstrapInput = styled(InputBase)(({ theme }) => ({
+  "label + &": {
+    marginTop: theme.spacing(3),
+  },
+  "& .MuiInputBase-input": {
+    borderRadius: 4,
+    position: "relative",
+    backgroundColor: "#07071c",
+    border: "0px solid #ced4da",
+    fontSize: 20,
+    textAlign: "start",
+    padding: "10px 16px 10px 12px",
+    transition: theme.transitions.create(["border-color", "box-shadow"]),
+    // Use the system font instead of the default Roboto font.
+    fontFamily: [
+      "-apple-system",
+      "BlinkMacSystemFont",
+      '"Segoe UI"',
+      "Roboto",
+      '"Helvetica Neue"',
+      "Arial",
+      "sans-serif",
+      '"Apple Color Emoji"',
+      '"Segoe UI Emoji"',
+      '"Segoe UI Symbol"',
+    ].join(","),
+    "&:focus": {
+      borderRadius: 4,
+      borderColor: "#80bdff",
+      boxShadow: "0 0 0 0.2rem rgba(0,123,255,.25)",
+      color: "white"
+    },
+  },
+  icon: {
+    color: "white",
+  },
+}));
+
 export default function CLiquidity() {
+  const grayColor = "#6d6d7d";
   const selected_chain = useSelector((state) => state.selectedChain);
   const { account, connector } = useWeb3React();
 
@@ -43,9 +84,14 @@ export default function CLiquidity() {
   const [selected, setSelected] = React.useState(0);
   const [inToken, setInToken] = useState(uniList[selected_chain][0]);
   const [outToken, setOutToken] = useState(uniList[selected_chain][1]);
+  const [inVal, setInVal] = useState(0);
+  const [outVal, setOutVal] = useState(0);
+  const [inBal, setInBal] = useState(0);
+  const [outBal, setOutBal] = useState(0);
   const [filterData, setFilterData] = useState(uniList[selected_chain]);
   const [pairStatus, setPairStatus] = useState(0);
   const [weight, setWeight] = useState(50);
+  const [limitedOut, setLimitedout] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -94,7 +140,19 @@ export default function CLiquidity() {
     }
     if (account) {
       const provider = await connector.getProvider();
+      const bal = await getTokenBalance(provider, token["address"], account);
       if (selected === 0) {
+        setInBal(bal);
+        let inLimBal = bal ? bal.replaceAll(",", "") : 0;
+        let outLimBal = outBal ? outBal.replaceAll(",", "") : 0;
+        if (
+          Number(inVal) > 0 &&
+          Number(outVal) > 0 &&
+          Number(inVal) <= Number(inLimBal) &&
+          Number(outVal) <= Number(outLimBal)
+        )
+          setLimitedout(false);
+        else setLimitedout(true);
         if (token['address'].toLowerCase() === outToken['address'].toLowerCase())
           setPairStatus(1);
         else {
@@ -114,6 +172,17 @@ export default function CLiquidity() {
           }
         }
       } else if (selected === 1) {
+        setOutBal(bal);
+        let inLimBal = inBal ? inBal.replaceAll(",", "") : 0;
+        let outLimBal = bal ? bal.replaceAll(",", "") : 0;
+        if (
+          Number(inVal) > 0 &&
+          Number(outVal) > 0 &&
+          Number(inVal) <= Number(inLimBal) &&
+          Number(outVal) <= Number(outLimBal)
+        )
+          setLimitedout(false);
+        else setLimitedout(true);
         if (token['address'].toLowerCase() === inToken['address'].toLowerCase())
           setPairStatus(1);
         else {
@@ -136,10 +205,39 @@ export default function CLiquidity() {
     }
   };
 
+  const handleInVal = (e) => {
+    setInVal(Number(e.target.value));
+    let inLimBal = inBal.replaceAll(",", "");
+    let outLimBal = outBal.replaceAll(",", "");
+    if (
+      Number(e.target.value) > 0 &&
+      Number(outVal) > 0 &&
+      Number(e.target.value) <= Number(inLimBal) &&
+      Number(outVal) <= Number(outLimBal)
+    )
+      setLimitedout(false);
+    else setLimitedout(true);
+  }
+
+  const handleOutVal = (e) => {
+    setOutVal(Number(e.target.value));
+    let inLimBal = inBal.replaceAll(",", "");
+    let outLimBal = outBal.replaceAll(",", "");
+    if (
+      Number(e.target.value) > 0 &&
+      Number(inVal) > 0 &&
+      Number(e.target.value) <= Number(outLimBal) &&
+      Number(inVal) <= Number(inLimBal)
+    )
+      setLimitedout(false);
+    else setLimitedout(true);
+  }
+
   const executeCreatePool = async () => {
     const provider = await connector.getProvider();
     try {
       await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
+      await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
       setPairStatus(0);
     } catch (e) {
       console.log(e.message);
@@ -186,37 +284,88 @@ export default function CLiquidity() {
               style={{ alignItems: "flex-start", display: "inline" }}
               variant="standard"
             >
-              <Button
-                style={{ width: "40%", float: "left", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
-                onClick={() => handleMopen(0)}
-                startIcon={
-                  <img
-                    alt=""
-                    src={inToken['logoURL']}
-                    className="w-8"
-                  />
-                }
-              >
-                {inToken['symbol']}
-              </Button>
-              <div style={{ padding: "0px", width: "20%", textAlign: "center", display: "inline" }}>
-                <AddCircleOutline
-                  sx={{ color: "white", marginTop: "4px", fontSize: "32px" }}
+
+              <div style={{ backgroundColor: "#12122c" }}>
+                <Button
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  onClick={() => handleMopen(0)}
+                  startIcon={
+                    <img
+                      alt=""
+                      src={inToken['logoURL']}
+                      className="w-8"
+                    />
+                  }
+                >
+                  {inToken['symbol']}
+                </Button>
+                <BootstrapInput
+                  type="number"
+                  value={inVal}
+                  onChange={handleInVal}
+                  min={0}
+                  max={Number(inBal.toString().replaceAll(",", ""))}
+                  readOnly={pairStatus === 2 ? false : true}
+                  style={{
+                    color: "#FFFFFF",
+                    width: "65%",
+                    float: "left",
+                    borderLeft: "1px solid white",
+                    borderRadius: "14px",
+                  }}
                 />
               </div>
-              <Button
-                style={{ width: "40%", float: "right", border: "0px", padding: "8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
-                onClick={() => handleMopen(1)}
-                startIcon={
-                  <img
-                    alt=""
-                    src={outToken['logoURL']}
-                    className="w-8"
-                  />
-                }
-              >
-                {outToken['symbol']}
-              </Button>
+              <div style={{ display: "block", textAlign: "left" }}>
+                <span style={{ color: grayColor }}>
+                  Balance: {inBal}
+                </span>
+              </div>
+            </FormControl>
+            <div>
+              <AddCircleOutline
+                sx={{ color: "white", fontSize: "32px", mt: 1, mb: 3 }}
+              />
+            </div>
+            <FormControl
+              sx={{ m: 0 }}
+              style={{ alignItems: "flex-start", display: "inline" }}
+              variant="standard"
+            >
+              <div>
+                <Button
+                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  onClick={() => handleMopen(1)}
+                  startIcon={
+                    <img
+                      alt=""
+                      src={outToken['logoURL']}
+                      className="w-8"
+                    />
+                  }
+                >
+                  {outToken['symbol']}
+                </Button>
+                <BootstrapInput
+                  type="number"
+                  value={outVal}
+                  onChange={handleOutVal}
+                  min={0}
+                  max={Number(outBal.toString().replaceAll(",", ""))}
+                  readOnly={pairStatus === 2 ? false : true}
+                  style={{
+                    color: "#FFFFFF",
+                    width: "65%",
+                    float: "left",
+                    borderLeft: "1px solid white",
+                    borderRadius: "14px",
+                  }}
+                />
+              </div>
+              <div style={{ display: "block", textAlign: "left" }}>
+                <span style={{ color: grayColor }}>
+                  Balance: {outBal}
+                </span>
+              </div>
             </FormControl>
             <div style={{ textAlign: "left", marginTop: "27px" }}>
               <span style={{ color: "white" }}>
@@ -265,7 +414,7 @@ export default function CLiquidity() {
                       size="large"
                       variant="contained"
                       sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                      onClick={executeCreatePool}
+                      disabled={true}
                       style={{
                         color: "white",
                         background:
@@ -276,20 +425,38 @@ export default function CLiquidity() {
                       Same Token Pair
                     </Button>
                   }
-                  {pairStatus === 2 &&
+                  {(limitedOut && pairStatus === 2) && (
                     <Button
                       size="large"
                       variant="contained"
-                      onClick={executeCreatePool}
                       sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                       style={{
+                        color: "white",
                         background:
-                          "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                          "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
                         textAlign: "center",
                       }}
                     >
-                      CREATE POOL
+                      Insufficient Funds
                     </Button>
+                  )}
+
+                  {
+                    (!limitedOut && pairStatus === 2) && (
+                      <Button
+                        size="large"
+                        variant="contained"
+                        onClick={executeCreatePool}
+                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        style={{
+                          background:
+                            "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                          textAlign: "center",
+                        }}
+                      >
+                        CREATE POOL
+                      </Button>
+                    )
                   }
                 </>
               }
@@ -316,21 +483,23 @@ export default function CLiquidity() {
         </Grid>
 
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 10 }}>
-          <Item
-            sx={{ mb: 3, justifyContent: "flex-start" }}
-            style={{ backgroundColor: "transparent", color: "white" }}
-          >
-            <div style={{ textAlign: "left" }}>
-              <h1>Pool Creation Guide </h1>
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
+            <div style={{ textAlign: "center" }}>
+              <h2 style={{ fontSize: 22 }}>Pool Creation Guide </h2>
               <ol>
                 <li style={{ fontSize: "19px" }}>
                   Choose two token which have no existing liquidity Pool.
                 </li>
               </ol>
-
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
             </div>
-          </Item>
-        </Grid>
+          </Item >
+        </Grid >
         <Modal
           open={mopen}
           onClose={handleClose}
@@ -373,7 +542,7 @@ export default function CLiquidity() {
             </ul>
           </StyledModal>
         </Modal>
-      </Grid>
-    </div>
+      </Grid >
+    </div >
   );
 }
