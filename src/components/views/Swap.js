@@ -1055,7 +1055,7 @@ export default function Swap() {
                 <CircularProgress style={{ marginTop: 160 }} />
               </div>
             }
-            {!noChartData && <div ref={chartRef} className="w-full" />}
+            <div ref={chartRef} className="w-full" style={{display:noChartData?"none":"block"}} />
             {/* <div ref={switchRef} /> */}
           </Item>
           <History />
