@@ -512,7 +512,6 @@ export default function Swap() {
     if (pricesData && pricesData.prices) {
       var result = [];
       const poolTokenPrices = pricesData.prices;
-      console.log(poolTokenPrices);
       if (poolAddress.length === 1) {
         poolTokenPrices.map((item, index) => {
           if (item.token0.id.toLowerCase() === inToken["address"].toLowerCase()) {
@@ -573,7 +572,7 @@ export default function Swap() {
                         : poolTokenPrices[j].token1Price * tempPrice1;
                     var lastPrice =
                       tempArr[0].token0.id.toLowerCase() === outToken["address"].toLowerCase()
-                        ? tempPrice2 * tempArr[0].token0Price
+                        ? tempPrice2 * numFormat(tempArr[0].token0Price/(Number(tempArr[0].token1Price)+0.000000000001))
                         : tempPrice2 * tempArr[0].token1Price;
                     result.push({
                       time: parseInt(poolTokenPrices[i].timestamp, 10),
@@ -583,18 +582,18 @@ export default function Swap() {
                   } else {
                     var tempPrice1 =
                       poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                        ? poolTokenPrices[i].token0Price
+                        ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
                         : poolTokenPrices[i].token1Price;
                     var tempPrice2 =
                       tempArr[0].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token0.id.toLowerCase() ||
                         tempArr[0].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token1.id.toLowerCase()
-                        ? tempArr[0].token0Price * tempPrice1
+                        ? numFormat(tempArr[0].token0Price/(Number(tempArr[0].token1Price)+0.000000000001)) * tempPrice1
                         : tempArr[0].token1Price * tempPrice1;
                     var lastPrice =
                       poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
-                        ? tempPrice2 * poolTokenPrices[j].token0Price
+                        ? tempPrice2 * numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001))
                         : tempPrice2 * poolTokenPrices[j].token1Price;
                     result.push({
                       time: parseInt(poolTokenPrices[i].timestamp, 10),
