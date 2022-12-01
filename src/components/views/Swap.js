@@ -180,6 +180,32 @@ export default function Swap() {
     setApprovedVal(Number(approval));
   };
 
+  const calcSlippage = async (inToken, poolData, input, output) => {
+    let balance_from;
+    let balance_to;
+    let weight_from;
+    let weight_to;
+
+    if (inToken["address"] == poolData.tokens[0]) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+    } else {
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+    }
+
+    let pricePool = balance_from / weight_from / (balance_to / weight_to);
+    let priceTrade = input / output;
+
+    let slip = (1 - pricePool / priceTrade) * 100;
+
+    return slip;
+  };
+
   const selectToken = async (token, selected) => {
     handleClose();
     var bal = 0;
