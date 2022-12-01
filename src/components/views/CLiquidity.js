@@ -287,7 +287,7 @@ export default function CLiquidity() {
 
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   onClick={() => handleMopen(0)}
                   startIcon={
                     <img
@@ -308,7 +308,7 @@ export default function CLiquidity() {
                   readOnly={pairStatus === 2 ? false : true}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -333,7 +333,7 @@ export default function CLiquidity() {
             >
               <div>
                 <Button
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   onClick={() => handleMopen(1)}
                   startIcon={
                     <img
@@ -354,7 +354,7 @@ export default function CLiquidity() {
                   readOnly={pairStatus === 2 ? false : true}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",

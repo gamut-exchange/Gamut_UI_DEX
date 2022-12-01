@@ -422,12 +422,12 @@ export default function Liquidity() {
   };
 
 
-  const setInLimit = () => {
+  const setInLimit = (position) => {
     let val1 = inBal ? inBal.replaceAll(",", "") : 0;
     let val2 = outBal ? outBal.replaceAll(",", "") : 0;
-    setValue(Number(val1));
-    if (valueEth < val2) setLimitedout(false);
-    else setLimitedout(true);
+    setValue(numFormat(val1/position));
+    if (position === 1) setLimitedout(true);
+    else setLimitedout(false);
   };
 
   const getCurrentPoolAddress = async () => {
@@ -643,7 +643,7 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
@@ -661,14 +661,14 @@ export default function Liquidity() {
                   onChange={handleValue}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
                   }}
                 />
               </div>
-              <div>
+              <div style={{float:"left", width:"100%"}}>
                 <span style={{ float: "left", color: grayColor }}>
                   Balance: {inBal}
                 </span>
@@ -694,7 +694,7 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
@@ -711,15 +711,15 @@ export default function Liquidity() {
                   readOnly={true}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
                   }}
                 />
               </div>
-              <div style={{ display: "block", textAlign: "left" }}>
-                <span style={{ color: grayColor }}>
+              <div style={{float:"left", width:"100%"}}>
+                <span style={{ color: grayColor, float:"left" }}>
                   Balance: {outBal}
                 </span>
               </div>
@@ -739,7 +739,7 @@ export default function Liquidity() {
             {
               setting ? (
                 <div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
+                  <div style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Add custom Proportion:
                     </span>
@@ -836,7 +836,7 @@ export default function Liquidity() {
                             {adding ? "Adding Liquidity" : "Add Liquidity"}
                           </Button>
                         ) : (
-                          <div className="mt-2 flex">
+                          <div className="">
                             <Button
                               size="large"
                               variant="contained"
@@ -886,7 +886,7 @@ export default function Liquidity() {
                         )}
                       </>
                     ) : (
-                      <div className="flex mt-2">
+                      <div className="">
                         <Button
                           size="large"
                           variant="contained"
@@ -931,7 +931,7 @@ export default function Liquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb:4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb:2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
                 <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>

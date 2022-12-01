@@ -462,7 +462,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "11px" : "13px", fontWeight: "bold" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "11px" : "12px", fontWeight: "bold" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
@@ -492,7 +492,7 @@ export default function RLiquidity() {
                   min={0}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "65%",
+                    width: isMobile ? "55%" : "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -527,7 +527,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
                       src={selectedItem["logoURLs"][0]}
@@ -545,7 +545,7 @@ export default function RLiquidity() {
                   value={outTokenB.toPrecision(6)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "65%",
+                    width: isMobile ? "55%" : "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -565,7 +565,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
                       src={selectedItem["logoURLs"][1]}
@@ -583,7 +583,7 @@ export default function RLiquidity() {
                   value={outTokenA.toPrecision(6)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "65%",
+                    width: isMobile ? "55%" : "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -599,7 +599,6 @@ export default function RLiquidity() {
               <InfoOutlinedIcon
                 style={{
                   fontSize: "18px",
-                  marginTop: "-3px"
                 }}
               />{" "}
               <span>Ratio {Number(scale).toPrecision(4)}% {selectedItem["symbols"][0]} - {(100 - scale).toPrecision(4)}% {selectedItem["symbols"][1]}</span>
@@ -713,7 +712,7 @@ export default function RLiquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
                 <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>

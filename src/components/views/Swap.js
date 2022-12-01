@@ -180,32 +180,6 @@ export default function Swap() {
     setApprovedVal(Number(approval));
   };
 
-  const calcSlippage = async (inToken, poolData, input, output) => {
-    let balance_from;
-    let balance_to;
-    let weight_from;
-    let weight_to;
-
-    if (inToken["address"] == poolData.tokens[0]) {
-      balance_from = poolData.balances[0];
-      balance_to = poolData.balances[1];
-      weight_from = poolData.weights[0];
-      weight_to = poolData.weights[1];
-    } else {
-      balance_from = poolData.balances[1];
-      balance_to = poolData.balances[0];
-      weight_from = poolData.weights[1];
-      weight_to = poolData.weights[0];
-    }
-
-    let pricePool = balance_from / weight_from / (balance_to / weight_to);
-    let priceTrade = input / output;
-
-    let slip = (1 - pricePool / priceTrade) * 100;
-
-    return slip;
-  };
-
   const selectToken = async (token, selected) => {
     handleClose();
     var bal = 0;
@@ -538,12 +512,13 @@ export default function Swap() {
     if (pricesData && pricesData.prices) {
       var result = [];
       const poolTokenPrices = pricesData.prices;
+      console.log(poolTokenPrices);
       if (poolAddress.length === 1) {
         poolTokenPrices.map((item, index) => {
-          if (item.token0.symbol === inToken["symbol"]) {
+          if (item.token0.id.toLowerCase() === inToken["address"].toLowerCase()) {
             result.push({
               time: parseInt(item.timestamp, 10),
-              value: numFormat(item.token0Price),
+              value: numFormat(item.token0Price/(Number(item.token1Price)+0.000000000001)),
             });
           } else {
             result.push({
@@ -554,17 +529,17 @@ export default function Swap() {
         });
       } else if (poolAddress.length === 2) {
         for (var i = 1; i < poolTokenPrices.length; i++) {
-          if (poolTokenPrices[i].pool.id === poolAddress[0]) {
+          if (poolTokenPrices[i].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
             for (var j = i - 1; j >= 0; j--)
-              if (poolTokenPrices[j].pool.id === poolAddress[1]) {
+              if (poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                 var tempPrice =
-                  poolTokenPrices[i].token0.symbol === inToken["symbol"]
-                    ? poolTokenPrices[i].token0Price
+                  poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
+                    ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
                     : poolTokenPrices[i].token1Price;
                 var lastPrice =
-                  poolTokenPrices[j].token0.symbol === outToken["symbol"]
+                  poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
                     ? tempPrice * poolTokenPrices[j].token1Price
-                    : tempPrice * poolTokenPrices[j].token0Price;
+                    : tempPrice * numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001));
                 result.push({
                   time: parseInt(poolTokenPrices[i].timestamp, 10),
                   value: numFormat(lastPrice),
@@ -575,29 +550,29 @@ export default function Swap() {
         }
       } else if (poolAddress.length === 3) {
         for (var i = 2; i < poolTokenPrices.length; i++) {
-          if (poolTokenPrices[i].pool.id === poolAddress[0]) {
+          if (poolTokenPrices[i].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
             var tempArr = [];
             for (var j = i - 1; j >= 0; j--)
               if (
-                poolTokenPrices[j].pool.id === poolAddress[1] ||
-                poolTokenPrices[j].pool.id === poolAddress[2]
+                poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase() ||
+                poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[2].toLowerCase()
               ) {
                 if (tempArr.length === 0) tempArr.push(poolTokenPrices[j]);
-                else if (tempArr[0].pool.id !== poolTokenPrices[j].pool.id) {
-                  if (poolTokenPrices[j].pool.id === poolAddress[1]) {
+                else if (tempArr[0].pool.id.toLowerCase() !== poolTokenPrices[j].pool.id.toLowerCase()) {
+                  if (poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                     var tempPrice1 =
-                      poolTokenPrices[i].token0.symbol === inToken["symbol"]
-                        ? poolTokenPrices[i].token0Price
+                      poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
+                        ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
                         : poolTokenPrices[i].token1Price;
                     var tempPrice2 =
-                      poolTokenPrices[j].token0.symbol ===
-                        poolTokenPrices[i].token0.symbol ||
-                        poolTokenPrices[j].token0.symbol ===
-                        poolTokenPrices[i].token1.symbol
-                        ? poolTokenPrices[j].token0Price * tempPrice1
+                      poolTokenPrices[j].token0.id.toLowerCase() ===
+                        poolTokenPrices[i].token0.id.toLowerCase() ||
+                        poolTokenPrices[j].token0.id.toLowerCase() ===
+                        poolTokenPrices[i].token1.id.toLowerCase()
+                        ? numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001)) * tempPrice1
                         : poolTokenPrices[j].token1Price * tempPrice1;
                     var lastPrice =
-                      tempArr[0].token0.symbol === outToken["symbol"]
+                      tempArr[0].token0.id.toLowerCase() === outToken["address"].toLowerCase()
                         ? tempPrice2 * tempArr[0].token0Price
                         : tempPrice2 * tempArr[0].token1Price;
                     result.push({
@@ -607,18 +582,18 @@ export default function Swap() {
                     break;
                   } else {
                     var tempPrice1 =
-                      poolTokenPrices[i].token0.symbol === inToken["symbol"]
+                      poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
                         ? poolTokenPrices[i].token0Price
                         : poolTokenPrices[i].token1Price;
                     var tempPrice2 =
-                      tempArr[0].token0.symbol ===
-                        poolTokenPrices[i].token0.symbol ||
-                        tempArr[0].token0.symbol ===
-                        poolTokenPrices[i].token1.symbol
+                      tempArr[0].token0.id.toLowerCase() ===
+                        poolTokenPrices[i].token0.id.toLowerCase() ||
+                        tempArr[0].token0.id.toLowerCase() ===
+                        poolTokenPrices[i].token1.id.toLowerCase()
                         ? tempArr[0].token0Price * tempPrice1
                         : tempArr[0].token1Price * tempPrice1;
                     var lastPrice =
-                      poolTokenPrices[j].token0.symbol === outToken["symbol"]
+                      poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
                         ? tempPrice2 * poolTokenPrices[j].token0Price
                         : tempPrice2 * poolTokenPrices[j].token1Price;
                     result.push({
@@ -669,8 +644,7 @@ export default function Swap() {
     }
 
     chart = createChart(chartRef.current, {
-      // width: 500,
-      height: 400,
+      height: 350,
       layout: {
         backgroundColor: "#12122c",
         textColor: "#d1d4dc",
@@ -784,7 +758,7 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
@@ -802,14 +776,14 @@ export default function Swap() {
                   onChange={handleValue}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
                   }}
                 />
               </div>
-              <div>
+              <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
                   Balance: {inBal}
                 </span>
@@ -847,7 +821,7 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "35%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
@@ -864,7 +838,7 @@ export default function Swap() {
                   readOnly={true}
                   style={{
                     color: "#FFFFFF",
-                    width: "65%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -872,12 +846,12 @@ export default function Swap() {
                 />
               </div>
 
-              <div style={{ display: "block", textAlign: "left" }}>
-                <span style={{ color: grayColor }}>
+              <div style={{ float: "left", width: "100%" }}>
+                <span style={{ float: "left", color: grayColor }}>
                   Balance: {outBal}
                 </span>
               </div>
-              <div style={{ color: "white", display: "block", textAlign: "left" }}>
+              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
@@ -1026,16 +1000,7 @@ export default function Swap() {
                           </Button>
                         </div>
                         <div className="text-red-700 flex items-center pt-1.5">
-                          <div>
-                            <svg
-                              className="fill-current h-6 w-6 mr-4"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" />
-                            </svg>
-                          </div>
-                          <p className="text-small">
+                          <p className="text-small" style={{ color: "#b91c1c" }}>
                             To proceed swapping, please unlock{" "}
                             {inToken["value"].toUpperCase()} first.
                           </p>
@@ -1049,13 +1014,16 @@ export default function Swap() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             {noChartData &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <CircularProgress style={{ marginTop: 160 }} />
               </div>
             }
-            <div ref={chartRef} className="w-full" style={{display:noChartData?"none":"block"}} />
+            <div style={{ display: noChartData ? "none" : "block" }}>
+              <p style={{color:"white", fontSize:"15px", fontWeight:"bold", float:"left"}}>{inToken["symbol"]} / {outToken["symbol"]}</p>
+              <div ref={chartRef} className="w-full" />
+            </div>
             {/* <div ref={switchRef} /> */}
           </Item>
           <History />
