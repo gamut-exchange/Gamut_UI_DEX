@@ -35,9 +35,11 @@ import {
   getSwapFeePercent,
   calculateSwap,
   calcOutput,
-  getMiddleToken
+  getMiddleToken,
+  fromWeiVal
 } from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
+import { useSwapTransactionsData } from "../../config/chartData";
 import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -89,8 +91,6 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-//   drop down style close
-
 export default function Swap() {
   const selected_chain = useSelector((state) => state.selectedChain);
   const { account, connector } = useWeb3React();
@@ -126,8 +126,8 @@ export default function Swap() {
   const [noChartData, setNoChartData] = useState(false);
 
   const pricesData = useTokenPricesData(poolAddress);
+  const swapTransactionData = useSwapTransactionsData(account);
   const chartRef = useRef();
-  const switchRef = useRef();
   const dark = false;
 
   const StyledModal = tw.div`
@@ -493,47 +493,6 @@ export default function Swap() {
       return Number(val).toFixed(8) * 1;
   }
 
-  useEffect(() => {
-    if (account) {
-      const getInfo = async () => {
-        const provider = await connector.getProvider();
-        let inBal = await getTokenBalance(
-          provider,
-          inToken["address"],
-          account
-        );
-        let outBal = await getTokenBalance(
-          provider,
-          outToken["address"],
-          account
-        );
-        setInBal(inBal);
-        setOutBal(outBal);
-        checkApproved(inToken, inValue);
-        const swapFeePercent = await getSwapFeePercent(
-          provider,
-          poolList[selected_chain][0]["address"]
-        );
-        setSwapFee(swapFeePercent * 0.01);
-      };
-      getInfo();
-    }
-  }, [account, ""]);
-
-  useEffect(() => {
-    getStatusData(inValue);
-    const intervalId = setInterval(() => {
-      getStatusData(inValue);
-    }, 120000);
-    return () => clearInterval(intervalId);
-  }, [inToken, outToken, inValue]);
-
-  useEffect(() => {
-    setFilterData(uniList[selected_chain]);
-    selectToken(uniList[selected_chain][0], 0);
-    selectToken(uniList[selected_chain][1], 1);
-  }, [dispatch, selected_chain]);
-
   const formattedPricesData = useMemo(() => {
     if (pricesData && pricesData.prices) {
       var result = [];
@@ -543,7 +502,7 @@ export default function Swap() {
           if (item.token0.id.toLowerCase() === inToken["address"].toLowerCase()) {
             result.push({
               time: parseInt(item.timestamp, 10),
-              value: numFormat(item.token0Price/(Number(item.token1Price)+0.000000000001)),
+              value: numFormat(item.token0Price / (Number(item.token1Price) + 0.000000000001)),
             });
           } else {
             result.push({
@@ -559,12 +518,12 @@ export default function Swap() {
               if (poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                 var tempPrice =
                   poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                    ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
+                    ? numFormat(poolTokenPrices[i].token0Price / (Number(poolTokenPrices[i].token1Price) + 0.000000000001))
                     : poolTokenPrices[i].token1Price;
                 var lastPrice =
                   poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
                     ? tempPrice * poolTokenPrices[j].token1Price
-                    : tempPrice * numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001));
+                    : tempPrice * numFormat(poolTokenPrices[j].token0Price / (Number(poolTokenPrices[j].token1Price) + 0.000000000001));
                 result.push({
                   time: parseInt(poolTokenPrices[i].timestamp, 10),
                   value: numFormat(lastPrice),
@@ -587,18 +546,18 @@ export default function Swap() {
                   if (poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                     var tempPrice1 =
                       poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                        ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
+                        ? numFormat(poolTokenPrices[i].token0Price / (Number(poolTokenPrices[i].token1Price) + 0.000000000001))
                         : poolTokenPrices[i].token1Price;
                     var tempPrice2 =
                       poolTokenPrices[j].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token0.id.toLowerCase() ||
                         poolTokenPrices[j].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token1.id.toLowerCase()
-                        ? numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001)) * tempPrice1
+                        ? numFormat(poolTokenPrices[j].token0Price / (Number(poolTokenPrices[j].token1Price) + 0.000000000001)) * tempPrice1
                         : poolTokenPrices[j].token1Price * tempPrice1;
                     var lastPrice =
                       tempArr[0].token0.id.toLowerCase() === outToken["address"].toLowerCase()
-                        ? tempPrice2 * numFormat(tempArr[0].token0Price/(Number(tempArr[0].token1Price)+0.000000000001))
+                        ? tempPrice2 * numFormat(tempArr[0].token0Price / (Number(tempArr[0].token1Price) + 0.000000000001))
                         : tempPrice2 * tempArr[0].token1Price;
                     result.push({
                       time: parseInt(poolTokenPrices[i].timestamp, 10),
@@ -608,18 +567,18 @@ export default function Swap() {
                   } else {
                     var tempPrice1 =
                       poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                        ? numFormat(poolTokenPrices[i].token0Price/(Number(poolTokenPrices[i].token1Price)+0.000000000001))
+                        ? numFormat(poolTokenPrices[i].token0Price / (Number(poolTokenPrices[i].token1Price) + 0.000000000001))
                         : poolTokenPrices[i].token1Price;
                     var tempPrice2 =
                       tempArr[0].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token0.id.toLowerCase() ||
                         tempArr[0].token0.id.toLowerCase() ===
                         poolTokenPrices[i].token1.id.toLowerCase()
-                        ? numFormat(tempArr[0].token0Price/(Number(tempArr[0].token1Price)+0.000000000001)) * tempPrice1
+                        ? numFormat(tempArr[0].token0Price / (Number(tempArr[0].token1Price) + 0.000000000001)) * tempPrice1
                         : tempArr[0].token1Price * tempPrice1;
                     var lastPrice =
                       poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
-                        ? tempPrice2 * numFormat(poolTokenPrices[j].token0Price/(Number(poolTokenPrices[j].token1Price)+0.000000000001))
+                        ? tempPrice2 * numFormat(poolTokenPrices[j].token0Price / (Number(poolTokenPrices[j].token1Price) + 0.000000000001))
                         : tempPrice2 * poolTokenPrices[j].token1Price;
                     result.push({
                       time: parseInt(poolTokenPrices[i].timestamp, 10),
@@ -637,6 +596,38 @@ export default function Swap() {
       return [];
     }
   }, [pricesData]);
+
+  const transactionsData = useMemo(() => {
+    if (account) {
+      if (swapTransactionData.swaps && swapTransactionData.swaps.length != 0) {
+        let result = [];
+        result = swapTransactionData.swaps.slice(0, 5).map((item, index) => {
+          let token0_symbol = "";
+          let token1_symbol = "";
+          uniList[selected_chain].map((unit) => {
+            if (unit.address.toLowerCase() === item.tokenIn)
+              token0_symbol = unit.symbol
+            else if (unit.address.toLowerCase() === item.tokenOut)
+              token1_symbol = unit.symbol
+          })
+          return {
+            ...item,
+            token0: {
+              symbol: token0_symbol
+            },
+            token1: {
+              symbol: token1_symbol
+            }
+          }
+        });
+        return result;
+      } else {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }, [swapTransactionData]);
 
   // Chart --->
   var chart;
@@ -700,6 +691,48 @@ export default function Swap() {
   };
 
   useEffect(() => {
+    if (account) {
+      const getInfo = async () => {
+        const provider = await connector.getProvider();
+        let inBal = await getTokenBalance(
+          provider,
+          inToken["address"],
+          account
+        );
+        let outBal = await getTokenBalance(
+          provider,
+          outToken["address"],
+          account
+        );
+        setInBal(inBal);
+        setOutBal(outBal);
+        checkApproved(inToken, inValue);
+        const swapFeePercent = await getSwapFeePercent(
+          provider,
+          poolList[selected_chain][0]["address"]
+        );
+        setSwapFee(swapFeePercent * 0.01);
+      };
+      getInfo();
+    }
+  }, [account, ""]);
+
+  useEffect(() => {
+    getStatusData(inValue);
+    const intervalId = setInterval(() => {
+      getStatusData(inValue);
+    }, 120000);
+    return () => clearInterval(intervalId);
+  }, [inToken, outToken, inValue]);
+
+  useEffect(() => {
+    setFilterData(uniList[selected_chain]);
+    selectToken(uniList[selected_chain][0], 0);
+    selectToken(uniList[selected_chain][1], 1);
+  }, [dispatch, selected_chain]);
+
+  // Chart part
+  useEffect(() => {
     if (formattedPricesData && formattedPricesData.length != 0) {
       setNoChartData(false);
       loadChart();
@@ -707,7 +740,6 @@ export default function Swap() {
     else
       setNoChartData(true);
   }, [formattedPricesData]);
-  // Chart <---
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -1046,12 +1078,16 @@ export default function Swap() {
               </div>
             }
             <div style={{ display: noChartData ? "none" : "block" }}>
-              <p style={{color:"white", fontSize:"15px", fontWeight:"bold", float:"left"}}>{inToken["symbol"]} / {outToken["symbol"]}</p>
+              <p style={{ color: "white", fontSize: "15px", fontWeight: "bold", float: "left" }}>{inToken["symbol"]} / {outToken["symbol"]}</p>
               <div ref={chartRef} className="w-full" />
             </div>
             {/* <div ref={switchRef} /> */}
           </Item>
-          <History />
+          <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
+            <span style={{ textAlign: "start", color: "white" }}>History:</span>
+            <hr></hr>
+            <History type="swap" data={transactionsData} />
+          </Item>
         </Grid>
         <Modal
           open={mopen}

@@ -5,6 +5,67 @@ import {
   goerliClient,
 } from '../apollo/client'
 
+export const SWAP_TRANSACTIONS = gql`
+  query swapTransactions($address: Bytes!) {
+    swapEvents(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+      id
+      timestamp
+      sender
+      amountIn
+      amountOut
+      tokenIn
+      tokenOut
+      transaction
+    }
+  }
+`
+
+export const JOIN_TRANSACTIONS = gql`
+  query joinTransactions($address: Bytes!) {
+    joins(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+      id
+      timestamp
+      sender
+      amountsIn
+      token0 {
+        symbol
+        decimals
+      }
+      token1 {
+        symbol
+        decimals
+      }
+      transaction {
+        id
+      }
+    }
+  }
+`
+
+export const EXIT_TRANSACTIONS = gql`
+  query exitTransactions($address: Bytes!) {
+    exits(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+      id
+      timestamp
+      sender
+      amountUSD
+      liquidity
+      value0
+      token0 {
+        symbol
+        decimals
+      }
+      token1 {
+        symbol
+        decimals
+      }
+      transaction {
+        id
+      }
+    }
+  }
+`
+
 export const POOL_WEIGHTS = gql`
   query poolWeights($address: Bytes!) {
     weightBalanceDatas(last:100, orderBy: timestamp, orderDirection: asc, where: { pool: $address }, subgraphError: allow) {
@@ -44,6 +105,87 @@ export const POOL_PRICES = (poolString) => {
     }
   }
 `
+}
+
+/**
+ * Fetch swap transactions
+ */
+ export function useSwapTransactionsData(address) {
+  const { loading, error, data } = useQuery(SWAP_TRANSACTIONS, {
+    client: goerliClient,
+    variables: {
+      address: address,
+    },
+    fetchPolicy: 'cache-first',
+  });
+  
+  const formattedData = useMemo(() => {
+    if (data) {
+      return data.swapEvents
+    } else {
+      return undefined
+    }
+  }, [data])
+
+  return {
+    loading: loading,
+    error: Boolean(error),
+    swaps: formattedData,
+  }
+}
+
+/**
+ * Fetch add liquidity transactions
+ */
+ export function useJoinTransactionsData(address) {
+  const { loading, error, data } = useQuery(JOIN_TRANSACTIONS, {
+    client: goerliClient,
+    variables: {
+      address: address,
+    },
+    fetchPolicy: 'cache-first',
+  });
+  
+  const formattedData = useMemo(() => {
+    if (data) {
+      return data.joins
+    } else {
+      return undefined
+    }
+  }, [data])
+
+  return {
+    loading: loading,
+    error: Boolean(error),
+    joins: formattedData,
+  }
+}
+
+/**
+ * Fetch remove liquidity transactions
+ */
+ export function useExitTransactionsData(address, refTime) {
+  const { loading, error, data } = useQuery(EXIT_TRANSACTIONS, {
+    client: goerliClient,
+    variables: {
+      address: address,
+    },
+    fetchPolicy: 'cache-first',
+  });
+  
+  const formattedData = useMemo(() => {
+    if (data) {
+      return data.exits
+    } else {
+      return undefined
+    }
+  }, [data, refTime])
+
+  return {
+    loading: loading,
+    error: Boolean(error),
+    exits: formattedData,
+  }
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
@@ -21,7 +21,7 @@ import {
 import tw from "twin.macro";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SwapCmp from "./SwapCmp";
-import { useWeightsData } from "../../config/chartData";
+import { useWeightsData, useExitTransactionsData } from "../../config/chartData";
 import {
   getPoolData,
   getPoolBalance,
@@ -113,13 +113,13 @@ export default function RLiquidity() {
   const [poolBalanceB, setPoolBalanceB] = useState(0);
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
-  const [poolAddresse, setPoolAddresse] = useState();
   const [poolData, setPoolData] = useState();
-  const [limitedout, setLimitedout] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [refTime, setRefTime] = useState(0);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
+  let exitTransactionsData = useExitTransactionsData(account, refTime);
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
@@ -204,10 +204,6 @@ export default function RLiquidity() {
     }
   }
 
-  useEffect(() => {
-    getStatusData();
-  }, [selectedItem])
-
   const selectToken = async (item) => {
     handleClose();
     setSelectedItem(item);
@@ -229,6 +225,10 @@ export default function RLiquidity() {
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
+      let current = new Date();
+      setTimeout(() => {
+        setRefTime(current.getTime());
+      }, 20000);
     }
   };
 
@@ -278,60 +278,6 @@ export default function RLiquidity() {
     else
       return Number(val).toFixed(8) * 1;
   }
-
-
-  useEffect(() => {
-    if (account) {
-      const getInfo = async () => {
-        const provider = await connector.getProvider();
-        const pData = await getPoolData(
-          provider,
-          selectedItem["address"]
-        );
-        const weightA = fromWeiVal(provider, pData["weights"][1], "18");
-        setPoolData(pData);
-        setWeightA(weightA);
-        setScale((weightA * 100).toPrecision(6));
-        setPrice(
-          pData.balances[0] /
-          pData.weights[0] /
-          (pData.balances[1] / pData.weights[1])
-        );
-        setTokenAAddr(pData["tokens"][0]);
-        setTokenBAddr(pData["tokens"][1]);
-        let amount = await getPoolBalance(
-          account,
-          provider,
-          selectedItem["address"]
-        );
-        let amount2 = await getPoolSupply(
-          provider,
-          selectedItem["address"]
-        );
-        amount = Number(amount).toPrecision(6);
-        setTotalLPTokens(amount2);
-        setPoolAmount(amount);
-        // setValue(((amount * lpPercentage) / 100).toFixed(2));
-        setPoolBalanceA(pData.balances[0]);
-        setPoolBalanceB(pData.balances[1]);
-        await calculateOutput(
-          amount2,
-          (amount * lpPercentage) / 100
-        );
-      };
-
-      getInfo();
-      const intervalId = setInterval(() => {
-        getStatusData();
-      }, 40000);
-      return () => clearInterval(intervalId);
-    }
-  }, [account, value]);
-
-  useEffect(() => {
-    setFilterData(poolList[[selected_chain]]);
-    selectToken(poolList[selected_chain][0]);
-  }, [dispatch, selected_chain, account]);
 
   const CustomTooltip0 = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -433,6 +379,80 @@ export default function RLiquidity() {
       return [];
     }
   }, [weightData]);
+
+  const transactionsData = useMemo(() => {
+    if (account) {
+      if (exitTransactionsData.exits && exitTransactionsData.exits.length != 0) {
+        let result = [];
+        result = exitTransactionsData.exits.slice(0, 5).map(item => {
+          return item;
+        });
+        return result;
+      } else {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }, [exitTransactionsData]);
+
+
+  useEffect(() => {
+    getStatusData();
+  }, [selectedItem])
+
+  useEffect(() => {
+    if (account) {
+      const getInfo = async () => {
+        const provider = await connector.getProvider();
+        const pData = await getPoolData(
+          provider,
+          selectedItem["address"]
+        );
+        const weightA = fromWeiVal(provider, pData["weights"][1], "18");
+        setPoolData(pData);
+        setWeightA(weightA);
+        setScale((weightA * 100).toPrecision(6));
+        setPrice(
+          pData.balances[0] /
+          pData.weights[0] /
+          (pData.balances[1] / pData.weights[1])
+        );
+        setTokenAAddr(pData["tokens"][0]);
+        setTokenBAddr(pData["tokens"][1]);
+        let amount = await getPoolBalance(
+          account,
+          provider,
+          selectedItem["address"]
+        );
+        let amount2 = await getPoolSupply(
+          provider,
+          selectedItem["address"]
+        );
+        amount = Number(amount).toPrecision(6);
+        setTotalLPTokens(amount2);
+        setPoolAmount(amount);
+        // setValue(((amount * lpPercentage) / 100).toFixed(2));
+        setPoolBalanceA(pData.balances[0]);
+        setPoolBalanceB(pData.balances[1]);
+        await calculateOutput(
+          amount2,
+          (amount * lpPercentage) / 100
+        );
+      };
+
+      getInfo();
+      const intervalId = setInterval(() => {
+        getStatusData();
+      }, 40000);
+      return () => clearInterval(intervalId);
+    }
+  }, [account, value]);
+
+  useEffect(() => {
+    setFilterData(poolList[[selected_chain]]);
+    selectToken(poolList[selected_chain][0]);
+  }, [dispatch, selected_chain, account]);
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -712,7 +732,7 @@ export default function RLiquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
                 <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
@@ -721,7 +741,7 @@ export default function RLiquidity() {
               )}
               <ResponsiveContainer width="95%" height={250}>
                 <LineChart
-                  width={isMobile?400:500}
+                  width={isMobile ? 400 : 500}
                   height={200}
                   data={formattedWeightsData}
                   syncId="anyId"
@@ -752,7 +772,7 @@ export default function RLiquidity() {
               )}
               <ResponsiveContainer width="95%" height={250}>
                 <LineChart
-                  width={isMobile?400:500}
+                  width={isMobile ? 400 : 500}
                   height={200}
                   data={formattedWeightsData}
                   syncId="anyId"
@@ -779,7 +799,11 @@ export default function RLiquidity() {
               </ResponsiveContainer>
             </div>
           </Item>
-          <History />
+          <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
+            <span style={{ textAlign: "start", color: "white" }}>History:</span>
+            <hr></hr>
+            <History type="exit" data={transactionsData} />
+          </Item>
         </Grid>
         <Modal
           open={open}

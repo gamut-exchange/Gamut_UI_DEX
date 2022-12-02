@@ -16,11 +16,10 @@ import {
 } from "@mui/material";
 import {
   AddCircleOutline,
-  CurrencyBitcoin,
   Settings,
 } from "@mui/icons-material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { useWeightsData } from "../../config/chartData";
+import { useWeightsData, useJoinTransactionsData } from "../../config/chartData";
 import {
   getTokenBalance,
   getPoolAddress,
@@ -129,6 +128,7 @@ export default function Liquidity() {
   const dispatch = useDispatch();
 
   const weightData = useWeightsData(poolAddress.toLowerCase());
+  const joinTransactionsData = useJoinTransactionsData(account);
 
   const StyledModal = tw.div`
     flex
@@ -425,7 +425,7 @@ export default function Liquidity() {
   const setInLimit = (position) => {
     let val1 = inBal ? inBal.replaceAll(",", "") : 0;
     let val2 = outBal ? outBal.replaceAll(",", "") : 0;
-    setValue(numFormat(val1/position));
+    setValue(numFormat(val1 / position));
     if (position === 1) setLimitedout(true);
     else setLimitedout(false);
   };
@@ -604,6 +604,22 @@ export default function Liquidity() {
     }
   }, [weightData]);
 
+  const transactionsData = useMemo(() => {
+    if (account) {
+      if (joinTransactionsData.joins && joinTransactionsData.joins.length != 0) {
+        let result = [];
+        result = joinTransactionsData.joins.slice(0, 5).map(item => {
+          return item;
+        });
+        return result;
+      } else {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }, [joinTransactionsData]);
+
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
@@ -668,7 +684,7 @@ export default function Liquidity() {
                   }}
                 />
               </div>
-              <div style={{float:"left", width:"100%"}}>
+              <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
                   Balance: {inBal}
                 </span>
@@ -718,8 +734,8 @@ export default function Liquidity() {
                   }}
                 />
               </div>
-              <div style={{float:"left", width:"100%"}}>
-                <span style={{ color: grayColor, float:"left" }}>
+              <div style={{ float: "left", width: "100%" }}>
+                <span style={{ color: grayColor, float: "left" }}>
                   Balance: {outBal}
                 </span>
               </div>
@@ -931,7 +947,7 @@ export default function Liquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt:3, pl: 3, pr: 3, pb: 2, mb:2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
                 <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
@@ -998,7 +1014,11 @@ export default function Liquidity() {
               </ResponsiveContainer>
             </div>
           </Item>
-          <History />
+          <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
+            <span style={{ textAlign: "start", color: "white" }}>History:</span>
+            <hr></hr>
+            <History type="join" data={transactionsData} />
+          </Item>
         </Grid>
         <Modal
           open={mopen}
