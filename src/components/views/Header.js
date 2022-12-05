@@ -70,31 +70,31 @@ function Header(props) {
           src={logo}
           width="150px"
           alt="Logo"
-          style={{ marginTop: isMobile ? "1.8rem" : "1.1rem" }}
+        
         />
       </div>
       <List>
         <Link to="/" style={{ textDecoration: "none", color: "white" }}>
           <ListItem disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
-              <ListItemText primary={"Home"} />
+              <ListItemText primary={"Trade"} />
             </ListItemButton>
           </ListItem>
         </Link>
-        <Link to="#" style={{ textDecoration: "none", color: "white" }}>
+        {/* <Link to="#" style={{ textDecoration: "none", color: "white" }}>
           <ListItem disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
               <ListItemText primary={"About Us"} />
             </ListItemButton>
           </ListItem>
-        </Link>
-        <Link to="#" style={{ textDecoration: "none", color: "white" }}>
+        </Link> */}
+        {/* <Link to="#" style={{ textDecoration: "none", color: "white" }}>
           <ListItem disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
               <ListItemText primary={"Contact Us"} />
             </ListItemButton>
           </ListItem>
-        </Link>
+        </Link> */}
         <Link to="/add_liquidity" style={{ textDecoration: "none", color: "white" }}>
           <ListItem disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
@@ -237,7 +237,7 @@ function Header(props) {
   }, [chainLabel]);
 
   return (
-    <div className="s" style={{ display: "flex", justifyContent: "center", padding: isMobile ? "5px" : "16px 0px" }}>
+    <div className="s" style={{ display: "flex", justifyContent: "center", padding: isMobile ? "16px" : "16px 0px" }}>
       {/* <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}> */}
       {/* Header Start  */}
       <Grid
@@ -246,7 +246,8 @@ function Header(props) {
         columnSpacing={{ xs: 0, sm: 0, md: 0 }}
         sx={{ pb: 1 }}
         className="header"
-        style={{ justifyContent: "space-between" }}
+        style={{ justifyContent: "space-between"}}
+        
       >
         {/* Logo Grid */}
         <Grid
@@ -255,7 +256,7 @@ function Header(props) {
           sm={5}
           md={6}
           lg={6}
-          sx={{ display: "flex", justifyContent: "flex-start" }}
+          sx={{ display: "flex", justifyContent: "flex-start"}}
         >
           <Box
             elevation={1}
@@ -265,7 +266,7 @@ function Header(props) {
               src={logo}
               width="150px"
               alt="Logo"
-              style={{ marginTop: isMobile ? "1.8rem" : "1.1rem" }}
+              style={{marginTop: isMobile ? "6px" : "6px", marginLeft:"2px"}}
             />
           </Box>
         </Grid>
@@ -282,9 +283,9 @@ function Header(props) {
         >
           <Box
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, marginRight:"8px" }}
           >
-            <Stack spacing={1} direction="row" style={{ marginTop: isMobile ? "15px" : "0px" }}>
+            <Stack spacing={1} direction="row">
               <Button
                 id="basic-button"
                 className="transition-all duration-300"
@@ -334,9 +335,11 @@ function Header(props) {
                             variant="contained"
                             className="btn-primary dark:text-dark-primary w-full"
                             style={{
-                              borderRadius: "0px",
+                              borderRadius: "4px",
                               height: 44,
                               fontSize: 18,
+                              background:
+                              "linear-gradient(to right bottom, #13a8ff, #0074f0)"
                             }}
                             onClick={() => {
                               setOpenWalletList(true);
@@ -352,9 +355,11 @@ function Header(props) {
                               variant="contained"
                               className="btn-primary dark:text-dark-primary w-full"
                               style={{
-                                borderRadius: "0px",
+                                borderRadius: "4px",
                                 height: 44,
                                 fontSize: 14,
+                                background:
+                      "linear-gradient(to right bottom, #13a8ff, #0074f0)"
                               }}
                               startIcon={
                                 cWallet && (
@@ -384,9 +389,11 @@ function Header(props) {
                               id="connect_wallet_btn"
                               className="btn-primary dark:text-dark-primary w-full"
                               style={{
-                                borderRadius: "0px",
+                                borderRadius: "4px",
                                 height: 44,
                                 fontSize: 18,
+                                background:
+                      "linear-gradient(to right bottom, #13a8ff, #0074f0)",
                               }}
                               onClick={() => {
                                 setOpenWalletList(true);
