@@ -7,7 +7,7 @@ import {
 
 export const SWAP_TRANSACTIONS = gql`
   query swapTransactions($address: Bytes!) {
-    swapEvents(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+    swapEvents(last:1000, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
       id
       timestamp
       sender
@@ -22,7 +22,7 @@ export const SWAP_TRANSACTIONS = gql`
 
 export const JOIN_TRANSACTIONS = gql`
   query joinTransactions($address: Bytes!) {
-    joins(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+    joins(last:1000, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
       id
       timestamp
       sender
@@ -44,7 +44,7 @@ export const JOIN_TRANSACTIONS = gql`
 
 export const EXIT_TRANSACTIONS = gql`
   query exitTransactions($address: Bytes!) {
-    exits(last:5, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+    exits(last:1000, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
       id
       timestamp
       sender
@@ -171,6 +171,7 @@ export const POOL_PRICES = (poolString) => {
       address: address,
     },
     fetchPolicy: 'cache-first',
+    pollInterval: 20000,
   });
   
   const formattedData = useMemo(() => {

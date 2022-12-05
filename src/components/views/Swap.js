@@ -8,6 +8,7 @@ import './Navigation.css'
 import {
   Grid,
   Paper,
+  useMediaQuery,
   Modal,
   TextField,
   Button,
@@ -35,8 +36,7 @@ import {
   getSwapFeePercent,
   calculateSwap,
   calcOutput,
-  getMiddleToken,
-  fromWeiVal
+  getMiddleToken
 } from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
 import { useSwapTransactionsData } from "../../config/chartData";
@@ -124,11 +124,13 @@ export default function Swap() {
   const [deadline, setDeadline] = useState(900);
   const [deadlineFlag, setDeadlineFlag] = useState(false);
   const [noChartData, setNoChartData] = useState(false);
+  const [isExist, setIsExist] = useState(false);
 
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
   const chartRef = useRef();
   const dark = false;
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
     flex
@@ -322,6 +324,10 @@ export default function Swap() {
     }
   };
 
+  const clickConWallet = () => {
+    document.getElementById("connect_wallet_btn").click();
+  };
+
   const getMiddleTokenSymbol = (tokens) => {
     if (tokens) {
       if (tokens.length == 2) {
@@ -352,7 +358,8 @@ export default function Swap() {
       let outLimBal = outBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
-      if (midToken) {
+      if (midToken !== undefined && midToken !== null) {
+        setIsExist(true);
         if (value * 1 != 0) {
           let amountOut = await calcOutput(
             midToken,
@@ -427,41 +434,50 @@ export default function Swap() {
           ]);
         }
       } else {
-
-        const poolAddress = await getPoolAddress(
-          provider,
-          inToken["address"],
-          outToken["address"],
-          contractAddresses[selected_chain]["hedgeFactory"]
-        );
-        const poolData = await getPoolData(
-          provider,
-          poolAddress
-        );
-
-        if (value * 1 != 0) {
-          let amountOut = await calculateSwap(
+        try {
+          const poolAddress = await getPoolAddress(
+            provider,
             inToken["address"],
-            poolData,
-            value
+            outToken["address"],
+            contractAddresses[selected_chain]["hedgeFactory"]
           );
+          if (poolAddress !== "0x0000000000000000000000000000000000000000") {
+            setIsExist(true);
+            const poolData = await getPoolData(
+              provider,
+              poolAddress
+            );
 
-          amountOut =
-            amountOut * 1 === 0
-              ? 0
-              : numFormat(amountOut);
-          setValueEth(amountOut);
-          setTokenPr(numFormat(amountOut / value));
-          if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
-          else setLimitedout(false);
+            if (value * 1 != 0) {
+              let amountOut = await calculateSwap(
+                inToken["address"],
+                poolData,
+                value
+              );
+
+              amountOut =
+                amountOut * 1 === 0
+                  ? 0
+                  : numFormat(amountOut);
+              setValueEth(amountOut);
+              setTokenPr(numFormat(amountOut / value));
+              if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
+              else setLimitedout(false);
+            }
+
+            setPoolAddress([poolAddress.toLowerCase()]);
+            var tokenPr = await calculateSwap(
+              inToken["address"],
+              poolData,
+              1);
+            setTokenPr(numFormat(tokenPr));
+          } else {
+            setIsExist(false);
+          }
+        } catch (e) {
+          console.log(e.message);
+          setIsExist(false);
         }
-
-        setPoolAddress([poolAddress.toLowerCase()]);
-        var tokenPr = await calculateSwap(
-          inToken["address"],
-          poolData,
-          1);
-        setTokenPr(numFormat(tokenPr));
       }
     } else if (inToken !== outToken) {
       for (var i = 0; i < poolList[selected_chain].length; i++) {
@@ -478,6 +494,7 @@ export default function Swap() {
         }
       }
     } else {
+      setIsExist(false);
       setPoolAddress([]);
     }
   };
@@ -601,15 +618,15 @@ export default function Swap() {
     if (account) {
       if (swapTransactionData.swaps && swapTransactionData.swaps.length != 0) {
         let result = [];
-        result = swapTransactionData.swaps.slice(0, 5).map((item, index) => {
+        result = swapTransactionData.swaps.map((item, index) => {
           let token0_symbol = "";
           let token1_symbol = "";
           uniList[selected_chain].map((unit) => {
-            if (unit.address.toLowerCase() === item.tokenIn)
+            if (unit.address.toLowerCase() === item.tokenIn.toLowerCase())
               token0_symbol = unit.symbol
-            else if (unit.address.toLowerCase() === item.tokenOut)
+            if (unit.address.toLowerCase() === item.tokenOut.toLowerCase())
               token1_symbol = unit.symbol
-          })
+          });
           return {
             ...item,
             token0: {
@@ -908,7 +925,28 @@ export default function Swap() {
                   Balance: {outBal}
                 </span>
               </div>
-              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+              <br />
+            </FormControl>
+            <div className="mt-10">
+              {middleToken && middleToken.length == 2 && (
+                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
+                  {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
+                  {middleTokenSymbol[1]} -> {outToken.symbol}
+                </p>
+              )}
+              {middleToken && middleToken.length == 1 && (
+                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
+                  {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
+                  {outToken.symbol}
+                </p>
+              )}
+              {!middleToken && (
+                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
+                  {inToken.symbol} -> {outToken.symbol}
+                </p>
+              )}
+            </div>
+            <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
@@ -919,8 +957,6 @@ export default function Swap() {
                   <Settings />
                 </span>
               </div>
-              <br />
-            </FormControl>
             {
               setting ? (
                 <div>
@@ -972,7 +1008,8 @@ export default function Swap() {
                 </div>
               </div>
               <div>
-                {limitedout || Number(inValue) == 0 ? (
+                {account &&
+                  limitedout || Number(inValue) == 0 ? (
                   <Button
                     size="large"
                     variant="contained"
@@ -986,11 +1023,12 @@ export default function Swap() {
                       color: "#ddd"
                     }}
                   >
-                    Insufficient Balance
+                    {Number(inBal) <= 0 ? "Insufficient Balance" : "Input the token amount"}
                   </Button>
                 ) : (
                   <>
-                    {approval ? (
+                    {isExist &&
+                      approval ? (
                       <Button
                         size="large"
                         variant="contained"
@@ -1064,7 +1102,43 @@ export default function Swap() {
                         </div>
                       </>
                     )}
+                    {!isExist &&
+                      <Button
+                        size="large"
+                        variant="contained"
+                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        className="btn-disabled font-bold"
+                        disabled={true}
+                        style={{
+                          textAlign: "center",
+                          background:
+                            "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                          color: "#ddd"
+                        }}
+                      >
+                        No router
+                      </Button>
+                    }
                   </>
+                )
+                }
+                {!account && (
+                  <Button
+                    size={isMobile ? "small" : "large"}
+                    variant="contained"
+                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    onClick={clickConWallet}
+                    style={{
+                      background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      color: "#fff",
+                      textAlign: "center",
+                      marginRight: "8px",
+                      maxHeight: 57
+                    }}
+                    className="btn-primary font-bold w-full dark:text-black flex-1"
+                  >
+                    {"Connect to Wallet"}
+                  </Button>
                 )}
               </div>
             </div>
@@ -1072,12 +1146,12 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
-            {noChartData &&
+            {(noChartData || !isExist) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <CircularProgress style={{ marginTop: 160 }} />
               </div>
             }
-            <div style={{ display: noChartData ? "none" : "block" }}>
+            <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>
               <p style={{ color: "white", fontSize: "15px", fontWeight: "bold", float: "left" }}>{inToken["symbol"]} / {outToken["symbol"]}</p>
               <div ref={chartRef} className="w-full" />
             </div>

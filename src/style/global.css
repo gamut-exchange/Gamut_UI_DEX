@@ -14,12 +14,14 @@
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
-    -webkit-appearance: none!important;
-    margin: 0!important; /* <-- Apparently some margin are still there even though it's hidden */
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+    /* <-- Apparently some margin are still there even though it's hidden */
 }
 
 input[type=number] {
-    -moz-appearance:textfield!important; /* Firefox */
+    -moz-appearance: textfield !important;
+    /* Firefox */
 }
 
 .bg-modal {
@@ -28,4 +30,8 @@ input[type=number] {
 
 .thelist:hover {
     background-color: #07071c;
+}
+
+.MuiStepLabel-labelContainer .MuiStepLabel-label {
+    color: white!important;
 }

@@ -95,8 +95,6 @@ export default function RLiquidity() {
   const { account, connector } = useWeb3React();
   const [setting, setSetting] = useState(false);
   const [open, setOpen] = useState(false);
-  const [rOpen, setROpen] = useState(false);
-  const [chartOpen, setChartOpen] = useState(false);
   const [value, setValue] = useState(0);
   const [weightA, setWeightA] = useState(0.5);
   const [price, setPrice] = useState(0);
@@ -384,7 +382,7 @@ export default function RLiquidity() {
     if (account) {
       if (exitTransactionsData.exits && exitTransactionsData.exits.length != 0) {
         let result = [];
-        result = exitTransactionsData.exits.slice(0, 5).map(item => {
+        result = exitTransactionsData.exits.map(item => {
           return item;
         });
         return result;
@@ -694,7 +692,7 @@ export default function RLiquidity() {
               <div className="">
                 {account &&
                   <Button
-                    size="large"
+                  size={isMobile?"small":"large"}
                     variant="contained"
                     sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                     onClick={executeRemovePool}
@@ -705,13 +703,13 @@ export default function RLiquidity() {
                     disabled={Number(value) == 0 || removing}
                   >
                     {Number(value) == 0
-                      ? "Insufficient Blanance"
+                      ? "Define your Liquidity Input"
                       : (removing ? "Removing Liquidity" : "Confirm")}
                   </Button>
                 }
                 {!account &&
                   <Button
-                    size="large"
+                  size={isMobile?"small":"large"}
                     variant="contained"
                     sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                     onClick={clickConWallet}

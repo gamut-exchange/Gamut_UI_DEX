@@ -74,13 +74,13 @@ export const approveToken = async (
     provider,
     tokenAddr,
     value,
-    contractAddr
+    contractAddr,
+    setCreating
 ) => {
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
     const weiVal = await toWeiVal(provider, tokenAddr, value);
-    debugger;
     try {
         await token_contract.methods["increaseAllowance"](
             contractAddr,
@@ -88,6 +88,7 @@ export const approveToken = async (
         ).send({ from: account });
     } catch (e) {
         console.log(e.message);
+        setCreating(false);
     }
     const result = await tokenApproval(account, provider, tokenAddr, contractAddr);
     return result;
@@ -332,7 +333,8 @@ export const createPool = async (
     tokenAddr2,
     weight1,
     weight2,
-    contractAddr
+    contractAddr,
+    setCreating
 ) => {
     const abi = hedgeFactoryABI[0];
     let web3 = new Web3(provider);
@@ -344,6 +346,7 @@ export const createPool = async (
         await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account });
     } catch (e) {
         console.log(e.message);
+        setCreating(false);
     }
 
 }
@@ -355,13 +358,11 @@ export const initAddPool = async (
     token2Addr,
     amountA,
     amountB,
-    routerContractAddr
+    routerContractAddr,
+    setCreating
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-
-    await approveToken(account, provider, token1Addr, amountA*1.1, routerContractAddr);
-    await approveToken(account, provider, token2Addr, amountB*1.1, routerContractAddr);
     const initialBalances = [web3.utils.toWei(amountB.toString()), web3.utils.toWei(amountA.toString())];
     const JOIN_KIND_INIT = "0";
 
@@ -379,6 +380,7 @@ export const initAddPool = async (
         ]).send({ from: account });
     } catch (e) {
         console.log(e.message);
+        setCreating(false);
     }
 }
 

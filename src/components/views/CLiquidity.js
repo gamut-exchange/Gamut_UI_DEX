@@ -6,13 +6,17 @@ import tw from "twin.macro";
 import {
   Paper,
   Grid,
+  useMediaQuery,
   Modal,
   TextField,
   Button,
   FormControl,
   InputBase,
   Typography,
-  Slider
+  Slider,
+  Stepper,
+  Step,
+  StepLabel
 } from "@mui/material";
 import {
   AddCircleOutline,
@@ -20,13 +24,13 @@ import {
 import {
   getPoolAddress,
   getTokenBalance,
+  approveToken,
   createPool,
   initAddPool
 } from "../../config/web3";
 import SwapCmp from "./SwapCmp";
 import { uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
-
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -92,8 +96,11 @@ export default function CLiquidity() {
   const [pairStatus, setPairStatus] = useState(0);
   const [weight, setWeight] = useState(50);
   const [limitedOut, setLimitedout] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const dispatch = useDispatch();
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
     flex
@@ -236,11 +243,27 @@ export default function CLiquidity() {
   const executeCreatePool = async () => {
     const provider = await connector.getProvider();
     try {
-      await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
-      await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
-      setPairStatus(0);
+      setCreating(true);
+      await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"], setCreating);
+      if (creating) {
+        setCurrentStep(1);
+        await approveToken(account, provider, inToken["address"], inVal * 1.1, contractAddresses[selected_chain]["router"], setCreating);
+      }
+      if (creating) {
+        setCurrentStep(2);
+        await approveToken(account, provider, outToken["address"], outVal * 1.1, contractAddresses[selected_chain]["router"], setCreating);
+      }
+      if (creating) {
+        setCurrentStep(3);
+        await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"], setCreating);
+        setPairStatus(0);
+        setCreating(false);
+        alert(`Successfully created!`, "success");
+      }
+
     } catch (e) {
       console.log(e.message);
+      setCreating(false);
     }
   }
 
@@ -263,7 +286,6 @@ export default function CLiquidity() {
         columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
       >
         <SwapCmp />
-
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 10 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
 
@@ -303,8 +325,7 @@ export default function CLiquidity() {
                   type="number"
                   value={inVal}
                   onChange={handleInVal}
-                  min={0}
-                  max={Number(inBal.toString().replaceAll(",", ""))}
+                  InputProps={{ inputProps: { min: "0", max: inBal.toString().replaceAll(",", "") } }}
                   readOnly={pairStatus === 2 ? false : true}
                   style={{
                     color: "#FFFFFF",
@@ -395,7 +416,7 @@ export default function CLiquidity() {
                 <>
                   {pairStatus === 0 &&
                     <Button
-                      size="large"
+                      size={isMobile ? "small" : "large"}
                       variant="contained"
                       sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                       style={{
@@ -411,7 +432,7 @@ export default function CLiquidity() {
                   }
                   {pairStatus === 1 &&
                     <Button
-                      size="large"
+                      size={isMobile ? "small" : "large"}
                       variant="contained"
                       sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                       disabled={true}
@@ -427,7 +448,7 @@ export default function CLiquidity() {
                   }
                   {(limitedOut && pairStatus === 2) && (
                     <Button
-                      size="large"
+                      size={isMobile ? "small" : "large"}
                       variant="contained"
                       sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                       style={{
@@ -437,14 +458,14 @@ export default function CLiquidity() {
                         textAlign: "center",
                       }}
                     >
-                      Insufficient Funds
+                      {(Number(inBal.toString().replaceAll(",", "")) <= 0 || Number(outBal.toString().replaceAll(",", "")) <= 0) ? `Insufficient Funds` : "Define your Liquidity Input"}
                     </Button>
                   )}
 
                   {
                     (!limitedOut && pairStatus === 2) && (
                       <Button
-                        size="large"
+                        size={isMobile ? "small" : "large"}
                         variant="contained"
                         onClick={executeCreatePool}
                         sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
@@ -481,9 +502,8 @@ export default function CLiquidity() {
             </div>
           </Item>
         </Grid>
-
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 10 }}>
-          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
+          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
             <div style={{ textAlign: "center" }}>
               <h2 style={{ fontSize: 22 }}>Pool Creation Guide </h2>
               <ol>
@@ -498,7 +518,23 @@ export default function CLiquidity() {
               <br />
               <br />
             </div>
-          </Item >
+          </Item>
+          {creating && <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
+            <Stepper activeStep={currentStep} alternativeLabel>
+              <Step>
+                <StepLabel sx={{ color: "#fff" }}>Create Liquidity Pool</StepLabel>
+              </Step>
+              <Step>
+                <StepLabel>Approve Token {inToken['symbol']}</StepLabel>
+              </Step>
+              <Step>
+                <StepLabel>Approve Token {outToken['symbol']}</StepLabel>
+              </Step>
+              <Step>
+                <StepLabel>Add Intial Liquidty</StepLabel>
+              </Step>
+            </Stepper>
+          </Item>}
         </Grid >
         <Modal
           open={mopen}

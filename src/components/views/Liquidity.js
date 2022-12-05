@@ -6,6 +6,7 @@ import tw from "twin.macro";
 import {
   Paper,
   Grid,
+  useMediaQuery,
   Button,
   FormControl,
   Slider,
@@ -129,6 +130,7 @@ export default function Liquidity() {
 
   const weightData = useWeightsData(poolAddress.toLowerCase());
   const joinTransactionsData = useJoinTransactionsData(account);
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
     flex
@@ -608,7 +610,7 @@ export default function Liquidity() {
     if (account) {
       if (joinTransactionsData.joins && joinTransactionsData.joins.length != 0) {
         let result = [];
-        result = joinTransactionsData.joins.slice(0, 5).map(item => {
+        result = joinTransactionsData.joins.map(item => {
           return item;
         });
         return result;
@@ -829,11 +831,11 @@ export default function Liquidity() {
               <div>
                 {account && (
                   <>
-                    {isExist && !limitedout && Number(value) != 0 ? (
+                    {isExist && !limitedout && Number(value) > 0 ? (
                       <>
                         {approval ? (
                           <Button
-                            size="large"
+                            size={isMobile ? "small" : "large"}
                             variant="contained"
                             sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                             onClick={executeAddPool}
@@ -904,7 +906,7 @@ export default function Liquidity() {
                     ) : (
                       <div className="">
                         <Button
-                          size="large"
+                          size={isMobile ? "small" : "large"}
                           variant="contained"
                           sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                           className="btn-disabled font-bold w-full dark:text-black mt-20 flex-1"
@@ -917,7 +919,7 @@ export default function Liquidity() {
                           }}
                         >
                           {""}
-                          {!isExist ? "Invalid Pair" : "Insufficient Blanance"}
+                          {!isExist ? "Invalid Pair" : ((Number(inBal.toString().replaceAll(",", "")) <= 0 || Number(outBal.toString().replaceAll(",", "")) <= 0)) ? "Insufficient Blanance" : "Define your token amounts"}
                         </Button>
                       </div>
                     )}
@@ -926,7 +928,7 @@ export default function Liquidity() {
 
                 {!account && (
                   <Button
-                    size="large"
+                    size={isMobile ? "small" : "large"}
                     variant="contained"
                     sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                     onClick={clickConWallet}

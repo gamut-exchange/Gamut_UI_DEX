@@ -1,15 +1,16 @@
 import Web3 from "web3";
 import { AccordionDetails, AccordionSummary, Paper, Accordion, styled } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
+import Pagination from '@mui/material/Pagination';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-
 
 function History(props) {
   let web3 = new Web3();
   const grayColor = "#6d6d7d";
   const darkFontColorSec = "#13a8ff";
-  const [expanded, setExpanded] = React.useState(0);
+  const [expanded, setExpanded] = useState(-1);
+  const [count, setCount] = useState(0);
+  const [displayData, setDisplayData] = useState(props.data.slice(0, 5));
 
   const numFormat = (val) => {
     if (Number(val) > 1)
@@ -26,14 +27,25 @@ function History(props) {
     window.open(`https://goerli.etherscan.io/tx/${hash}`);
   };
 
+  const handleChange = (e) => {
+    const c_page = Number(e.target.innerText);
+    debugger;
+    setDisplayData(props.data.slice((c_page-1)*5, (c_page-1)*5+5))
+  }
+
+  useEffect(() => {
+    let cnt = props.data.length / 5;
+    cnt = Number(cnt.toFixed(0));
+    setCount(cnt);
+  }, []);
+
   return (
     <>
       {props.type === "swap" &&
-        props.data.map((item, index) => {
+        displayData.map((item) => {
           return <Accordion
+            key={item.id}
             sx={{ minHeight: "20px" }}
-            expanded={expanded === index}
-            onChange={() => setExpanded(Number(index))}
             style={{ backgroundColor: "#12122c", color: "white" }}
           >
             <AccordionSummary
@@ -115,11 +127,10 @@ function History(props) {
         })
       }
       {props.type === "join" &&
-        props.data.map((item, index) => {
+        displayData.map((item) => {
           return <Accordion
+            key={item.id}
             sx={{ minHeight: "20px" }}
-            expanded={expanded === index}
-            onChange={() => setExpanded(Number(index))}
             style={{ backgroundColor: "#12122c", color: "white" }}
           >
             <AccordionSummary
@@ -201,11 +212,10 @@ function History(props) {
         })
       }
       {props.type === "exit" &&
-        props.data.map((item, index) => {
+        displayData.map((item) => {
           return <Accordion
             sx={{ minHeight: "20px" }}
-            expanded={expanded === index}
-            onChange={() => setExpanded(Number(index))}
+            key={item.id}
             style={{ backgroundColor: "#12122c", color: "white" }}
           >
             <AccordionSummary
@@ -297,6 +307,9 @@ function History(props) {
           </Accordion>
         })
       }
+      <div style={{display:"flex", justifyContent:"end", paddingTop:"10px"}}>
+        <Pagination count={count} sx={{ button: { color: '#ffffff' } }} color="primary" shape="rounded" onChange={handleChange} />
+      </div>
     </>
   )
 }
