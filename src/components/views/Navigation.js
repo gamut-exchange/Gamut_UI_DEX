@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import './Navigation.css'
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-function Navigation(props) {
-  const [menuColor, setMenuColor] = React.useState("#13a8ff");
+function Navigation() {
+  const menuColor = "#13a8ff";
   const [active, setActive] = useState("home");
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.pathname == "/add_liquidity" || location.pathname == "/remove_liquidity" || location.pathname == "/create_liquidity")
+      setActive('liquidity');
+    else if (location.pathname == "/about")
+      setActive('about');
+    else if (location.pathname == "/contact")
+      setActive('contact');
+  }, []);
 
   return (
     <Box
@@ -28,7 +36,7 @@ function Navigation(props) {
           width: "100%"
         }}
       >
-        <Toolbar style={{padding: "0px", marginLeft:"10px"}}>
+        <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
           <Box sx={{ display: { xs: "none", sm: "none", md: "block", lg: "block" } }}>
             {/* {navItems.map((item) => ( */}
             <Link to="/" style={{ textDecoration: "none" }}>
@@ -46,7 +54,7 @@ function Navigation(props) {
             <Button
               // key={item}
               sx={{ color: active == "about" ? menuColor : "white", pr: 5 }}
-              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
+              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("about")}
             // {3==3?style={color:"red"}:""}
             >
@@ -58,7 +66,7 @@ function Navigation(props) {
             <Button
               // key={item}
               sx={{ color: active == "contact" ? menuColor : "white", pr: 5 }}
-              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
+              style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("contact")}
             >
               {/* {item} */}
@@ -69,7 +77,7 @@ function Navigation(props) {
               <Button
                 // key={item}
                 sx={{ color: active == "liquidity" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px"  }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("liquidity")}
               >
                 {/* {item} */}

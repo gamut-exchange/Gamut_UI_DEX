@@ -253,7 +253,7 @@ export default function RLiquidity() {
     } else {
       outA = (standardOutA / poolData.weights[0]) * reqWeightA;
       let extraB = await
-        calculateSwap(poolData.tokens[0], poolData, numFormat((outA - standardOutA) / 10 ** poolData.decimals[0])) *
+        calculateSwap(poolData.tokens[0], poolData, numFormat((standardOutA - outA) / 10 ** poolData.decimals[0])) *
         10 ** poolData.decimals[1];
       outB = standardOutB + extraB;
     }

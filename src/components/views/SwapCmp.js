@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import "./Navigation.css"
 
 function SwapCmp() {
-  const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
+  const darkFontColor = "#FFFFFF";
   const [activeSwapColor, setActiveSwapColor] = useState("linear-gradient(to right bottom, #13a8ff, #0074f0)");
 
   const isMobile = useMediaQuery("(max-width:600px)");
