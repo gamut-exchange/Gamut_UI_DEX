@@ -275,6 +275,7 @@ export default function CLiquidity() {
     setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, dispatch, selected_chain]);
 
   return (

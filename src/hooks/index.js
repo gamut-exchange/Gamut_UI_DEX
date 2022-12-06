@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import WalletConnectors from "../config/connectors";
 import * as actions from "./_api";
@@ -19,7 +18,7 @@ export function useEagerConnect() {
         setTried(true);
       }
     });
-    if (connector == walletconnect) {
+    if (connector === walletconnect) {
       walletconnect.isAuthorized().then((isAuthorized) => {
         if (isAuthorized) {
           activate(walletconnect, undefined, true).catch(() => {
@@ -30,6 +29,7 @@ export function useEagerConnect() {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activate]); // intentionally only running on mount (make sure it's only mounted once :))
 
   // if the connection worked, wait until we get confirmation of that to flip the flag
@@ -44,7 +44,6 @@ export function useEagerConnect() {
 
 export function useInactiveListener(suppress = false) {
   const { injected, walletconnect } = WalletConnectors();
-  const { selected_chain } = useSelector((state) => state.selectedChain);
   const { active, error, activate, connector } = useWeb3React();
 
   useEffect(() => {
@@ -97,6 +96,7 @@ export function useInactiveListener(suppress = false) {
     }
 
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, error, suppress, activate]);
 }
 
