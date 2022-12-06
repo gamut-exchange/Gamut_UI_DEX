@@ -6,7 +6,6 @@ import * as actions from "./_api";
 
 export function useEagerConnect() {
   const { injected, walletconnect } = WalletConnectors();
-  const selected_chain = useSelector((state) => state.selectedChain);
   const { activate, active, connector } = useWeb3React();
   const [tried, setTried] = useState(false);
 

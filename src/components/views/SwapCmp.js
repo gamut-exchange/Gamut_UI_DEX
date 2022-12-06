@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import "./Navigation.css"
 
 function SwapCmp() {
-  const darkFontColor = "#FFFFFF";
+  const darkFontColor = "#FFF";
   const [activeSwapColor, setActiveSwapColor] = useState("linear-gradient(to right bottom, #13a8ff, #0074f0)");
 
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -36,7 +36,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/add_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/add_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/add_liquidity")}
                 >
@@ -52,7 +52,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/remove_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/remove_liquidity")}
                 >
@@ -69,7 +69,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/create_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/create_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/create_liquidity")}
                 >
@@ -101,7 +101,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/add_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/add_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/add_liquidity")}
                 >
@@ -117,7 +117,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/remove_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/remove_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/remove_liquidity")}
                 >
@@ -134,7 +134,7 @@ function SwapCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname == "/create_liquidity" ? activeSwapColor : "#12122c",
+                      location.pathname === "/create_liquidity" ? activeSwapColor : "#12122c",
                   }}
                   onClick={() => setActiveSwapColor("/create_liquidity")}
                 >

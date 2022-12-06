@@ -19,7 +19,7 @@
     "@web3-react/frame-connector": "6.0.9",
     "@web3-react/injected-connector": "6.0.7",
     "@web3-react/walletconnect-connector": "6.2.8",
-    "gamut-sdk": "^1.1.8",
+    "gamut-sdk": "^1.2.0",
     "graphql": "15.5.0",
     "graphql-tag": "2.11.0",
     "lightweight-charts": "^3.8.0",

@@ -12,12 +12,13 @@ function Navigation() {
 
   const location = useLocation();
   useEffect(() => {
-    if (location.pathname == "/add_liquidity" || location.pathname == "/remove_liquidity" || location.pathname == "/create_liquidity")
+    if (location.pathname === "/add_liquidity" || location.pathname === "/remove_liquidity" || location.pathname === "/create_liquidity")
       setActive('liquidity');
-    else if (location.pathname == "/about")
+    else if (location.pathname === "/about")
       setActive('about');
-    else if (location.pathname == "/contact")
+    else if (location.pathname === "/contact")
       setActive('contact');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -33,7 +34,8 @@ function Navigation() {
           display: "flex",
           alignItems: "flex-start",
           backgroundColor: "transparent",
-          width: "100%"
+          width: "100%",
+          boxShadow: "0px 0px 0px 0px"
         }}
       >
         <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
@@ -42,7 +44,7 @@ function Navigation() {
             <Link to="/" style={{ textDecoration: "none" }}>
               <Button
                 // key={item}
-                sx={{ color: active == "home" ? menuColor : "white", pr: 5 }}
+                sx={{ color: active === "home" ? menuColor : "white", pr: 5 }}
                 style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("home")}
               >
@@ -53,7 +55,7 @@ function Navigation() {
 
             <Button
               // key={item}
-              sx={{ color: active == "about" ? menuColor : "white", pr: 5 }}
+              sx={{ color: active === "about" ? menuColor : "white", pr: 5 }}
               style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("about")}
             // {3==3?style={color:"red"}:""}
@@ -65,7 +67,7 @@ function Navigation() {
 
             <Button
               // key={item}
-              sx={{ color: active == "contact" ? menuColor : "white", pr: 5 }}
+              sx={{ color: active === "contact" ? menuColor : "white", pr: 5 }}
               style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("contact")}
             >
@@ -76,7 +78,7 @@ function Navigation() {
             <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
               <Button
                 // key={item}
-                sx={{ color: active == "liquidity" ? menuColor : "white", pr: 5 }}
+                sx={{ color: active === "liquidity" ? menuColor : "white", pr: 5 }}
                 style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("liquidity")}
               >

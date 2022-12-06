@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { AccordionDetails, AccordionSummary, Paper, Accordion, styled } from '@mui/material'
+import { AccordionDetails, AccordionSummary, Accordion } from '@mui/material'
 import React, { useState, useEffect } from 'react';
 import Pagination from '@mui/material/Pagination';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -8,7 +8,6 @@ function History(props) {
   let web3 = new Web3();
   const grayColor = "#6d6d7d";
   const darkFontColorSec = "#13a8ff";
-  const [expanded, setExpanded] = useState(-1);
   const [count, setCount] = useState(0);
   const [displayData, setDisplayData] = useState(props.data.slice(0, 5));
 
@@ -37,6 +36,7 @@ function History(props) {
     let cnt = props.data.length / 5;
     cnt = Number(cnt.toFixed(0));
     setCount(cnt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,6 +1,6 @@
 import Web3 from "web3";
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
 // ** Web3 React
 import {
     NoEthereumProviderError,
@@ -59,7 +59,6 @@ const ConnectWallet = ({
         activate,
         active,
         account,
-        chainId,
         deactivate,
         connector,
         error,
@@ -68,7 +67,6 @@ const ConnectWallet = ({
     const cWallet = ConnectedWallet();
     const { injected, walletconnect } = walletConnectors();
 
-    const selected_chain = useSelector((state) => state.selectedChain);
     const [activatingConnector, setActivatingConnector] = React.useState();
 
     useEffect(() => {
@@ -76,6 +74,7 @@ const ConnectWallet = ({
             type: CHANGE_WALLET,
             payload: account,
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [account]);
     // ** Actions
     const copyAddress = () => {
@@ -144,6 +143,7 @@ const ConnectWallet = ({
             };
         };
         initialData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

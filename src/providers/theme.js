@@ -1,8 +1,5 @@
 import React from "react";
-
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { CssBaseline } from "@mui/material";
-
 import { useSelector } from "react-redux";
 
 // import "../assets/sass/index.scss";

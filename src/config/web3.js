@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { ethers, BigNumber } from "ethers";
+import { ethers } from "ethers";
 import erc20ABI from "../assets/abi/erc20";
 import hedgeFactoryABI from "../assets/abi/hedgeFactory";
 import poolABI from "../assets/abi/pool";
@@ -54,10 +54,8 @@ export const getPoolData = async (provider, poolAddress) => {
 };
 
 export const tokenApproval = async (account, provider, tokenAddr, contractAddr) => {
-    const routerAbi = routerABI[0];
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
-    let contract = new web3.eth.Contract(routerAbi, contractAddr);
     let tokenContract = new web3.eth.Contract(tokenAbi, tokenAddr);
     // const owner = await contract.methods['owner']().call();
     let remain = await tokenContract.methods["allowance"](
@@ -137,10 +135,9 @@ export const batchSwapTokens = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-    const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
+    const wei_amount = web3.utils.toWei(amount.toString());
     let deadline = new Date().getTime() + 1000 * deadTime;
-    const wei_limit = await toWeiVal(provider, outTokenAddr, limit);
-    const funds = [account, account];
+    const traders = [account, account];
 
     let swaps = [];
 
@@ -171,13 +168,13 @@ export const batchSwapTokens = async (
     let limits = [];
 
     if (middleTokens.length === 1)
-        limits = [web3.utils.toWei("0"), web3.utils.toWei("0"), wei_limit];
+        limits = [wei_amount, web3.utils.toWei("0"), web3.utils.toWei("0")];
     else
         limits = [
+            wei_amount,
             web3.utils.toWei("0"),
             web3.utils.toWei("0"),
             web3.utils.toWei("0"),
-            wei_limit
         ];
     if (middleTokens) {
         const contract = new web3.eth.Contract(abi, contractAddr);
@@ -185,7 +182,7 @@ export const batchSwapTokens = async (
             await contract.methods["batchSwap"](
                 swaps,
                 assets,
-                funds,
+                traders,
                 limits,
                 deadline
             ).send({ from: account });
@@ -220,7 +217,7 @@ export const joinPool = async (
         let tokenB = "";
         let amountA = 0;
         let amountB = 0;
-        if (poolData["tokens"][0] == token1Addr) {
+        if (poolData["tokens"][0] === token1Addr) {
             tokenA = token1Addr;
             tokenB = token2Addr;
             amountA = amount1;
@@ -254,7 +251,7 @@ export const joinPool = async (
         // await token2_contract.methods['increaseAllowance'](c_address, outAmount).send({from: account});
         let contract = new web3.eth.Contract(abi, routerContractAddr);
         try {
-            let result = await contract.methods["joinPool"](account, [
+            await contract.methods["joinPool"](account, [
                 [tokenA, tokenB],
                 [inMaxAmount, outMaxAmount],
                 initUserData,
@@ -316,7 +313,7 @@ export const removePool = async (
 
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
-        let result = await contract.methods["exitPool"](account, [
+        await contract.methods["exitPool"](account, [
             [token1Addr, token2Addr],
             [await toWeiVal(provider, token1Addr, "0.001"), await toWeiVal(provider, token2Addr, "0.001")],
             initUserData,
@@ -453,7 +450,7 @@ export const calculateSwap = async (inToken, poolData, input) => {
     let decimal_from;
     let decimal_to;
 
-    if (inToken.toLowerCase() == poolData.tokens[0].toLowerCase()) {
+    if (inToken.toLowerCase() === poolData.tokens[0].toLowerCase()) {
         balance_from = poolData.balances[0];
         balance_to = poolData.balances[1];
         weight_from = poolData.weights[0];
@@ -666,7 +663,7 @@ export const getMiddleToken = async (inValue, inSToken, outSToken, tokenList, pr
 export const getPairs = (arr) => {
     return arr.flatMap((x) => {
         return arr.flatMap((y) => {
-            return x["address"] != y["address"] ? [[x, y]] : [];
+            return x["address"] !== y["address"] ? [[x, y]] : [];
         });
     });
 };

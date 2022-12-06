@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
@@ -28,7 +28,7 @@ import {
   joinPool,
   tokenApproval,
   approveToken,
-} from "../../config/web3";
+} from "gamut-sdk";
 import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -153,7 +153,7 @@ export default function Liquidity() {
 
   const handleSlider = (event, newValue) => {
     setSliderValue(newValue);
-    if (inToken["address"] != outToken["address"]) {
+    if (inToken["address"] !== outToken["address"]) {
       let valEth = (ratio * (1 - newValue / 100) * value) / (newValue / 100);
       valEth =
         valEth * 1 === 0
@@ -170,7 +170,7 @@ export default function Liquidity() {
     let inLimBal = inBal.replaceAll(",", "");
     let outLimBal = outBal.replaceAll(",", "");
 
-    if (inToken["address"] != outToken["address"]) {
+    if (inToken["address"] !== outToken["address"]) {
       let valEth =
         (event.target.value * ratio * (100 - sliderValue)) / sliderValue;
       valEth =
@@ -194,9 +194,9 @@ export default function Liquidity() {
   const filterToken = (e) => {
     let search_qr = e.target.value;
     setQuery(search_qr);
-    if (search_qr.length != 0) {
+    if (search_qr.length !== 0) {
       const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) != -1;
+        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
       });
       setFilterData(filterDT);
     } else {
@@ -215,7 +215,7 @@ export default function Liquidity() {
     if (account) {
       const provider = await connector.getProvider();
       bal = await getTokenBalance(provider, token["address"], account);
-      if (selected == 0) {
+      if (selected === 0) {
         setInBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
           return item["address"] !== token["address"];
@@ -249,7 +249,7 @@ export default function Liquidity() {
         )
           setLimitedout(false);
         else setLimitedout(true);
-      } else if (selected == 1) {
+      } else if (selected === 1) {
         setOutBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
           return item["address"] !== token["address"];
@@ -288,24 +288,24 @@ export default function Liquidity() {
   };
 
   const sliderInitVal = async (poolData, inToken) => {
-    let balance_from;
-    let balance_to;
+    // let balance_from;
+    // let balance_to;
     let weight_from;
-    let weight_to;
+    // let weight_to;
 
-    if (inToken["address"] == poolData.tokens[0]) {
-      balance_from = poolData.balances[0];
-      balance_to = poolData.balances[1];
+    if (inToken["address"] === poolData.tokens[0]) {
+      // balance_from = poolData.balances[0];
+      // balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
-      weight_to = poolData.weights[1];
+      // weight_to = poolData.weights[1];
     } else {
-      balance_from = poolData.balances[1];
-      balance_to = poolData.balances[0];
+      // balance_from = poolData.balances[1];
+      // balance_to = poolData.balances[0];
       weight_from = poolData.weights[1];
-      weight_to = poolData.weights[0];
+      // weight_to = poolData.weights[0];
     }
 
-    let pricePool = balance_from / weight_from / (balance_to / weight_to);
+    // let pricePool = balance_from / weight_from / (balance_to / weight_to);
     let x = weight_from / 10 ** 18;
 
     return x;
@@ -340,7 +340,7 @@ export default function Liquidity() {
     let decimal_from;
     let decimal_to;
 
-    if (inToken["address"] == poolData.tokens[0]) {
+    if (inToken["address"] === poolData.tokens[0]) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
@@ -366,7 +366,7 @@ export default function Liquidity() {
   };
 
   const executeAddPool = async () => {
-    if (inToken["address"] != outToken["address"]) {
+    if (inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
       setAdding(true);
       await joinPool(
@@ -426,7 +426,6 @@ export default function Liquidity() {
 
   const setInLimit = (position) => {
     let val1 = inBal ? inBal.replaceAll(",", "") : 0;
-    let val2 = outBal ? outBal.replaceAll(",", "") : 0;
     setValue(numFormat(val1 / position));
     if (position === 1) setLimitedout(true);
     else setLimitedout(false);
@@ -573,6 +572,7 @@ export default function Liquidity() {
       }, 40000);
       return () => clearInterval(intervalId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, value, inToken, outToken]);
 
   useEffect(() => {
@@ -581,12 +581,14 @@ export default function Liquidity() {
     } else {
       getCurrentPoolAddress();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inToken, outToken]);
 
   useEffect(() => {
     setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain]);
 
   const formattedWeightsData = useMemo(() => {
@@ -608,7 +610,7 @@ export default function Liquidity() {
 
   const transactionsData = useMemo(() => {
     if (account) {
-      if (joinTransactionsData.joins && joinTransactionsData.joins.length != 0) {
+      if (joinTransactionsData.joins && joinTransactionsData.joins.length !== 0) {
         let result = [];
         result = joinTransactionsData.joins.map(item => {
           return item;
@@ -620,6 +622,7 @@ export default function Liquidity() {
     } else {
       return [];
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joinTransactionsData]);
 
   return (
@@ -628,10 +631,9 @@ export default function Liquidity() {
         container
         sx={{ maxWidth: "1220px" }}
         border={0}
-        columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
+        columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
         <SwapCmp />
-
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
             <Typography
@@ -691,10 +693,10 @@ export default function Liquidity() {
                   Balance: {inBal}
                 </span>
                 <span style={{ float: "right", color: grayColor }}>
-                  <a href="javascript:void(0)" onClick={() => setInLimit(4)}>25%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(2)}>50%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1.3333)}>75%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1)}>100%</a>
+                  <span onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1)}>100%</span>
                 </span>
               </div>
             </FormControl>
@@ -779,10 +781,10 @@ export default function Liquidity() {
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.1); }} style={{ color: slippage == 0.1 ? "lightblue" : "" }}>0.1</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage == 0.25 ? "lightblue" : "" }}>0.25</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage == 0.5 ? "lightblue" : "" }}>0.5</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
+                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1</a>
+                      <a href="#;" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "" }}>0.25</a>
+                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5</a>
+                      <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div> */}
@@ -791,10 +793,10 @@ export default function Liquidity() {
                       Time Deadline:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(30); }} style={{ color: deadline == 30 ? "lightblue" : "" }}>30sec</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline == 60 ? "lightblue" : "" }}>1min</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline == 120 ? "lightblue" : "" }}>2min</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
+                      <a href="#;" onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "" }}>30sec</a>
+                      <a href="#;" onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "" }}>1min</a>
+                      <a href="#;" onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "" }}>2min</a>
+                      <a href="#;" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
                   </div> */}

@@ -6906,10 +6906,10 @@ functions-have-names@^1.2.2:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
-gamut-sdk@^1.1.8:
-  version "1.1.8"
-  resolved "https://registry.yarnpkg.com/gamut-sdk/-/gamut-sdk-1.1.8.tgz#781b4705cc35addc4bfed26fe4f91049352c1b8c"
-  integrity sha512-UCgmkZacuYGeawymniyJq9xqh/wa0pn39kx212pt0sjOvO84q3yLqxCej+QZ8W3iWP2Y28/YsTGC8i/4REqlnQ==
+gamut-sdk@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/gamut-sdk/-/gamut-sdk-1.2.0.tgz#b104d4fa501ffb0608c758248564605456294364"
+  integrity sha512-IKo+TuwkU8Gg0Ipt5cjIK6y1Mp+Y17/025T8pobxBoR0hb8K8px5bEMJsiUDkUd4mIcj+q12877Do9Dafk0/ZQ==
   dependencies:
     ethers "^5.6.2"
     web3 "^1.3.6"

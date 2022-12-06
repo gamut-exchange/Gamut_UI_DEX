@@ -1,5 +1,4 @@
 import './App.css';
-import { useState } from 'react';
 import "./style/global.css";
 import Header from './components/views/Header';
 import Swap from './components/views/Swap';
@@ -11,8 +10,6 @@ import {BrowserRouter, Route, Routes } from "react-router-dom";
 
 
 function App() {
-
-  const [bgColor,setBgColor]=useState("#07071c");
   return (
     <div className='Dark__Theme' style={{minHeight:"100vh", padding:"4px"}}>
       <BrowserRouter>

@@ -35,8 +35,8 @@ function Header(props) {
   const cWallet = ConnectedWallet();
   const selected_chain = useSelector((state) => state.selectedChain);
   const isMobile = useMediaQuery("(max-width:600px)");
+  const darkFontColor = "#FFF";
 
-  const [darkFontColor, setDarkFontColor] = useState("#FFFFFF");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [wrongChain, setWrongChain] = useState(false);
   const [openWalletList, setOpenWalletList] = useState(false);
@@ -47,10 +47,8 @@ function Header(props) {
   const dispatch = useDispatch();
   const classes = useStyles.header();
   const menuOpen = Boolean(anchorEl);
-  const { injected, walletconnect } = WalletConnectors();
+  const { injected } = WalletConnectors();
   const {
-    connector,
-    chainId,
     account,
     active,
     activate,
@@ -189,7 +187,7 @@ function Header(props) {
 
   const handleChain = async (chain) => {
     handleClose();
-    if (chain != "") {
+    if (chain !== "") {
       if (chainLabel !== chain) {
         setChainLabel(chain);
         deactivate();
@@ -230,10 +228,12 @@ function Header(props) {
 
   useEffect(() => {
     handleWrongChain();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, activate, deactivate, active, chainChanged, chainLabel]);
 
   useEffect(() => {
     handleChainLabel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainLabel]);
 
   return (

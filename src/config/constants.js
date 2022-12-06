@@ -38,7 +38,7 @@ export const poolList = {
 	'goerli': [
 		{value: "other", address:"0x362b81498cf2eEDEAeE54E7B0215eecA8440B974", symbols:["BTC", "DAI"], logoURLs:["/icons/btc.svg", "/icons/dai.svg"]},
 		{value: "other", address:"0xAA4ea1af68b6C7B5E338340d3dF24ad646F363B6", symbols:["BTC", "NEAR"], logoURLs:["/icons/btc.svg", "/icons/near.svg"]},
-		{value: "other", address:"0xAA4ea1af68b6C7B5E338340d3dF24ad646F363B6", symbols:["DAI", "IOTA"], logoURLs:["/icons/dai.svg", "/icons/iota.svg"]}
+		{value: "other", address:"0x9ccb89E9bCaE6ddC07C91d20C08AEb6e7430d699", symbols:["DAI", "IOTA"], logoURLs:["/icons/dai.svg", "/icons/iota.svg"]}
 	],
 	'fantom': [
 		{value: "btc-eth", address:"0x4D72553001fE88371aEc189455E1Ed18849b8bA2", symbols:["ETH", "BTC"], logoURLs:["/icons/eth.svg", "/icons/btc.svg"]},

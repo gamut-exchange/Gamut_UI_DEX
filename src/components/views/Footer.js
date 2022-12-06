@@ -1,11 +1,11 @@
 import { Facebook, Instagram, Twitter } from '@mui/icons-material';
-import { Grid, Item,Paper, styled } from '@mui/material'
-import React, { useState } from 'react'
+import { Grid, Paper, styled } from '@mui/material'
+import React from 'react'
 import logo from "../../images/logo.svg";
 
 
 function Footer() {
-    const [backgroundColor,setBackgroundColor]=useState("#12122c");
+    const backgroundColor = "#12122c";
     const Item = styled(Paper)(({ theme }) => ({
         backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
         ...theme.typography.body2,

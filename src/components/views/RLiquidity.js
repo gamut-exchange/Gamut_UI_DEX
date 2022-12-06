@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
@@ -29,7 +29,7 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
-} from "../../config/web3";
+} from "gamut-sdk";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
@@ -97,7 +97,6 @@ export default function RLiquidity() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(0);
   const [weightA, setWeightA] = useState(0.5);
-  const [price, setPrice] = useState(0);
   const [tokenAAddr, setTokenAAddr] = useState("");
   const [tokenBAddr, setTokenBAddr] = useState("");
   const [scale, setScale] = useState(50);
@@ -107,11 +106,8 @@ export default function RLiquidity() {
   const [filterData, setFilterData] = useState(poolList[selected_chain]);
   const [query, setQuery] = useState("");
   const [totalLPTokens, setTotalLPTokens] = useState(0);
-  const [poolBalanceA, setPoolBalanceA] = useState(0);
-  const [poolBalanceB, setPoolBalanceB] = useState(0);
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
-  const [poolData, setPoolData] = useState();
   const [removing, setRemoving] = useState(false);
   const [refTime, setRefTime] = useState(0);
 
@@ -146,25 +142,62 @@ export default function RLiquidity() {
 
   const handleScale = async (event, newValue) => {
     setScale(newValue);
-    setWeightA(newValue / 100);
-    await calculateOutput(totalLPTokens, value);
+    let weight1 = newValue / 100;
+    setWeightA(weight1);
+    await calculateOutput(totalLPTokens, value, weight1);
   };
 
   const handleSlider = async (event, newValue) => {
     setLpPercentage(newValue);
-    const val = (poolAmount * (newValue / 100)).toPrecision(6);
+    const val = numFormat(poolAmount * (newValue / 100));
     setValue(val);
-    await calculateOutput(totalLPTokens, val);
+    await calculateOutput(totalLPTokens, val, weightA);
+  };
+
+  const calculateOutput = async (totalLkTk, inValue, weight1) => {
+    const provider = await connector.getProvider();
+    const poolData = await getPoolData(
+      provider,
+      selectedItem["address"]
+    );
+
+    let removeingPercentage = inValue / (Number(totalLkTk) + 0.0000000001);
+    let standardOutA = removeingPercentage * poolData.balances[0];
+    let standardOutB = removeingPercentage * poolData.balances[1];
+    let reqWeightA = (1 - weight1) * 10 ** 18;
+    let reqWeightB = weight1 * 10 ** 18;
+    let outA = 0;
+    let outB = 0;
+    if (reqWeightB < Number(poolData.weights[1])) {
+      outB = (standardOutB / poolData.weights[1]) * reqWeightB;
+      let extraA = await
+        calculateSwap(poolData.tokens[1], poolData, numFormat((standardOutB - outB) / 10 ** poolData.decimals[1])) *
+        10 ** poolData.decimals[0];
+      outA = standardOutA + extraA;
+    } else {
+      outA = (standardOutA / poolData.weights[0]) * reqWeightA;
+      let extraB = await
+        calculateSwap(poolData.tokens[0], poolData, numFormat((standardOutA - outA) / 10 ** poolData.decimals[0])) *
+        10 ** poolData.decimals[1];
+      outB = standardOutB + extraB;
+    }
+
+    const vaueA = Math.floor(outA).toLocaleString("fullwide", { useGrouping: false });
+    const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
+    const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
+    const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
+    setOutTokenA(Number(amount1));
+    setOutTokenB(Number(amount2));
   };
 
   const filterLP = (e) => {
     let search_qr = e.target.value;
     setQuery(search_qr);
-    if (search_qr.length != 0) {
+    if (search_qr.length !== 0) {
       const filterDT = poolList[selected_chain].filter((item) => {
         return (
-          item["symbols"][0].toLowerCase().indexOf(search_qr) != -1 ||
-          item["symbols"][1].toLowerCase().indexOf(search_qr) != -1
+          item["symbols"][0].toLowerCase().indexOf(search_qr) !== -1 ||
+          item["symbols"][1].toLowerCase().indexOf(search_qr) !== -1
         );
       });
       setFilterData(filterDT);
@@ -180,9 +213,9 @@ export default function RLiquidity() {
         provider,
         selectedItem["address"]
       );
-      const weightA = fromWeiVal(provider, poolData["weights"][0], "18");
-      setWeightA(weightA);
-      setScale((weightA * 100).toPrecision(6));
+      const weight1 = fromWeiVal(provider, poolData["weights"][0], "18");
+      setWeightA(weight1);
+      setScale((weight1 * 100).toPrecision(6));
       setTokenAAddr(poolData["tokens"][0]);
       setTokenBAddr(poolData["tokens"][1]);
       let amount = await getPoolBalance(
@@ -198,7 +231,7 @@ export default function RLiquidity() {
         selectedItem["address"]
       );
       setTotalLPTokens(totalLPAmount);
-      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100);
+      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1);
     }
   }
 
@@ -228,42 +261,6 @@ export default function RLiquidity() {
         setRefTime(current.getTime());
       }, 20000);
     }
-  };
-
-  const calculateOutput = async (totalLkTk, inValue) => {
-    const provider = await connector.getProvider();
-    const poolData = await getPoolData(
-      provider,
-      selectedItem["address"]
-    );
-
-    let removeingPercentage = inValue / (Number(totalLkTk) + 0.0000000001);
-    let standardOutA = removeingPercentage * poolData.balances[0];
-    let standardOutB = removeingPercentage * poolData.balances[1];
-    let reqWeightA = (1 - weightA) * 10 ** 18;
-    let reqWeightB = weightA * 10 ** 18;
-    let outA = 0;
-    let outB = 0;
-    if (reqWeightB < Number(poolData.weights[1])) {
-      outB = (standardOutB / poolData.weights[1]) * reqWeightB;
-      let extraA = await
-        calculateSwap(poolData.tokens[1], poolData, numFormat((standardOutB - outB) / 10 ** poolData.decimals[1])) *
-        10 ** poolData.decimals[0];
-      outA = standardOutA + extraA;
-    } else {
-      outA = (standardOutA / poolData.weights[0]) * reqWeightA;
-      let extraB = await
-        calculateSwap(poolData.tokens[0], poolData, numFormat((standardOutA - outA) / 10 ** poolData.decimals[0])) *
-        10 ** poolData.decimals[1];
-      outB = standardOutB + extraB;
-    }
-
-    const vaueA = Math.floor(outA).toLocaleString("fullwide", { useGrouping: false });
-    const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
-    const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
-    const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
-    setOutTokenA(Number(amount1));
-    setOutTokenB(Number(amount2));
   };
 
   const numFormat = (val) => {
@@ -380,7 +377,7 @@ export default function RLiquidity() {
 
   const transactionsData = useMemo(() => {
     if (account) {
-      if (exitTransactionsData.exits && exitTransactionsData.exits.length != 0) {
+      if (exitTransactionsData.exits && exitTransactionsData.exits.length !== 0) {
         let result = [];
         result = exitTransactionsData.exits.map(item => {
           return item;
@@ -392,11 +389,13 @@ export default function RLiquidity() {
     } else {
       return [];
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exitTransactionsData]);
 
 
   useEffect(() => {
     getStatusData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedItem])
 
   useEffect(() => {
@@ -407,15 +406,9 @@ export default function RLiquidity() {
           provider,
           selectedItem["address"]
         );
-        const weightA = fromWeiVal(provider, pData["weights"][1], "18");
-        setPoolData(pData);
-        setWeightA(weightA);
-        setScale((weightA * 100).toPrecision(6));
-        setPrice(
-          pData.balances[0] /
-          pData.weights[0] /
-          (pData.balances[1] / pData.weights[1])
-        );
+        const weight1 = fromWeiVal(provider, pData["weights"][1], "18");
+        setWeightA(weight1);
+        setScale((weight1 * 100).toPrecision(6));
         setTokenAAddr(pData["tokens"][0]);
         setTokenBAddr(pData["tokens"][1]);
         let amount = await getPoolBalance(
@@ -430,12 +423,10 @@ export default function RLiquidity() {
         amount = Number(amount).toPrecision(6);
         setTotalLPTokens(amount2);
         setPoolAmount(amount);
-        // setValue(((amount * lpPercentage) / 100).toFixed(2));
-        setPoolBalanceA(pData.balances[0]);
-        setPoolBalanceB(pData.balances[1]);
         await calculateOutput(
           amount2,
-          (amount * lpPercentage) / 100
+          (amount * lpPercentage) / 100,
+          weight1
         );
       };
 
@@ -445,11 +436,13 @@ export default function RLiquidity() {
       }, 40000);
       return () => clearInterval(intervalId);
     }
-  }, [account, value]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
 
   useEffect(() => {
     setFilterData(poolList[[selected_chain]]);
     selectToken(poolList[selected_chain][0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain, account]);
 
   return (
@@ -458,7 +451,7 @@ export default function RLiquidity() {
         container
         sx={{ maxWidth: "1220px" }}
         border={0}
-        columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
+        columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
@@ -480,7 +473,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "11px" : "12px", fontWeight: "bold" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "10 px" : "11px", fontWeight: "bold" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
@@ -692,24 +685,24 @@ export default function RLiquidity() {
               <div className="">
                 {account &&
                   <Button
-                  size={isMobile?"small":"large"}
+                    size={isMobile ? "small" : "large"}
                     variant="contained"
                     sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                     onClick={executeRemovePool}
                     style={{
-                      background: (Number(value) == 0 || removing) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                      color: (Number(value) == 0 || removing) ? "#ddd" : "#fff",
+                      background: (Number(value) === 0 || removing) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      color: (Number(value) === 0 || removing) ? "#ddd" : "#fff",
                     }}
-                    disabled={Number(value) == 0 || removing}
+                    disabled={Number(value) === 0 || removing}
                   >
-                    {Number(value) == 0
+                    {Number(value) === 0
                       ? "Define your Liquidity Input"
                       : (removing ? "Removing Liquidity" : "Confirm")}
                   </Button>
                 }
                 {!account &&
                   <Button
-                  size={isMobile?"small":"large"}
+                    size={isMobile ? "small" : "large"}
                     variant="contained"
                     sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                     onClick={clickConWallet}

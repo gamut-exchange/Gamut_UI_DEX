@@ -1,4 +1,4 @@
-import { createChart, ColorType } from "lightweight-charts";
+import { createChart } from "lightweight-charts";
 import React, { useEffect, useRef } from "react";
 
 const ChartHome = (chartData) => {

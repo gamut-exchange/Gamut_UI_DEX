@@ -27,7 +27,7 @@ import {
   approveToken,
   createPool,
   initAddPool
-} from "../../config/web3";
+} from "gamut-sdk";
 import SwapCmp from "./SwapCmp";
 import { uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -128,9 +128,9 @@ export default function CLiquidity() {
   const filterToken = (e) => {
     let search_qr = e.target.value;
     setQuery(search_qr);
-    if (search_qr.length != 0) {
+    if (search_qr.length !== 0) {
       const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) != -1;
+        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
       });
       setFilterData(filterDT);
     } else {
@@ -283,7 +283,7 @@ export default function CLiquidity() {
         container
         sx={{ maxWidth: "1220px" }}
         border={0}
-        columnSpacing={{ xs: 0, sm: 0, md: 0, lg: 2 }}
+        columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 10 }} className="home__mainC">

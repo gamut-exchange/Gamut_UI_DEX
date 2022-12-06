@@ -37,7 +37,7 @@ import {
   calculateSwap,
   calcOutput,
   getMiddleToken
-} from "../../config/web3";
+} from "gamut-sdk";
 import { useTokenPricesData } from "../../config/chartData";
 import { useSwapTransactionsData } from "../../config/chartData";
 import { uniList } from "../../config/constants";
@@ -108,7 +108,7 @@ export default function Swap() {
   const [outToken, setOutToken] = useState(uniList[selected_chain][1]);
   const [inBal, setInBal] = useState(0);
   const [outBal, setOutBal] = useState(0);
-  const [fee, setFee] = useState(0);
+  // const [fee, setFee] = useState(0);
   const [approval, setApproval] = useState(false);
   const [approvedVal, setApprovedVal] = useState(0);
   const [filterData, setFilterData] = useState(uniList[selected_chain]);
@@ -152,16 +152,16 @@ export default function Swap() {
   const handleClose = () => setMopen(false);
   const handleValue = async (event) => {
     setInValue(event.target.value * 1);
-    setFee(event.target.value * swapFee);
+    // setFee(event.target.value * swapFee);
     checkApproved(inToken, event.target.value);
   };
 
   const filterToken = (e) => {
     let search_qr = e.target.value;
     setQuery(search_qr);
-    if (search_qr.length != 0) {
+    if (search_qr.length !== 0) {
       const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) != -1;
+        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
       });
       setFilterData(filterDT);
     } else {
@@ -182,51 +182,51 @@ export default function Swap() {
     setApprovedVal(Number(approval));
   };
 
-  const calcSlippage = async (inToken, poolData, input, output) => {
-    let balance_from;
-    let balance_to;
-    let weight_from;
-    let weight_to;
+  // const calcSlippage = async (inToken, poolData, input, output) => {
+  //   let balance_from;
+  //   let balance_to;
+  //   let weight_from;
+  //   let weight_to;
 
-    if (inToken["address"] == poolData.tokens[0]) {
-      balance_from = poolData.balances[0];
-      balance_to = poolData.balances[1];
-      weight_from = poolData.weights[0];
-      weight_to = poolData.weights[1];
-    } else {
-      balance_from = poolData.balances[1];
-      balance_to = poolData.balances[0];
-      weight_from = poolData.weights[1];
-      weight_to = poolData.weights[0];
-    }
+  //   if (inToken["address"] === poolData.tokens[0]) {
+  //     balance_from = poolData.balances[0];
+  //     balance_to = poolData.balances[1];
+  //     weight_from = poolData.weights[0];
+  //     weight_to = poolData.weights[1];
+  //   } else {
+  //     balance_from = poolData.balances[1];
+  //     balance_to = poolData.balances[0];
+  //     weight_from = poolData.weights[1];
+  //     weight_to = poolData.weights[0];
+  //   }
 
-    let pricePool = balance_from / weight_from / (balance_to / weight_to);
-    let priceTrade = input / output;
+  //   let pricePool = balance_from / weight_from / (balance_to / weight_to);
+  //   let priceTrade = input / output;
 
-    let slip = (1 - pricePool / priceTrade) * 100;
+  //   let slip = (1 - pricePool / priceTrade) * 100;
 
-    return slip;
-  };
+  //   return slip;
+  // };
 
   const selectToken = async (token, selected) => {
     handleClose();
     var bal = 0;
     if (selected === 0) {
-      if (token["address"] !== inToken["address"]) {
+      if (token["address"] !==  inToken["address"]) {
         setInToken(token);
       }
-    } else if (selected == 1) {
-      if (token["address"] !== outToken["address"]) {
+    } else if (selected === 1) {
+      if (token["address"] !==  outToken["address"]) {
         setOutToken(token);
       }
     }
     if (account) {
       const provider = await connector.getProvider();
       bal = await getTokenBalance(provider, token["address"], account);
-      if (selected == 0) {
+      if (selected === 0) {
         setInBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
+          return item["address"] !==  token["address"];
         });
         setFilterData(tempData);
         checkApproved(token, inValue);
@@ -239,10 +239,10 @@ export default function Swap() {
         )
           setLimitedout(false);
         else setLimitedout(true);
-      } else if (selected == 1) {
+      } else if (selected === 1) {
         setOutBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
+          return item["address"] !==  token["address"];
         });
 
         setFilterData(tempData);
@@ -265,7 +265,7 @@ export default function Swap() {
   };
 
   const executeSwap = async () => {
-    if (account && inToken["address"] !== outToken["address"]) {
+    if (account && inToken["address"] !==  outToken["address"]) {
       const provider = await connector.getProvider();
       const limit = valueEth * (1 - slippage);
       debugger;
@@ -316,8 +316,8 @@ export default function Swap() {
   const setInLimit = (point) => {
     if (inBal) {
       let val = inBal.toString().replaceAll(",", "");
-      setInValue(Number(val) / point);
-      if (point == 1)
+      setInValue(numFormat(val/point));
+      if (point === 1)
         setLimitedout(false);
       else
         setLimitedout(true);
@@ -330,7 +330,7 @@ export default function Swap() {
 
   const getMiddleTokenSymbol = (tokens) => {
     if (tokens) {
-      if (tokens.length == 2) {
+      if (tokens.length === 2) {
         const result1 = uniList[selected_chain].filter((item) => {
           return item.address === tokens[0]["address"];
         });
@@ -353,14 +353,14 @@ export default function Swap() {
   };
 
   const getStatusData = async (value) => {
-    if (account && inToken !== outToken) {
+    if (account && inToken !==  outToken) {
       let inLimBal = inBal.toString().replaceAll(",", "");
       let outLimBal = outBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
-      if (midToken !== undefined && midToken !== null) {
+      if (midToken !==  undefined && midToken !==  null) {
         setIsExist(true);
-        if (value * 1 != 0) {
+        if (value * 1 !== 0) {
           let amountOut = await calcOutput(
             midToken,
             provider,
@@ -391,7 +391,7 @@ export default function Swap() {
         );
         setTokenPr(numFormat(tokenPr));
 
-        if (midToken.length == 1) {
+        if (midToken.length === 1) {
           const poolAddress1 = await getPoolAddress(
             provider,
             inToken["address"],
@@ -441,14 +441,14 @@ export default function Swap() {
             outToken["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
-          if (poolAddress !== "0x0000000000000000000000000000000000000000") {
+          if (poolAddress !==  "0x0000000000000000000000000000000000000000") {
             setIsExist(true);
             const poolData = await getPoolData(
               provider,
               poolAddress
             );
 
-            if (value * 1 != 0) {
+            if (value * 1 !== 0) {
               let amountOut = await calculateSwap(
                 inToken["address"],
                 poolData,
@@ -479,7 +479,7 @@ export default function Swap() {
           setIsExist(false);
         }
       }
-    } else if (inToken !== outToken) {
+    } else if (inToken !==  outToken) {
       for (var i = 0; i < poolList[selected_chain].length; i++) {
         if (
           (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
@@ -515,7 +515,7 @@ export default function Swap() {
       var result = [];
       const poolTokenPrices = pricesData.prices;
       if (poolAddress.length === 1) {
-        poolTokenPrices.map((item, index) => {
+        poolTokenPrices.map(item => {
           if (item.token0.id.toLowerCase() === inToken["address"].toLowerCase()) {
             result.push({
               time: parseInt(item.timestamp, 10),
@@ -527,6 +527,7 @@ export default function Swap() {
               value: numFormat(item.token1Price),
             });
           }
+          return null;
         });
       } else if (poolAddress.length === 2) {
         for (var i = 1; i < poolTokenPrices.length; i++) {
@@ -550,56 +551,56 @@ export default function Swap() {
           }
         }
       } else if (poolAddress.length === 3) {
-        for (var i = 2; i < poolTokenPrices.length; i++) {
-          if (poolTokenPrices[i].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
+        for (var ii = 2; ii < poolTokenPrices.length; ii++) {
+          if (poolTokenPrices[ii].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
             var tempArr = [];
-            for (var j = i - 1; j >= 0; j--)
+            for (var jj = i - 1; jj >= 0; jj--)
               if (
-                poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase() ||
-                poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[2].toLowerCase()
+                poolTokenPrices[jj].pool.id.toLowerCase() === poolAddress[1].toLowerCase() ||
+                poolTokenPrices[jj].pool.id.toLowerCase() === poolAddress[2].toLowerCase()
               ) {
-                if (tempArr.length === 0) tempArr.push(poolTokenPrices[j]);
-                else if (tempArr[0].pool.id.toLowerCase() !== poolTokenPrices[j].pool.id.toLowerCase()) {
-                  if (poolTokenPrices[j].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
+                if (tempArr.length === 0) tempArr.push(poolTokenPrices[jj]);
+                else if (tempArr[0].pool.id.toLowerCase() !==  poolTokenPrices[jj].pool.id.toLowerCase()) {
+                  if (poolTokenPrices[jj].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                     var tempPrice1 =
-                      poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                        ? numFormat(poolTokenPrices[i].token0Price / (Number(poolTokenPrices[i].token1Price) + 0.000000000001))
-                        : poolTokenPrices[i].token1Price;
+                      poolTokenPrices[ii].token0.id.toLowerCase() === inToken["address"].toLowerCase()
+                        ? numFormat(poolTokenPrices[ii].token0Price / (Number(poolTokenPrices[ii].token1Price) + 0.000000000001))
+                        : poolTokenPrices[ii].token1Price;
                     var tempPrice2 =
-                      poolTokenPrices[j].token0.id.toLowerCase() ===
-                        poolTokenPrices[i].token0.id.toLowerCase() ||
-                        poolTokenPrices[j].token0.id.toLowerCase() ===
-                        poolTokenPrices[i].token1.id.toLowerCase()
-                        ? numFormat(poolTokenPrices[j].token0Price / (Number(poolTokenPrices[j].token1Price) + 0.000000000001)) * tempPrice1
-                        : poolTokenPrices[j].token1Price * tempPrice1;
-                    var lastPrice =
+                      poolTokenPrices[jj].token0.id.toLowerCase() ===
+                        poolTokenPrices[ii].token0.id.toLowerCase() ||
+                        poolTokenPrices[jj].token0.id.toLowerCase() ===
+                        poolTokenPrices[ii].token1.id.toLowerCase()
+                        ? numFormat(poolTokenPrices[jj].token0Price / (Number(poolTokenPrices[jj].token1Price) + 0.000000000001)) * tempPrice1
+                        : poolTokenPrices[jj].token1Price * tempPrice1;
+                    var lastPrice1 =
                       tempArr[0].token0.id.toLowerCase() === outToken["address"].toLowerCase()
                         ? tempPrice2 * numFormat(tempArr[0].token0Price / (Number(tempArr[0].token1Price) + 0.000000000001))
                         : tempPrice2 * tempArr[0].token1Price;
                     result.push({
-                      time: parseInt(poolTokenPrices[i].timestamp, 10),
-                      value: numFormat(lastPrice),
+                      time: parseInt(poolTokenPrices[ii].timestamp, 10),
+                      value: numFormat(lastPrice1),
                     });
                     break;
                   } else {
-                    var tempPrice1 =
-                      poolTokenPrices[i].token0.id.toLowerCase() === inToken["address"].toLowerCase()
-                        ? numFormat(poolTokenPrices[i].token0Price / (Number(poolTokenPrices[i].token1Price) + 0.000000000001))
-                        : poolTokenPrices[i].token1Price;
-                    var tempPrice2 =
+                    var tempPrice11 =
+                      poolTokenPrices[ii].token0.id.toLowerCase() === inToken["address"].toLowerCase()
+                        ? numFormat(poolTokenPrices[ii].token0Price / (Number(poolTokenPrices[ii].token1Price) + 0.000000000001))
+                        : poolTokenPrices[ii].token1Price;
+                    var tempPrice12 =
                       tempArr[0].token0.id.toLowerCase() ===
-                        poolTokenPrices[i].token0.id.toLowerCase() ||
+                        poolTokenPrices[ii].token0.id.toLowerCase() ||
                         tempArr[0].token0.id.toLowerCase() ===
-                        poolTokenPrices[i].token1.id.toLowerCase()
-                        ? numFormat(tempArr[0].token0Price / (Number(tempArr[0].token1Price) + 0.000000000001)) * tempPrice1
-                        : tempArr[0].token1Price * tempPrice1;
-                    var lastPrice =
-                      poolTokenPrices[j].token0.id.toLowerCase() === outToken["address"].toLowerCase()
-                        ? tempPrice2 * numFormat(poolTokenPrices[j].token0Price / (Number(poolTokenPrices[j].token1Price) + 0.000000000001))
-                        : tempPrice2 * poolTokenPrices[j].token1Price;
+                        poolTokenPrices[ii].token1.id.toLowerCase()
+                        ? numFormat(tempArr[0].token0Price / (Number(tempArr[0].token1Price) + 0.000000000001)) * tempPrice11
+                        : tempArr[0].token1Price * tempPrice11;
+                    var lastPrice2 =
+                      poolTokenPrices[jj].token0.id.toLowerCase() === outToken["address"].toLowerCase()
+                        ? tempPrice12 * numFormat(poolTokenPrices[jj].token0Price / (Number(poolTokenPrices[jj].token1Price) + 0.000000000001))
+                        : tempPrice12 * poolTokenPrices[jj].token1Price;
                     result.push({
-                      time: parseInt(poolTokenPrices[i].timestamp, 10),
-                      value: numFormat(lastPrice),
+                      time: parseInt(poolTokenPrices[ii].timestamp, 10),
+                      value: numFormat(lastPrice2),
                     });
                     break;
                   }
@@ -612,13 +613,14 @@ export default function Swap() {
     } else {
       return [];
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pricesData]);
 
   const transactionsData = useMemo(() => {
     if (account) {
-      if (swapTransactionData.swaps && swapTransactionData.swaps.length != 0) {
+      if (swapTransactionData.swaps && swapTransactionData.swaps.length !== 0) {
         let result = [];
-        result = swapTransactionData.swaps.map((item, index) => {
+        result = swapTransactionData.swaps.map(item => {
           let token0_symbol = "";
           let token1_symbol = "";
           uniList[selected_chain].map((unit) => {
@@ -626,6 +628,7 @@ export default function Swap() {
               token0_symbol = unit.symbol
             if (unit.address.toLowerCase() === item.tokenOut.toLowerCase())
               token1_symbol = unit.symbol
+            return null;
           });
           return {
             ...item,
@@ -644,6 +647,7 @@ export default function Swap() {
     } else {
       return [];
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [swapTransactionData]);
 
   // Chart --->
@@ -657,15 +661,15 @@ export default function Swap() {
     }
     areaSeries = dark
       ? chart.addAreaSeries({
-        topColor: "#4caf4f66",
-        bottomColor: "rgba(97, 255, 102, 0.04)",
-        lineColor: "rgba(76, 175, 80, 1)",
+        topColor: "#0580f482",
+        bottomColor: "#0580f42e",
+        lineColor: "#0580f4",
         lineWidth: 2,
       })
       : chart.addAreaSeries({
-        topColor: "rgba(76, 175, 80, 0.56)",
-        bottomColor: "rgba(76, 175, 80, 0.04)",
-        lineColor: "rgba(76, 175, 80, 1)",
+        topColor: "#0580f482",
+        bottomColor: "#0580f42e",
+        lineColor: "#0580f4",
         lineWidth: 2,
       });
     areaSeries.setData(formattedPricesData);
@@ -732,6 +736,7 @@ export default function Swap() {
       };
       getInfo();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, ""]);
 
   useEffect(() => {
@@ -740,22 +745,25 @@ export default function Swap() {
       getStatusData(inValue);
     }, 120000);
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inToken, outToken, inValue]);
 
   useEffect(() => {
     setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain]);
 
   // Chart part
   useEffect(() => {
-    if (formattedPricesData && formattedPricesData.length != 0) {
+    if (formattedPricesData && formattedPricesData.length !== 0) {
       setNoChartData(false);
       loadChart();
     }
     else
       setNoChartData(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formattedPricesData]);
 
   return (
@@ -769,7 +777,7 @@ export default function Swap() {
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow:"0px 0px 0px 0px" }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -862,12 +870,12 @@ export default function Swap() {
                   Balance: {inBal}
                 </span>
 
-                <span style={{ float: "right", color: grayColor }}>
-                  <a href="javascript:void(0)" onClick={() => setInLimit(4)}>25%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(2)}>50%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1.3333)}>75%</a>
-                  <a href="javascript:void(0)" style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1)}>100%</a>
-                </span>
+                <p style={{ float: "right", color: grayColor }}>
+                  <span style={{ cursor:"pointer" }} onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(1)}>100%</span>
+                </p>
               </div>
             </FormControl>
             <div>
@@ -928,13 +936,13 @@ export default function Swap() {
               <br />
             </FormControl>
             <div className="mt-10">
-              {middleToken && middleToken.length == 2 && (
+              {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
                   {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
                   {middleTokenSymbol[1]} -> {outToken.symbol}
                 </p>
               )}
-              {middleToken && middleToken.length == 1 && (
+              {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
                   {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
                   {outToken.symbol}
@@ -965,10 +973,10 @@ export default function Swap() {
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.1); }} style={{ color: slippage == 0.1 ? "lightblue" : "" }}>0.1</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage == 0.25 ? "lightblue" : "" }}>0.25</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage == 0.5 ? "lightblue" : "" }}>0.5</a>
-                      <a href="javascript:void(0);" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor:"pointer" }}>0.1</span>
+                      <span onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "", cursor:"pointer" }}>0.25</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor:"pointer" }}>0.5</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</span>
                     </span>
                     {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
@@ -977,10 +985,10 @@ export default function Swap() {
                       Time Deadline:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(30); }} style={{ color: deadline == 30 ? "lightblue" : "" }}>30sec</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline == 60 ? "lightblue" : "" }}>1min</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline == 120 ? "lightblue" : "" }}>2min</a>
-                      <a href="javascript:void(0);" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
+                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor:"pointer" }}>30sec</span>
+                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor:"pointer" }}>1min</span>
+                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor:"pointer" }}>2min</span>
+                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</span>
                     </span>
                     {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
                   </div>
@@ -1009,7 +1017,7 @@ export default function Swap() {
               </div>
               <div>
                 {account &&
-                  limitedout || Number(inValue) == 0 ? (
+                  (limitedout || Number(inValue) === 0) ? (
                   <Button
                     size="large"
                     variant="contained"

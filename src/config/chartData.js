@@ -180,6 +180,7 @@ export const POOL_PRICES = (poolString) => {
     } else {
       return undefined
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, refTime])
 
   return {
@@ -200,7 +201,6 @@ export function useWeightsData(address) {
     },
     fetchPolicy: 'cache-first',
   })
-
   const formattedData = useMemo(() => {
     if (data) {
       return data.weightBalanceDatas
