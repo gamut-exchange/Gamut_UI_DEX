@@ -37,6 +37,7 @@ export const uniList = {
 export const poolList = {
 	'goerli': [
 		{value: "other", address:"0x7A02Ac8ed36A89463fEedf1123d52cE35bE17e7f", symbols:["BTC", "DAI"], logoURLs:["/icons/btc.svg", "/icons/dai.svg"]},
+		{value: "other", address:"0x6F06BfdbF3449Df95eb88FEcd7bA1B8d365c56c2", symbols:["BTC", "USDT"], logoURLs:["/icons/btc.svg", "/icons/usdt.svg"]},
 		{value: "other", address:"0x969c9da9F09bbaDb9Fd8A9Fdeb37dC2Dd146d170", symbols:["DAI", "USDT"], logoURLs:["/icons/dai.svg", "/icons/usdt.svg"]}
 	],
 	'fantom': [

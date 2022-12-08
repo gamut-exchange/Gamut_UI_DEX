@@ -29,6 +29,7 @@ export const getPoolAddress = async (
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi, contractAddr);
     let result = await contract.methods["getPool"](token1Addr, token2Addr).call();
+    debugger;
     return result;
 };
 
@@ -362,7 +363,9 @@ export const initAddPool = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-    const initialBalances = [web3.utils.toWei(amountB.toString()), web3.utils.toWei(amountA.toString())];
+    let token1_wei_val = await toWeiVal(provider, token1Addr, amountA);
+    let token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
+    const initialBalances = [token2_wei_val, token1_wei_val];
     const JOIN_KIND_INIT = "0";
 
     const initUserData = ethers.utils.defaultAbiCoder.encode(

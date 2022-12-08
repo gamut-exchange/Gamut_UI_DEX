@@ -957,19 +957,19 @@ export default function Swap() {
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward /> {middleTokenSymbol[0]} <ArrowForward />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward /> {middleTokenSymbol[0]} <ArrowForward />{" "}
+                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
                 </p>
               )}
             </div>
@@ -986,7 +986,7 @@ export default function Swap() {
                 </span>
               </div>
             }
-            {(!account || !isExist) &&
+            {(account && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <span style={{color:"red"}}>No exchange rate available</span>
               </div>
@@ -1032,7 +1032,7 @@ export default function Swap() {
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage))}</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage*0.01))}</span>
                 </div>
               </div>
               <div>

@@ -27,7 +27,7 @@ import {
   approveToken,
   createPool,
   initAddPool
-} from "gamut-sdk";
+} from "../../config/web3";
 import SwapCmp from "./SwapCmp";
 import { uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";

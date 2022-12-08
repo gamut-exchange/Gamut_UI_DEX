@@ -24,7 +24,7 @@ function SwapCmp() {
         <Grid item xs={12} sm={12} md={9} lg={8} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" }}
           >
             <Stack spacing={2} direction="row">
               <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
