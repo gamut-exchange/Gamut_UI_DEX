@@ -376,7 +376,7 @@ export default function Liquidity() {
         outToken["address"],
         value,
         valueEth,
-        slippage,
+        slippage * 0.01,
         contractAddresses[selected_chain]["router"],
         contractAddresses[selected_chain]["hedgeFactory"]
       );
@@ -557,6 +557,10 @@ export default function Liquidity() {
       return Number(val).toFixed(6) * 1;
     else
       return Number(val).toFixed(8) * 1;
+  }
+
+  const valueLabelFormat = (value) => {
+    return value + "%";
   }
 
   useEffect(() => {
@@ -783,11 +787,11 @@ export default function Liquidity() {
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
                       <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1</a>
-                      <a href="#;" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "" }}>0.25</a>
                       <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5</a>
+                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1</a>
                       <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
                   <br />
                   <br />
@@ -985,11 +989,13 @@ export default function Liquidity() {
               </ResponsiveContainer>
             </div>
           </Item>
-          <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
-            <span style={{ textAlign: "start", color: "white" }}>History:</span>
-            <hr></hr>
-            <History type="join" data={transactionsData} />
-          </Item>
+          {account &&
+            <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
+              <span style={{ textAlign: "start", color: "white" }}>History:</span>
+              <hr></hr>
+              <History type="join" data={transactionsData} />
+            </Item>
+          }
         </Grid>
         <Modal
           open={mopen}

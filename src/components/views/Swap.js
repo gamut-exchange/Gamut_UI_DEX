@@ -21,6 +21,7 @@ import { Stack } from "@mui/system";
 import {
   ArrowCircleDownRounded,
   Settings,
+  ArrowForward,
 } from "@mui/icons-material";
 import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -153,7 +154,8 @@ export default function Swap() {
   const handleValue = async (event) => {
     setInValue(event.target.value * 1);
     // setFee(event.target.value * swapFee);
-    checkApproved(inToken, event.target.value);
+    if (account)
+      checkApproved(inToken, event.target.value);
   };
 
   const filterToken = (e) => {
@@ -212,12 +214,16 @@ export default function Swap() {
     handleClose();
     var bal = 0;
     if (selected === 0) {
-      if (token["address"] !==  inToken["address"]) {
+      if (token["address"] !== inToken["address"]) {
         setInToken(token);
+        setInValue(0);
+        setValueEth(0);
       }
     } else if (selected === 1) {
-      if (token["address"] !==  outToken["address"]) {
+      if (token["address"] !== outToken["address"]) {
         setOutToken(token);
+        setInValue(0);
+        setValueEth(0);
       }
     }
     if (account) {
@@ -226,7 +232,7 @@ export default function Swap() {
       if (selected === 0) {
         setInBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !==  token["address"];
+          return item["address"] !== token["address"];
         });
         setFilterData(tempData);
         checkApproved(token, inValue);
@@ -242,7 +248,7 @@ export default function Swap() {
       } else if (selected === 1) {
         setOutBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !==  token["address"];
+          return item["address"] !== token["address"];
         });
 
         setFilterData(tempData);
@@ -258,17 +264,17 @@ export default function Swap() {
 
   const findMiddleToken = async () => {
     const provider = await connector.getProvider();
-    var suitableRouter = await getMiddleToken(inValue, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    let inVal = (Number(inValue) === 0)?1:inValue;
+    var suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
     setMiddleToken(suitableRouter);
     getMiddleTokenSymbol(suitableRouter);
     return suitableRouter;
   };
 
   const executeSwap = async () => {
-    if (account && inToken["address"] !==  outToken["address"]) {
+    if (account && inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
-      const limit = valueEth * (1 - slippage);
-      debugger;
+      const limit = valueEth * (1 - slippage * 0.01);
       setSwapping(true);
       if (middleToken)
         await batchSwapTokens(
@@ -316,7 +322,7 @@ export default function Swap() {
   const setInLimit = (point) => {
     if (inBal) {
       let val = inBal.toString().replaceAll(",", "");
-      setInValue(numFormat(val/point));
+      setInValue(numFormat(val / point));
       if (point === 1)
         setLimitedout(false);
       else
@@ -353,12 +359,12 @@ export default function Swap() {
   };
 
   const getStatusData = async (value) => {
-    if (account && inToken !==  outToken) {
+    if (account && inToken !== outToken) {
       let inLimBal = inBal.toString().replaceAll(",", "");
       let outLimBal = outBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
-      if (midToken !==  undefined && midToken !==  null) {
+      if (midToken !== undefined && midToken !== null) {
         setIsExist(true);
         if (value * 1 !== 0) {
           let amountOut = await calcOutput(
@@ -378,6 +384,8 @@ export default function Swap() {
           setTokenPr(numFormat(amountOut / value));
           if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
           else setLimitedout(false);
+        } else {
+          setValueEth(0);
         }
 
         let tokenPr = await calcOutput(
@@ -441,7 +449,7 @@ export default function Swap() {
             outToken["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
-          if (poolAddress !==  "0x0000000000000000000000000000000000000000") {
+          if (poolAddress !== "0x0000000000000000000000000000000000000000") {
             setIsExist(true);
             const poolData = await getPoolData(
               provider,
@@ -463,6 +471,8 @@ export default function Swap() {
               setTokenPr(numFormat(amountOut / value));
               if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
               else setLimitedout(false);
+            } else {
+              setValueEth(0);
             }
 
             setPoolAddress([poolAddress.toLowerCase()]);
@@ -472,14 +482,16 @@ export default function Swap() {
               1);
             setTokenPr(numFormat(tokenPr));
           } else {
+            debugger;
             setIsExist(false);
           }
         } catch (e) {
           console.log(e.message);
+          debugger;
           setIsExist(false);
         }
       }
-    } else if (inToken !==  outToken) {
+    } else if (inToken !== outToken) {
       for (var i = 0; i < poolList[selected_chain].length; i++) {
         if (
           (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
@@ -487,6 +499,7 @@ export default function Swap() {
           (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
             poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
         ) {
+          setIsExist(true);
           setPoolAddress([
             poolList[selected_chain][i]["address"].toLowerCase(),
           ]);
@@ -494,6 +507,7 @@ export default function Swap() {
         }
       }
     } else {
+      debugger;
       setIsExist(false);
       setPoolAddress([]);
     }
@@ -508,6 +522,10 @@ export default function Swap() {
       return Number(val).toFixed(6) * 1;
     else
       return Number(val).toFixed(8) * 1;
+  }
+
+  const valueLabelFormat = (value) => {
+    return value + "%";
   }
 
   const formattedPricesData = useMemo(() => {
@@ -560,7 +578,7 @@ export default function Swap() {
                 poolTokenPrices[jj].pool.id.toLowerCase() === poolAddress[2].toLowerCase()
               ) {
                 if (tempArr.length === 0) tempArr.push(poolTokenPrices[jj]);
-                else if (tempArr[0].pool.id.toLowerCase() !==  poolTokenPrices[jj].pool.id.toLowerCase()) {
+                else if (tempArr[0].pool.id.toLowerCase() !== poolTokenPrices[jj].pool.id.toLowerCase()) {
                   if (poolTokenPrices[jj].pool.id.toLowerCase() === poolAddress[1].toLowerCase()) {
                     var tempPrice1 =
                       poolTokenPrices[ii].token0.id.toLowerCase() === inToken["address"].toLowerCase()
@@ -777,7 +795,7 @@ export default function Swap() {
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow:"0px 0px 0px 0px" }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -856,6 +874,7 @@ export default function Swap() {
                   value={inValue}
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   onChange={handleValue}
+                  readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -871,10 +890,10 @@ export default function Swap() {
                 </span>
 
                 <p style={{ float: "right", color: grayColor }}>
-                  <span style={{ cursor:"pointer" }} onClick={() => setInLimit(4)}>25%</span>
-                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(2)}>50%</span>
-                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
-                  <span style={{ paddingLeft: "5px", cursor:"pointer" }} onClick={() => setInLimit(1)}>100%</span>
+                  <span style={{ cursor: "pointer" }} onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1)}>100%</span>
                 </p>
               </div>
             </FormControl>
@@ -937,24 +956,25 @@ export default function Swap() {
             </FormControl>
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
-                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
-                  {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
-                  {middleTokenSymbol[1]} -> {outToken.symbol}
+                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
+                  {inToken.symbol} <ArrowForward /> {middleTokenSymbol[0]} <ArrowForward />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
-                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
-                  {inToken.symbol} -> {middleTokenSymbol[0]} ->{" "}
+                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
+                  {inToken.symbol} <ArrowForward /> {middleTokenSymbol[0]} <ArrowForward />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
-                <p className="text-light-primary" style={{color:"white", fontWeight:"bold"}}>
-                  {inToken.symbol} -> {outToken.symbol}
+                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
+                  {inToken.symbol} <ArrowForward /> {outToken.symbol}
                 </p>
               )}
             </div>
-            <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+            {account && isExist &&
+              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
@@ -965,6 +985,12 @@ export default function Swap() {
                   <Settings />
                 </span>
               </div>
+            }
+            {(!account || !isExist) &&
+              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+                <span style={{color:"red"}}>No exchange rate available</span>
+              </div>
+            }
             {
               setting ? (
                 <div>
@@ -973,22 +999,22 @@ export default function Swap() {
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor:"pointer" }}>0.1</span>
-                      <span onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "", cursor:"pointer" }}>0.25</span>
-                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor:"pointer" }}>0.5</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor:"pointer" }}>custom</span>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
+                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
                     </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
                   <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Time Deadline:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor:"pointer" }}>30sec</span>
-                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor:"pointer" }}>1min</span>
-                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor:"pointer" }}>2min</span>
-                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor:"pointer" }}>custom</span>
+                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
+                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
+                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
+                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
                     </span>
                     {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
                   </div>
@@ -1011,99 +1037,104 @@ export default function Swap() {
               </div>
               <div>
                 {account &&
-                  (limitedout || Number(inValue) === 0) ? (
-                  <Button
-                    size="large"
-                    variant="contained"
-                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                    className="btn-disabled font-bold"
-                    disabled={true}
-                    style={{
-                      textAlign: "center",
-                      background:
-                        "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
-                      color: "#ddd"
-                    }}
-                  >
-                    {Number(inBal) <= 0 ? "Insufficient Balance" : "Input the token amount"}
-                  </Button>
-                ) : (
                   <>
                     {isExist &&
-                      approval ? (
-                      <Button
-                        size="large"
-                        variant="contained"
-                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                        onClick={executeSwap}
-                        style={{
-                          background: swapping ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                          color: swapping ? "#ddd" : "#fff",
-                          textAlign: "center",
-                        }}
-                        className={
-                          swapping
-                            ? "btn-disabled font-bold w-full dark:text-black flex-1"
-                            : "btn-primary font-bold w-full dark:text-black flex-1"
-                        }
-                        disabled={swapping}
-                      >
-                        {swapping ? "Swap in progress" : "Swap Now"}
-                      </Button>
-                    ) : (
                       <>
-                        <div className="flex">
+                        {(limitedout || Number(inValue) === 0) ? (
                           <Button
                             size="large"
                             variant="contained"
                             sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                            onClick={() =>
-                              approveTk(Number(inValue - approval))
-                            }
+                            className="btn-disabled font-bold"
+                            disabled={true}
                             style={{
-                              background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                              color: (limitedout || unlocking) ? "#ddd" : "#fff",
                               textAlign: "center",
-                              marginRight: "8px"
+                              background:
+                                "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                              color: "#ddd"
                             }}
-                            className={
-                              approval
-                                ? "btn-primary flex-1"
-                                : ((limitedout || unlocking) ? "flex-1" : "flex-1")
-                            }
-                            disabled={limitedout || unlocking}
                           >
-                            {unlocking ? "Unlocking..." : "Unlock " + Math.ceil(inValue - approvedVal) + " " + inToken["value"]}
+                            {Number(inBal) <= 0 ? "Insufficient Balance" : "Input the token amount"}
                           </Button>
-                          <Button
-                            size="large"
-                            variant="contained"
-                            sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                            onClick={() => approveTk(9999999999)}
-                            style={{
-                              background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                              color: (limitedout || unlocking) ? "#ddd" : "#fff",
-                              textAlign: "center",
-                              marginLeft: "8px"
-                            }}
-                            className={
-                              approval
-                                ? "flex-1"
-                                : ((limitedout || unlocking) ? "flex-1" : "flex-1")
-                            }
-                            disabled={limitedout || unlocking}
-                          >
-                            {unlocking ? "Unlocking..." : "Infinite Unlock"}
-                          </Button>
-                        </div>
-                        <div className="text-red-700 flex items-center pt-1.5">
-                          <p className="text-small" style={{ color: "#b91c1c" }}>
-                            To proceed swapping, please unlock{" "}
-                            {inToken["value"].toUpperCase()} first.
-                          </p>
-                        </div>
+                        ) : (
+                          approval ? (
+                            <Button
+                              size="large"
+                              variant="contained"
+                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                              onClick={executeSwap}
+                              style={{
+                                background: swapping ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                color: swapping ? "#ddd" : "#fff",
+                                textAlign: "center",
+                              }}
+                              className={
+                                swapping
+                                  ? "btn-disabled font-bold w-full dark:text-black flex-1"
+                                  : "btn-primary font-bold w-full dark:text-black flex-1"
+                              }
+                              disabled={swapping}
+                            >
+                              {swapping ? "Swap in progress" : "Swap Now"}
+                            </Button>
+                          ) : (
+                            <>
+                              <div className="flex">
+                                <Button
+                                  size="large"
+                                  variant="contained"
+                                  sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                                  onClick={() =>
+                                    approveTk(Number(inValue - approval))
+                                  }
+                                  style={{
+                                    background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                    color: (limitedout || unlocking) ? "#ddd" : "#fff",
+                                    textAlign: "center",
+                                    marginRight: "8px"
+                                  }}
+                                  className={
+                                    approval
+                                      ? "btn-primary flex-1"
+                                      : ((limitedout || unlocking) ? "flex-1" : "flex-1")
+                                  }
+                                  disabled={limitedout || unlocking}
+                                >
+                                  {unlocking ? "Unlocking..." : "Unlock " + Math.ceil(inValue - approvedVal) + " " + inToken["value"]}
+                                </Button>
+                                <Button
+                                  size="large"
+                                  variant="contained"
+                                  sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                                  onClick={() => approveTk(9999999999)}
+                                  style={{
+                                    background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                    color: (limitedout || unlocking) ? "#ddd" : "#fff",
+                                    textAlign: "center",
+                                    marginLeft: "8px"
+                                  }}
+                                  className={
+                                    approval
+                                      ? "flex-1"
+                                      : ((limitedout || unlocking) ? "flex-1" : "flex-1")
+                                  }
+                                  disabled={limitedout || unlocking}
+                                >
+                                  {unlocking ? "Unlocking..." : "Infinite Unlock"}
+                                </Button>
+                              </div>
+                              <div className="text-red-700 flex items-center pt-1.5">
+                                <p className="text-small" style={{ color: "#b91c1c" }}>
+                                  To proceed swapping, please unlock{" "}
+                                  {inToken["value"].toUpperCase()} first.
+                                </p>
+                              </div>
+                            </>
+                          )
+                        )
+                        }
                       </>
-                    )}
+                    }
                     {!isExist &&
                       <Button
                         size="large"
@@ -1122,7 +1153,6 @@ export default function Swap() {
                       </Button>
                     }
                   </>
-                )
                 }
                 {!account && (
                   <Button
@@ -1148,7 +1178,13 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
-            {(noChartData || !isExist) &&
+            {!isExist &&
+              <div style={{ minHeight: "374px", textAlign: "center" }}>
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart aveilable!</p>
+              </div>
+            }
+
+            {(isExist && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <CircularProgress style={{ marginTop: 160 }} />
               </div>
@@ -1159,11 +1195,13 @@ export default function Swap() {
             </div>
             {/* <div ref={switchRef} /> */}
           </Item>
-          <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
-            <span style={{ textAlign: "start", color: "white" }}>History:</span>
-            <hr></hr>
-            <History type="swap" data={transactionsData} />
-          </Item>
+          {account &&
+            <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
+              <span style={{ textAlign: "start", color: "white" }}>History:</span>
+              <hr></hr>
+              <History type="swap" data={transactionsData} />
+            </Item>
+          }
         </Grid>
         <Modal
           open={mopen}
