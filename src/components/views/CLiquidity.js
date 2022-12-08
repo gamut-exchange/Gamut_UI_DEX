@@ -18,13 +18,16 @@ import {
   Step,
   StepLabel
 } from "@mui/material";
+import LoadingButton from '@mui/lab/LoadingButton';
 import {
   AddCircleOutline,
 } from "@mui/icons-material";
 import {
   getPoolAddress,
   getTokenBalance,
+  tokenApproval,
   approveToken,
+  getPoolData,
   createPool,
   initAddPool
 } from "../../config/web3";
@@ -160,24 +163,7 @@ export default function CLiquidity() {
         )
           setLimitedout(false);
         else setLimitedout(true);
-        if (token['address'].toLowerCase() === outToken['address'].toLowerCase())
-          setPairStatus(1);
-        else {
-          try {
-            const poolAddr = await getPoolAddress(
-              provider,
-              token["address"],
-              outToken["address"],
-              contractAddresses[selected_chain]["hedgeFactory"]
-            );
-            if (poolAddr === "0x0000000000000000000000000000000000000000")
-              setPairStatus(2);
-            else
-              setPairStatus(0);
-          } catch (error) {
-            setPairStatus(2);
-          }
-        }
+        await checkPairStatus(token['address'].toLowerCase(), outToken['address'].toLowerCase());
       } else if (selected === 1) {
         setOutBal(bal);
         let inLimBal = inBal ? inBal.replaceAll(",", "") : 0;
@@ -190,27 +176,48 @@ export default function CLiquidity() {
         )
           setLimitedout(false);
         else setLimitedout(true);
-        if (token['address'].toLowerCase() === inToken['address'].toLowerCase())
-          setPairStatus(1);
-        else {
-          try {
-            const poolAddr = await getPoolAddress(
-              provider,
-              token["address"],
-              inToken["address"],
-              contractAddresses[selected_chain]["hedgeFactory"]
-            );
-            if (poolAddr === "0x0000000000000000000000000000000000000000")
-              setPairStatus(2);
-            else
-              setPairStatus(0);
-          } catch (error) {
-            setPairStatus(2);
-          }
-        }
+        await checkPairStatus(inToken['address'].toLowerCase(), token['address'].toLowerCase());
       }
     }
   };
+
+  const checkPairStatus = async (token1Addr, token2Addr) => {
+    const provider = await connector.getProvider();
+    if (token1Addr === token2Addr)
+      setPairStatus(1);
+    else {
+      try {
+        const poolAddr = await getPoolAddress(
+          provider,
+          token1Addr,
+          token2Addr,
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        if (poolAddr === "0x0000000000000000000000000000000000000000")
+          setPairStatus(2);
+        else {
+          const poolData = await getPoolData(provider, poolAddr);
+          if (Number(poolData.balances[0]) === 0) {
+            let approved1 = await tokenApproval(account, provider, token1Addr, contractAddresses[selected_chain]["router"]);
+            if (approved1 < inVal)
+              setPairStatus(3);
+            else {
+              let approved2 = await tokenApproval(account, provider, token2Addr, contractAddresses[selected_chain]["router"]);
+              if (approved2 < outVal)
+                setPairStatus(4)
+              else {
+                setPairStatus(5);
+              }
+            }
+          } else {
+            setPairStatus(0);
+          }
+        }
+      } catch (error) {
+        setPairStatus(2);
+      }
+    }
+  }
 
   const handleInVal = (e) => {
     setInVal(Number(e.target.value));
@@ -243,27 +250,33 @@ export default function CLiquidity() {
   const executeCreatePool = async () => {
     const provider = await connector.getProvider();
     try {
-      setCreating(true);
-      await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"], setCreating);
-      if (creating) {
-        setCurrentStep(1);
-        await approveToken(account, provider, inToken["address"], inVal * 1.1, contractAddresses[selected_chain]["router"], setCreating);
-      }
-      if (creating) {
-        setCurrentStep(2);
-        await approveToken(account, provider, outToken["address"], outVal * 1.1, contractAddresses[selected_chain]["router"], setCreating);
-      }
-      if (creating) {
-        setCurrentStep(3);
-        await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"], setCreating);
-        setPairStatus(0);
+      if (pairStatus === 2) {
+        setCreating(true);
+        await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
         setCreating(false);
-        alert(`Successfully created!`, "success");
+        checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
+      }
+      if (pairStatus === 3) {
+        setCreating(true);
+        await approveToken(account, provider, inToken["address"], inVal * 1.1, contractAddresses[selected_chain]["router"]);
+        setCreating(false);
+        checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
+      }
+      if (pairStatus == 4) {
+        setCreating(true);
+        await approveToken(account, provider, outToken["address"], outVal * 1.1, contractAddresses[selected_chain]["router"]);
+        setCreating(false);
+        checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
+      }
+      if (pairStatus === 5) {
+        setCreating(true);
+        await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
+        setCreating(false);
+        checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
 
     } catch (e) {
       console.log(e.message);
-      setCreating(false);
     }
   }
 
@@ -277,6 +290,12 @@ export default function CLiquidity() {
     selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, dispatch, selected_chain]);
+
+  useEffect(() => {
+    if (account) {
+      checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
+    }
+  }, [inVal, outVal]);
 
   return (
     <div style={{ display: "flex", justifyContent: "center", paddingBottom: "30px" }}>
@@ -327,7 +346,7 @@ export default function CLiquidity() {
                   value={inVal}
                   onChange={handleInVal}
                   InputProps={{ inputProps: { min: "0", max: inBal.toString().replaceAll(",", "") } }}
-                  readOnly={pairStatus === 2 ? false : true}
+                  readOnly={(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) ? false : true}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -373,7 +392,7 @@ export default function CLiquidity() {
                   onChange={handleOutVal}
                   min={0}
                   max={Number(outBal.toString().replaceAll(",", ""))}
-                  readOnly={pairStatus === 2 ? false : true}
+                  readOnly={(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) ? false : true}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -447,7 +466,7 @@ export default function CLiquidity() {
                       Same Token Pair
                     </Button>
                   }
-                  {(limitedOut && pairStatus === 2) && (
+                  {(pairStatus !== 0 && pairStatus !== 1 && limitedOut) ? (
                     <Button
                       size={isMobile ? "small" : "large"}
                       variant="contained"
@@ -461,24 +480,87 @@ export default function CLiquidity() {
                     >
                       {(Number(inBal.toString().replaceAll(",", "")) <= 0 || Number(outBal.toString().replaceAll(",", "")) <= 0) ? `Insufficient Funds` : "Define your Liquidity Input"}
                     </Button>
-                  )}
-
-                  {
-                    (!limitedOut && pairStatus === 2) && (
-                      <Button
-                        size={isMobile ? "small" : "large"}
-                        variant="contained"
-                        onClick={executeCreatePool}
-                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                        style={{
-                          background:
-                            "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                          textAlign: "center",
-                        }}
-                      >
-                        CREATE POOL
-                      </Button>
-                    )
+                  ) : (
+                    <>
+                      {creating &&
+                        <LoadingButton
+                          loading={creating}
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          style={{
+                            color: "white",
+                            background:
+                              "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                            textAlign: "center",
+                          }}
+                          disabled={true}
+                        >
+                          Loading
+                        </LoadingButton>
+                      }
+                      {!creating && pairStatus === 2 &&
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          onClick={executeCreatePool}
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          style={{
+                            background:
+                              "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            textAlign: "center",
+                          }}
+                        >
+                          CREATE POOL
+                        </Button>
+                      }
+                      {!creating && pairStatus === 3 &&
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          onClick={executeCreatePool}
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          style={{
+                            background:
+                              "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            textAlign: "center",
+                          }}
+                        >
+                          Approve {inToken['symbol']}
+                        </Button>
+                      }
+                      {!creating && pairStatus === 4 &&
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          onClick={executeCreatePool}
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          style={{
+                            background:
+                              "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            textAlign: "center",
+                          }}
+                        >
+                          Approve {outToken['symbol']}
+                        </Button>
+                      }
+                      {!creating && pairStatus === 5 &&
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          onClick={executeCreatePool}
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          style={{
+                            background:
+                              "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            textAlign: "center",
+                          }}
+                        >
+                          Add Initial Liquidity
+                        </Button>
+                      }
+                    </>
+                  )
                   }
                 </>
               }
@@ -520,8 +602,8 @@ export default function CLiquidity() {
               <br />
             </div>
           </Item>
-          {creating && <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
-            <Stepper activeStep={currentStep} alternativeLabel>
+          {(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) && <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
+            <Stepper activeStep={pairStatus - 2} alternativeLabel>
               <Step>
                 <StepLabel sx={{ color: "#fff" }}>Create Liquidity Pool</StepLabel>
               </Step>

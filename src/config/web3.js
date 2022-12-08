@@ -73,8 +73,7 @@ export const approveToken = async (
     provider,
     tokenAddr,
     value,
-    contractAddr,
-    setCreating
+    contractAddr
 ) => {
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
@@ -87,7 +86,6 @@ export const approveToken = async (
         ).send({ from: account });
     } catch (e) {
         console.log(e.message);
-        setCreating(false);
     }
     const result = await tokenApproval(account, provider, tokenAddr, contractAddr);
     return result;
@@ -333,8 +331,7 @@ export const createPool = async (
     tokenAddr2,
     weight1,
     weight2,
-    contractAddr,
-    setCreating
+    contractAddr
 ) => {
     const abi = hedgeFactoryABI[0];
     let web3 = new Web3(provider);
@@ -346,7 +343,6 @@ export const createPool = async (
         await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account });
     } catch (e) {
         console.log(e.message);
-        setCreating(false);
     }
 
 }
@@ -358,8 +354,7 @@ export const initAddPool = async (
     token2Addr,
     amountA,
     amountB,
-    routerContractAddr,
-    setCreating
+    routerContractAddr
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
@@ -380,9 +375,9 @@ export const initAddPool = async (
             initialBalances,
             initUserData,
         ]).send({ from: account });
+        alert(`Successfully created!`, "success");
     } catch (e) {
         console.log(e.message);
-        setCreating(false);
     }
 }
 

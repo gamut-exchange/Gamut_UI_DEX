@@ -240,8 +240,7 @@ export default function Swap() {
         let inLimBal = bal.toString().replaceAll(",", "");
         let outLimBal = outBal.toString().replaceAll(",", "");
         if (
-          Number(inValue) <= Number(inLimBal) &&
-          Number(valueEth) <= Number(outLimBal)
+          Number(inValue) <= Number(inLimBal)
         )
           setLimitedout(false);
         else setLimitedout(true);
@@ -382,7 +381,7 @@ export default function Swap() {
               : numFormat(amountOut);
           setValueEth(amountOut);
           setTokenPr(numFormat(amountOut / value));
-          if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
+          if (Number(value) > Number(inLimBal)) setLimitedout(true);
           else setLimitedout(false);
         } else {
           setValueEth(0);
@@ -469,7 +468,7 @@ export default function Swap() {
                   : numFormat(amountOut);
               setValueEth(amountOut);
               setTokenPr(numFormat(amountOut / value));
-              if (Number(value) > Number(inLimBal) || Number(amountOut) > Number(outLimBal)) setLimitedout(true);
+              if (Number(value) > Number(inLimBal)) setLimitedout(true);
               else setLimitedout(false);
             } else {
               setValueEth(0);
