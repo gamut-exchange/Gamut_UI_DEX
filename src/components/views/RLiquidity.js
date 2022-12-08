@@ -29,7 +29,7 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
-} from "gamut-sdk";
+} from "../../config/web3";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
@@ -110,6 +110,8 @@ export default function RLiquidity() {
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
   const [refTime, setRefTime] = useState(0);
+  const [slippage, setSlippage] = useState(0.01);
+  const [slippageFlag, setSlippageFlag] = useState(false);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
@@ -141,7 +143,7 @@ export default function RLiquidity() {
   const handleClose = () => setOpen(false);
 
   const handleScale = async (event, newValue) => {
-    setScale(newValue);
+    setScale(newValue*1);
     let weight1 = newValue / 100;
     setWeightA(weight1);
     await calculateOutput(totalLPTokens, value, weight1);
@@ -186,8 +188,8 @@ export default function RLiquidity() {
     const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
     const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
-    setOutTokenA(Number(amount1));
-    setOutTokenB(Number(amount2));
+    setOutTokenA(numFormat(amount1));
+    setOutTokenB(numFormat(amount2));
   };
 
   const filterLP = (e) => {
@@ -215,7 +217,7 @@ export default function RLiquidity() {
       );
       const weight1 = fromWeiVal(provider, poolData["weights"][0], "18");
       setWeightA(weight1);
-      setScale((weight1 * 100).toPrecision(6));
+      setScale((weight1 * 100));
       setTokenAAddr(poolData["tokens"][0]);
       setTokenBAddr(poolData["tokens"][1]);
       let amount = await getPoolBalance(
@@ -248,11 +250,13 @@ export default function RLiquidity() {
       await removePool(
         account,
         provider,
-        selectedItem["address"],
         value,
         ratio,
         tokenAAddr,
         tokenBAddr,
+        outTokenA,
+        outTokenB,
+        slippage,
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
@@ -408,7 +412,7 @@ export default function RLiquidity() {
         );
         const weight1 = fromWeiVal(provider, pData["weights"][1], "18");
         setWeightA(weight1);
-        setScale((weight1 * 100).toPrecision(6));
+        setScale((weight1 * 100));
         setTokenAAddr(pData["tokens"][0]);
         setTokenBAddr(pData["tokens"][1]);
         let amount = await getPoolBalance(
@@ -629,33 +633,23 @@ export default function RLiquidity() {
                     size="small"
                     value={scale}
                     onChange={handleScale}
-                    step={0.01}
+                    step={0.1}
                     min={0.1}
                     max={99.9}
-                    aria-label="Small"
                     valueLabelDisplay="auto"
                   />
-                  {/* <br />
-                  <div className="s" sx={{ width: "100%" }} style={{ marginTop: "18px" }}>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      0.1 &nbsp; 0.25 &nbsp; 0.5 &nbsp;&nbsp; custom
+                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1</a>
+                      <a href="#;" onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "" }}>0.25</a>
+                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5</a>
+                      <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
-                  <br />
-                  <div style={{ marginTop: "7px" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Time Deadline:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      30sec &nbsp; 1min &nbsp; 2min &nbsp; custom
-                    </span>
-                  </div>
-                  <br />
-                  <hr style={{ border: "1px solid #6d6d7d" }} />
-                  <br /> */}
                 </div>
                 : null
             }

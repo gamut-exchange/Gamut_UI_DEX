@@ -28,7 +28,7 @@ import {
   joinPool,
   tokenApproval,
   approveToken,
-} from "gamut-sdk";
+} from "../../config/web3";
 import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -121,8 +121,8 @@ export default function Liquidity() {
   const [approvedVal2, setApprovedVal2] = useState(0);
   const [unlocking, setUnlocking] = useState(false);
   const [adding, setAdding] = useState(false);
-  // const [slippage, setSlippage] = useState(0.01);
-  // const [slippageFlag, setSlippageFlag] = useState(false);
+  const [slippage, setSlippage] = useState(0.01);
+  const [slippageFlag, setSlippageFlag] = useState(false);
   // const [deadline, setDeadline] = useState(900);
   // const [deadlineFlag, setDeadlineFlag] = useState(false);
 
@@ -376,6 +376,7 @@ export default function Liquidity() {
         outToken["address"],
         value,
         valueEth,
+        slippage,
         contractAddresses[selected_chain]["router"],
         contractAddresses[selected_chain]["hedgeFactory"]
       );
@@ -749,7 +750,7 @@ export default function Liquidity() {
                     fontSize: "18px",
                   }}
                 />{" "}
-                Pool Compoositon {sliderValue.toPrecision(4)}% {inToken["symbol"]} + {(100 - sliderValue).toPrecision(4)}% {outToken["symbol"]}
+                Pool Compositon {sliderValue.toPrecision(4)}% {inToken["symbol"]} + {(100 - sliderValue).toPrecision(4)}% {outToken["symbol"]}
                 <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
                   <Settings />
                 </span>
@@ -776,7 +777,7 @@ export default function Liquidity() {
                       valueLabelDisplay="auto"
                     />
                   </div>
-                  {/* <div className="s" style={{ float: "left", width: "100%" }}>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Max Slippage:
                     </span>
@@ -786,50 +787,16 @@ export default function Liquidity() {
                       <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5</a>
                       <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
-                    {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div> */}
-                  {/* <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Time Deadline:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <a href="#;" onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "" }}>30sec</a>
-                      <a href="#;" onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "" }}>1min</a>
-                      <a href="#;" onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "" }}>2min</a>
-                      <a href="#;" onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
-                    </span>
-                    {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
-                  </div> */}
-                  {/* <br /> */}
-                  {/* <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} /> */}
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
+                  </div>
+                  <br />
+                  <br />
                   <br />
                 </div>
               )
                 : null
             }
             <div style={{ textAlign: "left" }}>
-              {/* <span style={{ textAlign: "start", color: "white" }}>
-                Price Impact:
-              </span>
-
-              <div style={{ float: "right", display: "inline" }}>
-                <span style={{ textAlign: "right", color: "white" }}>0%</span>
-              </div>
-
-              <div>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
-                </div>
-              </div>
-              <div>
-                <span style={{ textAlign: "start", color: "white" }}>
-                  Minimum Output after Slippage:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
-                </div>
-              </div> */}
               <div>
                 {account && (
                   <>

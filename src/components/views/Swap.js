@@ -37,7 +37,7 @@ import {
   calculateSwap,
   calcOutput,
   getMiddleToken
-} from "gamut-sdk";
+} from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
 import { useSwapTransactionsData } from "../../config/chartData";
 import { uniList } from "../../config/constants";
@@ -976,9 +976,9 @@ export default function Swap() {
                       <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor:"pointer" }}>0.1</span>
                       <span onClick={() => { setSlippage(0.25); }} style={{ paddingLeft: "5px", color: slippage === 0.25 ? "lightblue" : "", cursor:"pointer" }}>0.25</span>
                       <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor:"pointer" }}>0.5</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor:"pointer" }}>custom</span>
                     </span>
-                    {slippageFlag && <Slider size="small" defaultValue={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.01} max={0.5} step={0.01} valueLabelDisplay="auto" onChange={(e) => setSlippage(Number(e.target.value))} />}
                   </div>
                   <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
@@ -988,9 +988,9 @@ export default function Swap() {
                       <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor:"pointer" }}>30sec</span>
                       <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor:"pointer" }}>1min</span>
                       <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor:"pointer" }}>2min</span>
-                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px" }}>custom</span>
+                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor:"pointer" }}>custom</span>
                     </span>
-                    {deadlineFlag && <Slider size="small" defaultValue={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
+                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
                   </div>
                   <br />
                   <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} />
@@ -1001,12 +1001,6 @@ export default function Swap() {
                 null
             }
             <div style={{ textAlign: "left" }}>
-              <span style={{ textAlign: "start", color: "white" }}>
-                Price Impact:
-              </span>
-              <div style={{ float: "right", display: "inline" }}>
-                <span style={{ textAlign: "right", color: "white" }}>0%</span>
-              </div>
               <div>
                 <span style={{ textAlign: "start", color: "white" }}>
                   Minimum Output after Slippage:
