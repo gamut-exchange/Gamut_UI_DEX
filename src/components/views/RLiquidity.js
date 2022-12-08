@@ -647,9 +647,9 @@ export default function RLiquidity() {
                       Max Slippage:
                     </span>
                     <span style={{ float: "right", color: grayColor }}>
-                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1</a>
-                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5</a>
-                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1</a>
+                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1%</a>
+                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5%</a>
+                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1%</a>
                       <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
