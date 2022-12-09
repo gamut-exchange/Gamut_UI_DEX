@@ -270,7 +270,17 @@ export default function CLiquidity() {
       }
       if (pairStatus === 5) {
         setCreating(true);
-        await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
+        const poolAddr = await getPoolAddress(
+          provider,
+          inToken["address"],
+          outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(provider, poolAddr);
+        if (poolData.tokens[0].toLowerCase() === inToken["address"].toLowerCase())
+          await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
+        else
+          await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
         setCreating(false);
         checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
@@ -496,7 +506,7 @@ export default function CLiquidity() {
                           }}
                           disabled={true}
                         >
-                          Loading
+                          Processing...
                         </LoadingButton>
                       }
                       {!creating && pairStatus === 2 &&

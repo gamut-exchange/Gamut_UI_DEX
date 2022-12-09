@@ -29,7 +29,6 @@ export const getPoolAddress = async (
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi, contractAddr);
     let result = await contract.methods["getPool"](token1Addr, token2Addr).call();
-    debugger;
     return result;
 };
 
