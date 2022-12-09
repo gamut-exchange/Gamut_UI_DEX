@@ -566,14 +566,14 @@ export default function RLiquidity() {
                   style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
-                      src={tokenA.logoURL}
+                      src={tokenB.logoURL}
                       alt=""
                       className="w-8"
                     />
                   }
                   disabled={true}
                 >
-                  {tokenA.symbol}
+                  {tokenB.symbol}
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -604,14 +604,14 @@ export default function RLiquidity() {
                   style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
-                      src={tokenB.logoURL}
+                      src={tokenA.logoURL}
                       alt=""
                       className="w-8"
                     />
                   }
                   disabled={true}
                 >
-                  {tokenB.symbol}
+                  {tokenA.symbol}
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -637,7 +637,7 @@ export default function RLiquidity() {
                   fontSize: "18px",
                 }}
               />{" "}
-              <span>Ratio {Number(scale).toPrecision(4)}% {selectedItem["symbols"][0]} - {(100 - scale).toPrecision(4)}% {selectedItem["symbols"][1]}</span>
+              <span>Ratio {Number(scale).toPrecision(4)}% {tokenB.symbol} - {(100 - scale).toPrecision(4)}% {tokenA.symbol}</span>
               <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
                 <Settings />
               </span>
