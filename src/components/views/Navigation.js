@@ -53,27 +53,20 @@ function Navigation() {
               </Button>
             </Link>
 
-            <Button
-              // key={item}
+            {/* <Button
               sx={{ color: active === "about" ? menuColor : "white", pr: 5 }}
               style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("about")}
-            // {3==3?style={color:"red"}:""}
             >
-              {/* {item} */}
               About Us
-            </Button>
-
-
-            <Button
-              // key={item}
+            </Button> */}
+            {/* <Button
               sx={{ color: active === "contact" ? menuColor : "white", pr: 5 }}
               style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
               onClick={() => setActive("contact")}
             >
-              {/* {item} */}
               Contact Us
-            </Button>
+            </Button> */}
 
             <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
               <Button
