@@ -164,7 +164,7 @@ export const POOL_PRICES = (poolString) => {
 /**
  * Fetch remove liquidity transactions
  */
- export function useExitTransactionsData(address, refTime) {
+ export function useExitTransactionsData(address) {
   const { loading, error, data } = useQuery(EXIT_TRANSACTIONS, {
     client: goerliClient,
     variables: {
@@ -181,7 +181,7 @@ export const POOL_PRICES = (poolString) => {
       return undefined
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, refTime])
+  }, [data])
 
   return {
     loading: loading,

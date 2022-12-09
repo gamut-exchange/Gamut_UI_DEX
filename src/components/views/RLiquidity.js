@@ -30,7 +30,7 @@ import {
   getPoolSupply,
   calculateSwap,
 } from "../../config/web3";
-import { poolList } from "../../config/constants";
+import { poolList, uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
   LineChart,
@@ -97,8 +97,8 @@ export default function RLiquidity() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(0);
   const [weightA, setWeightA] = useState(0.5);
-  const [tokenAAddr, setTokenAAddr] = useState("");
-  const [tokenBAddr, setTokenBAddr] = useState("");
+  const [tokenA, setTokenA] = useState([]);
+  const [tokenB, setTokenB] = useState([]);
   const [scale, setScale] = useState(50);
   const [lpPercentage, setLpPercentage] = useState(50);
   const [poolAmount, setPoolAmount] = useState(0);
@@ -109,13 +109,12 @@ export default function RLiquidity() {
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
-  const [refTime, setRefTime] = useState(0);
   const [slippage, setSlippage] = useState(1);
   const [slippageFlag, setSlippageFlag] = useState(false);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
-  let exitTransactionsData = useExitTransactionsData(account, refTime);
+  let exitTransactionsData = useExitTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
@@ -218,8 +217,19 @@ export default function RLiquidity() {
       const weight1 = fromWeiVal(provider, poolData["weights"][0], "18");
       setWeightA(weight1);
       setScale((weight1 * 100));
-      setTokenAAddr(poolData["tokens"][0]);
-      setTokenBAddr(poolData["tokens"][1]);
+
+      const result1 = uniList[selected_chain].filter((item) => {
+        return item.address.toLowerCase() === poolData["tokens"][0].toLowerCase();
+      });
+
+      setTokenA(result1[0]);
+
+      const result2 = uniList[selected_chain].filter((item) => {
+        return item.address.toLowerCase() === poolData["tokens"][1].toLowerCase();
+      });
+
+      setTokenB(result2[0]);
+
       let amount = await getPoolBalance(
         account,
         provider,
@@ -252,18 +262,14 @@ export default function RLiquidity() {
         provider,
         value,
         ratio,
-        tokenAAddr,
-        tokenBAddr,
+        tokenA.address,
+        tokenB.address,
         outTokenA,
         outTokenB,
         slippage * 0.01,
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
-      let current = new Date();
-      setTimeout(() => {
-        setRefTime(current.getTime());
-      }, 20000);
     }
   };
 
@@ -417,8 +423,19 @@ export default function RLiquidity() {
         const weight1 = fromWeiVal(provider, pData["weights"][1], "18");
         setWeightA(weight1);
         setScale((weight1 * 100));
-        setTokenAAddr(pData["tokens"][0]);
-        setTokenBAddr(pData["tokens"][1]);
+
+        const result1 = uniList[selected_chain].filter((item) => {
+          return item.address.toLowerCase() === pData["tokens"][0].toLowerCase();
+        });
+
+        setTokenA(result1[0]);
+
+        const result2 = uniList[selected_chain].filter((item) => {
+          return item.address.toLowerCase() === pData["tokens"][1].toLowerCase();
+        });
+
+        setTokenB(result2[0]);
+
         let amount = await getPoolBalance(
           account,
           provider,
@@ -439,10 +456,10 @@ export default function RLiquidity() {
       };
 
       getInfo();
-      const intervalId = setInterval(() => {
-        getStatusData();
-      }, 40000);
-      return () => clearInterval(intervalId);
+      // const intervalId = setInterval(() => {
+      //   getStatusData();
+      // }, 40000);
+      // return () => clearInterval(intervalId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
@@ -549,14 +566,14 @@ export default function RLiquidity() {
                   style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
-                      src={selectedItem["logoURLs"][0]}
+                      src={tokenA.logoURL}
                       alt=""
                       className="w-8"
                     />
                   }
                   disabled={true}
                 >
-                  {selectedItem["symbols"][0]}
+                  {tokenA.symbol}
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -587,14 +604,14 @@ export default function RLiquidity() {
                   style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
                   startIcon={
                     <img
-                      src={selectedItem["logoURLs"][1]}
+                      src={tokenB.logoURL}
                       alt=""
                       className="w-8"
                     />
                   }
                   disabled={true}
                 >
-                  {selectedItem["symbols"][1]}
+                  {tokenB.symbol}
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
