@@ -106,7 +106,7 @@ export const swapTokens = async (
     const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
     const wei_limit = await toWeiVal(provider, outTokenAddr, limit);
     let deadline = new Date().getTime() + 1000 * deadTime;
-
+    debugger;
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["swap"](
@@ -389,17 +389,17 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     decimal = Number(decimal);
     let value = Number(val);
     if (decimal === 21)
-        return web3.utils.toWei(value.toFixed(6), 'kether');
+        return web3.utils.toWei(value.toFixed(8), 'kether');
     else if (decimal === 18)
-        return web3.utils.toWei(value.toFixed(6), 'ether');
+        return web3.utils.toWei(value.toFixed(8), 'ether');
     else if (decimal === 15)
-        return web3.utils.toWei(value.toFixed(6), 'milliether');
+        return web3.utils.toWei(value.toFixed(8), 'milliether');
     else if (decimal === 12)
-        return web3.utils.toWei(value.toFixed(6), 'microether');
+        return web3.utils.toWei(value.toFixed(8), 'microether');
     else if (decimal === 9)
-        return web3.utils.toWei(value.toFixed(6), 'nano');
+        return web3.utils.toWei(value.toFixed(8), 'nano');
     else
-        return web3.utils.toWei(value.toFixed(6));
+        return web3.utils.toWei(value.toFixed(8));
 }
 
 export const fromWeiVal = (provider, val, dec) => {

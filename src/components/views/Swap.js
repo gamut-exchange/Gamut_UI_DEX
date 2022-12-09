@@ -120,7 +120,7 @@ export default function Swap() {
   const [unlocking, setUnlocking] = useState(false);
   const [swapping, setSwapping] = useState(false);
   const [tokenPr, setTokenPr] = useState(0);
-  const [slippage, setSlippage] = useState(0.01);
+  const [slippage, setSlippage] = useState(0.1);
   const [slippageFlag, setSlippageFlag] = useState(false);
   const [deadline, setDeadline] = useState(900);
   const [deadlineFlag, setDeadlineFlag] = useState(false);
@@ -273,7 +273,7 @@ export default function Swap() {
   const executeSwap = async () => {
     if (account && inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
-      const limit = valueEth * (1 - slippage * 0.01);
+      const limit = valueEth * (1 - swapFee - slippage*0.01);
       setSwapping(true);
       if (middleToken)
         await batchSwapTokens(
@@ -481,12 +481,10 @@ export default function Swap() {
               1);
             setTokenPr(numFormat(tokenPr));
           } else {
-            debugger;
             setIsExist(false);
           }
         } catch (e) {
           console.log(e.message);
-          debugger;
           setIsExist(false);
         }
       }
@@ -506,7 +504,6 @@ export default function Swap() {
         }
       }
     } else {
-      debugger;
       setIsExist(false);
       setPoolAddress([]);
     }

@@ -110,7 +110,7 @@ export default function RLiquidity() {
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
   const [refTime, setRefTime] = useState(0);
-  const [slippage, setSlippage] = useState(0.01);
+  const [slippage, setSlippage] = useState(1);
   const [slippageFlag, setSlippageFlag] = useState(false);
 
   const dispatch = useDispatch();

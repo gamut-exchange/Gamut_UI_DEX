@@ -121,7 +121,7 @@ export default function Liquidity() {
   const [approvedVal2, setApprovedVal2] = useState(0);
   const [unlocking, setUnlocking] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [slippage, setSlippage] = useState(0.01);
+  const [slippage, setSlippage] = useState(0.1);
   const [slippageFlag, setSlippageFlag] = useState(false);
   // const [deadline, setDeadline] = useState(900);
   // const [deadlineFlag, setDeadlineFlag] = useState(false);
@@ -340,7 +340,7 @@ export default function Liquidity() {
     let decimal_from;
     let decimal_to;
 
-    if (inToken["address"] === poolData.tokens[0]) {
+    if (inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
