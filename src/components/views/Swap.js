@@ -1182,7 +1182,7 @@ export default function Swap() {
 
             {(isExist && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <CircularProgress style={{ marginTop: 160 }} />
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chat data!</p>
               </div>
             }
             <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>

@@ -106,7 +106,7 @@ export const swapTokens = async (
     const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
     const wei_limit = await toWeiVal(provider, outTokenAddr, limit);
     let deadline = new Date().getTime() + 1000 * deadTime;
-    debugger;
+
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["swap"](

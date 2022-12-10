@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@apollo/client'
 import gql from 'graphql-tag'
 import {
-  goerliClient,
+  kavaClient,
 } from '../apollo/client'
 
 export const SWAP_TRANSACTIONS = gql`
@@ -112,7 +112,7 @@ export const POOL_PRICES = (poolString) => {
  */
  export function useSwapTransactionsData(address) {
   const { loading, error, data } = useQuery(SWAP_TRANSACTIONS, {
-    client: goerliClient,
+    client: kavaClient,
     variables: {
       address: address,
     },
@@ -139,7 +139,7 @@ export const POOL_PRICES = (poolString) => {
  */
  export function useJoinTransactionsData(address) {
   const { loading, error, data } = useQuery(JOIN_TRANSACTIONS, {
-    client: goerliClient,
+    client: kavaClient,
     variables: {
       address: address,
     },
@@ -166,7 +166,7 @@ export const POOL_PRICES = (poolString) => {
  */
  export function useExitTransactionsData(address) {
   const { loading, error, data } = useQuery(EXIT_TRANSACTIONS, {
-    client: goerliClient,
+    client: kavaClient,
     variables: {
       address: address,
     },
@@ -195,7 +195,7 @@ export const POOL_PRICES = (poolString) => {
  */
 export function useWeightsData(address) {
   const { loading, error, data } = useQuery(POOL_WEIGHTS, {
-    client: goerliClient,
+    client: kavaClient,
     variables: {
       address: address,
     },
@@ -226,7 +226,7 @@ export function useTokenPricesData(addresses) {
   })
   poolString += ']'
   const { loading, error, data } = useQuery(POOL_PRICES(poolString), {
-    client: goerliClient,
+    client: kavaClient,
     variables: {},
     fetchPolicy: 'cache-first',
   })

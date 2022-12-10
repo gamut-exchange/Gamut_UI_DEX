@@ -208,10 +208,7 @@ function Header(props) {
       const web3 = new Web3(provider);
       let current_chainId = await web3.eth.getChainId();
       current_chainId = Number(current_chainId);
-      if (
-        (chainLabel === "goerli" && current_chainId === 5) ||
-        (chainLabel === "fantom" && current_chainId === 4002)
-      ) {
+      if (chainLabel === "kava" && current_chainId === 2222) {
         setWrongChain(false);
       } else {
         setWrongChain(true);
@@ -309,8 +306,8 @@ function Header(props) {
                   paper: classes.darkMenuWrapper,
                 }}
               >
-                <MenuItem key="goerli" onClick={() => handleChain("goerli")}>
-                  Goerli
+                <MenuItem key="kava" onClick={() => handleChain("kava")}>
+                  Kava
                 </MenuItem>
               </Menu>
               <Hidden mdDown={true}>

@@ -1,7 +1,7 @@
 import WalletConnectors from "./connectors";
 
-const chainId1 = 5;
-const chainId2 = 4002;
+const chainId1 = 2222;
+// const chainId2 = 4002;
 // const RPC_URL1 = "https://goerli.infura.io/v3/";
 // const RPC_URL2 = "https://rpc.testnet.fantom.network/";
 // const viewBlockUrl1 = "https://goerli.etherscan.io/";
@@ -12,15 +12,10 @@ export const changeChain = async (chain) => {
   const provider = await injected.getProvider();
   if (provider) {
     try {
-      if(chain === "goerli") {
+      if(chain === "kava") {
         await provider.request({
         method: "wallet_switchEthereumChain",
           params: [{ chainId: `0x${chainId1.toString(16)}` }],
-        });
-      } else if(chain === "fantom") {
-        await provider.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: `0x${chainId2.toString(16)}` }],
         });
       }
       return true

@@ -81,7 +81,7 @@ const ConnectWallet = ({
         alert(`Copied to clipboard.`, "info");
     };
     const viewBlockUrl = (account) => {
-        window.open(`https://goerli.etherscan.io/address/${account}`);
+        window.open(`https://www.mintscan.io/kava/address/${account}`);
     };
 
     // const viewBlockUrl2 = (account) => {
