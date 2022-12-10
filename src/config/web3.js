@@ -13,7 +13,7 @@ export const getTokenBalance = async (provider, tokenAddr, account) => {
     let contract = new web3.eth.Contract(abi, tokenAddr);
     let bal = await contract.methods["balanceOf"](account).call();
     let decimal = await contract.methods["decimals"]().call();
-    let result = Number(bal / 10 ** decimal).toFixed(2);
+    let result = Number(bal / 10 ** decimal);
     if (Number(result) > 999)
         result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return result;
@@ -106,7 +106,7 @@ export const swapTokens = async (
     const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
     const wei_limit = await toWeiVal(provider, outTokenAddr, limit);
     let deadline = new Date().getTime() + 1000 * deadTime;
-
+    debugger;
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["swap"](
@@ -388,36 +388,16 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     let decimal = await contract.methods["decimals"]().call();
     decimal = Number(decimal);
     let value = Number(val);
-    if (decimal === 21)
-        return web3.utils.toWei(value.toFixed(8), 'kether');
-    else if (decimal === 18)
-        return web3.utils.toWei(value.toFixed(8), 'ether');
-    else if (decimal === 15)
-        return web3.utils.toWei(value.toFixed(8), 'milliether');
-    else if (decimal === 12)
-        return web3.utils.toWei(value.toFixed(8), 'microether');
-    else if (decimal === 9)
-        return web3.utils.toWei(value.toFixed(8), 'nano');
-    else
-        return web3.utils.toWei(value.toFixed(8));
+    let tval = value * (10**decimal);
+        return tval.toFixed(0);
 }
 
 export const fromWeiVal = (provider, val, dec) => {
     let web3 = new Web3(provider);
     let decimal = Number(dec);
     let value = val.toString();
-    if (decimal === 21)
-        return web3.utils.fromWei(value, 'kether');
-    else if (decimal === 18)
-        return web3.utils.fromWei(value, 'ether');
-    else if (decimal === 15)
-        return web3.utils.fromWei(value, 'milliether');
-    else if (decimal === 12)
-        return web3.utils.fromWei(value, 'microether');
-    else if (decimal === 9)
-        return web3.utils.fromWei(value, 'nano');
-    else
-        return web3.utils.fromWei(value);
+    let tval = value / (10**decimal);
+    return tval
 };
 
 // getting faucet tokens part

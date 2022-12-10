@@ -390,13 +390,13 @@ export default function Swap() {
         let tokenPr = await calcOutput(
           midToken,
           provider,
-          1,
+          0.000001,
           inToken,
           outToken,
           contractAddresses[selected_chain]["hedgeFactory"],
           swapFee
         );
-        setTokenPr(numFormat(tokenPr));
+        setTokenPr(numFormat(tokenPr*1000000));
 
         if (midToken.length === 1) {
           const poolAddress1 = await getPoolAddress(
@@ -478,8 +478,8 @@ export default function Swap() {
             var tokenPr = await calculateSwap(
               inToken["address"],
               poolData,
-              1);
-            setTokenPr(numFormat(tokenPr));
+              0.000001);
+            setTokenPr(numFormat(tokenPr*1000000));
           } else {
             setIsExist(false);
           }
@@ -511,11 +511,11 @@ export default function Swap() {
 
   const numFormat = (val) => {
     if (Number(val) > 1)
-      return Number(val).toFixed(2) * 1;
-    else if (Number(val) > 0.001)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Number(val) > 0.001)
       return Number(val).toFixed(6) * 1;
+    else if (Number(val) > 0.00001)
+      return Number(val).toFixed(8) * 1;
     else
       return Number(val).toFixed(8) * 1;
   }
