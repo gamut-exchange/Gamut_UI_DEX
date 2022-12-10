@@ -79,7 +79,7 @@ export const approveToken = async (
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
     const weiVal = await toWeiVal(provider, tokenAddr, value);
     try {
-        await token_contract.methods["increaseAllowance"](
+        await token_contract.methods["approve"](
             contractAddr,
             weiVal
         ).send({ from: account });
@@ -229,9 +229,9 @@ export const joinPool = async (
         }
 
         const inAmount = await toWeiVal(provider, tokenA, amountA);
-        const inMaxAmount = await toWeiVal(provider, tokenA, (amountA * (1+slippage)));
+        const inMaxAmount = await toWeiVal(provider, tokenA, (amountA * (1 + slippage)));
         const outAmount = await toWeiVal(provider, tokenB, amountB);
-        const outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1+slippage));
+        const outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage));
         const initUserData = ethers.utils.defaultAbiCoder.encode(
             ["uint256", "uint256[]", "uint256"],
             [
@@ -315,7 +315,7 @@ export const removePool = async (
     try {
         await contract.methods["exitPool"](account, [
             [token1Addr, token2Addr],
-            [await toWeiVal(provider, token1Addr, (token1Amount*(1-slippage)).toString()), await toWeiVal(provider, token2Addr, (token2Amount*(1-slippage)).toString())],
+            [await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()), await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString())],
             initUserData,
         ]).send({ from: account });
     } catch (e) {
@@ -388,15 +388,16 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     let decimal = await contract.methods["decimals"]().call();
     decimal = Number(decimal);
     let value = Number(val);
-    let tval = value * (10**decimal);
-        return tval.toFixed(0);
+    let tval = web3.utils.toBN(value * (10 ** decimal)).toString();
+    return tval;
 }
 
 export const fromWeiVal = (provider, val, dec) => {
     let web3 = new Web3(provider);
     let decimal = Number(dec);
     let value = val.toString();
-    let tval = value / (10**decimal);
+    let tval = value / (10 ** decimal);
+    debugger;
     return tval
 };
 

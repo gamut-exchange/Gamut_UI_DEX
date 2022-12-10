@@ -167,8 +167,8 @@ export default function Liquidity() {
 
   const handleValue = async (event) => {
     setValue(event.target.value);
-    let inLimBal = inBal.replaceAll(",", "");
-    let outLimBal = outBal.replaceAll(",", "");
+    let inLimBal = inBal.toString().replaceAll(",", "");
+    let outLimBal = outBal.toString().replaceAll(",", "");
 
     if (inToken["address"] !== outToken["address"]) {
       let valEth =
@@ -241,8 +241,8 @@ export default function Liquidity() {
           setIsExist(false);
         }
 
-        let inLimBal = bal ? bal.replaceAll(",", "") : 0;
-        let outLimBal = outBal ? outBal.replaceAll(",", "") : 0;
+        let inLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
+        let outLimBal = outBal ? outBal.toString().replaceAll(",", "") : 0;
         if (
           Number(value) <= Number(inLimBal) &&
           Number(valueEth) <= Number(outLimBal)
@@ -255,8 +255,8 @@ export default function Liquidity() {
           return item["address"] !== token["address"];
         });
 
-        let inLimBal = inBal ? inBal.replaceAll(",", "") : 0;
-        let outLimBal = bal ? bal.replaceAll(",", "") : 0;
+        let inLimBal = inBal ? inBal.toString().replaceAll(",", "") : 0;
+        let outLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
         if (
           Number(value) <= Number(inLimBal) &&
           Number(valueEth) <= Number(outLimBal)
@@ -426,7 +426,7 @@ export default function Liquidity() {
 
 
   const setInLimit = (position) => {
-    let val1 = inBal ? inBal.replaceAll(",", "") : 0;
+    let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
     setValue(numFormat(val1 / position));
     if (position === 1) setLimitedout(true);
     else setLimitedout(false);

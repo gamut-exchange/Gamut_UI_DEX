@@ -23,7 +23,6 @@ import {
   Settings,
   ArrowForward,
 } from "@mui/icons-material";
-import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { createChart } from "lightweight-charts";
 import {
@@ -238,7 +237,6 @@ export default function Swap() {
         checkApproved(token, inValue);
 
         let inLimBal = bal.toString().replaceAll(",", "");
-        let outLimBal = outBal.toString().replaceAll(",", "");
         if (
           Number(inValue) <= Number(inLimBal)
         )
@@ -360,7 +358,6 @@ export default function Swap() {
   const getStatusData = async (value) => {
     if (account && inToken !== outToken) {
       let inLimBal = inBal.toString().replaceAll(",", "");
-      let outLimBal = outBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
       if (midToken !== undefined && midToken !== null) {
@@ -882,7 +879,7 @@ export default function Swap() {
               </div>
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance: {inBal}
+                  Balance: {numFormat(inBal.toString().replaceAll(",", ""))}
                 </span>
 
                 <p style={{ float: "right", color: grayColor }}>
@@ -945,7 +942,7 @@ export default function Swap() {
 
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance: {outBal}
+                  Balance: {numFormat(outBal.toString().replaceAll(",", ""))}
                 </span>
               </div>
               <br />
