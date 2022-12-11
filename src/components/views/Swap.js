@@ -1173,13 +1173,13 @@ export default function Swap() {
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             {!isExist &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart aveilable!</p>
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart available!</p>
               </div>
             }
 
             {(isExist && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chat data!</p>
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chart data available</p>
               </div>
             }
             <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>
