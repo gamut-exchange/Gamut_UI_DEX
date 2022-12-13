@@ -463,7 +463,7 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     const contract = new web3.eth.Contract(abi, tokenAddr);
     let decimal = await contract.methods["decimals"]().call();
     decimal = Number(decimal);
-    let value = Number(val);
+    let value = Number((Math.floor(val * Math.pow(10, decimal)) / Math.pow(10, decimal)).toFixed(decimal));
     let tval = web3.utils.toBN(value * (10 ** decimal)).toString();
     return tval;
 }
