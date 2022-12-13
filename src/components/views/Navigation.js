@@ -49,7 +49,7 @@ function Navigation() {
                 onClick={() => setActive("home")}
               >
                 {/* {item} */}
-                Home
+                Swap
               </Button>
             </Link>
 

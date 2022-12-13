@@ -224,8 +224,8 @@ export default function Liquidity() {
         try {
           const poolAddr = await getPoolAddress(
             provider,
-            token["address"],
-            outToken["address"],
+            token["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token["address"],
+            outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           const poolData = await getPoolData(
@@ -270,8 +270,8 @@ export default function Liquidity() {
         try {
           const poolAddr = await getPoolAddress(
             provider,
-            inToken["address"],
-            token["address"],
+            inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+            token["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           const poolData = await getPoolData(provider, poolAddr);
@@ -313,23 +313,28 @@ export default function Liquidity() {
 
   const checkApproved = async (token1, token2, poolAddr, val1, val2) => {
     const provider = await connector.getProvider();
-    const approved1 = await tokenApproval(
-      account,
-      provider,
-      token1["address"],
-      contractAddresses[selected_chain]["router"]
-    );
-    const approved2 = await tokenApproval(
-      account,
-      provider,
-      token2["address"],
-      contractAddresses[selected_chain]["router"]
-    );
-    setApproval1(approved1 * 1 >= val1 * 1);
-    setApproval2(approved2 * 1 >= val1 * 1);
+    let approved1 = "0";
+    let approved2 = "0";
+    if (token1["address"] !== "0x0000000000000000000000000000000000000000")
+      approved1 = await tokenApproval(
+        account,
+        provider,
+        token1["address"],
+        contractAddresses[selected_chain]["router"]
+      );
+    if (token2["address"] !== "0x0000000000000000000000000000000000000000")
+      approved2 = await tokenApproval(
+        account,
+        provider,
+        token2["address"],
+        contractAddresses[selected_chain]["router"]
+      );
+    debugger;
+    setApproval1(token1["address"] === "0x0000000000000000000000000000000000000000" || approved1 * 1 >= val1 * 1);
+    setApproval2(token2["address"] === "0x0000000000000000000000000000000000000000" || approved2 * 1 >= val2 * 1);
     setApprovedVal1(approved1);
     setApprovedVal2(approved2);
-    setApproval(approved1 * 1 >= val1 * 1 && approved2 * 1 >= val2 * 1);
+    setApproval((token1["address"] === "0x0000000000000000000000000000000000000000" || approved1 * 1 >= val1 * 1) && (token2["address"] === "0x0000000000000000000000000000000000000000" || approved2 * 1 >= val2 * 1));
   };
 
   const calculateRatio = async (inToken, poolData, input) => {
@@ -451,8 +456,8 @@ export default function Liquidity() {
       const provider = await connector.getProvider();
       const poolAddress = await getPoolAddress(
         provider,
-        inToken["address"],
-        outToken["address"],
+        inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
         contractAddresses[selected_chain]["hedgeFactory"]
       );
       const poolData = await getPoolData(provider, poolAddress);

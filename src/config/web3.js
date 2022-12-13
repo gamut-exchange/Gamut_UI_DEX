@@ -10,13 +10,21 @@ import faucetABI from "../assets/abi/faucet";
 export const getTokenBalance = async (provider, tokenAddr, account) => {
     const abi = erc20ABI[0];
     let web3 = new Web3(provider);
-    let contract = new web3.eth.Contract(abi, tokenAddr);
-    let bal = await contract.methods["balanceOf"](account).call();
-    let decimal = await contract.methods["decimals"]().call();
-    let result = Number(bal / 10 ** decimal);
-    if (Number(result) > 999)
-        result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return result;
+    if (tokenAddr === "0x0000000000000000000000000000000000000000") {
+        const coinbal = await web3.eth.getBalance(account);
+        let result = Number(coinbal / 10 ** 18);
+        if (Number(result) > 999)
+            result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return result;
+    } else {
+        let contract = new web3.eth.Contract(abi, tokenAddr);
+        let bal = await contract.methods["balanceOf"](account).call();
+        let decimal = await contract.methods["decimals"]().call();
+        let result = Number(bal / 10 ** decimal);
+        if (Number(result) > 999)
+            result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return result;
+    }
 };
 
 export const getPoolAddress = async (
@@ -102,19 +110,34 @@ export const swapTokens = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
+    let wei_amount = "0";
+    let wei_limit = "0";
+    if (inTokenAddr === "0x0000000000000000000000000000000000000000")
+        wei_amount = web3.utils.toWei(amount.toString());
+    else
+        wei_amount = await toWeiVal(provider, inTokenAddr, amount);
 
-    const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
-    const wei_limit = await toWeiVal(provider, outTokenAddr, limit);
+    if (outTokenAddr === "0x0000000000000000000000000000000000000000")
+        wei_limit = web3.utils.toWei(limit.toString());
+    else
+        wei_limit = await toWeiVal(provider, outTokenAddr, limit);
     let deadline = new Date().getTime() + 1000 * deadTime;
-    debugger;
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
-        await contract.methods["swap"](
-            [inTokenAddr, outTokenAddr, wei_amount],
-            [account, account],
-            wei_limit,
-            deadline
-        ).send({ from: account });
+        if (inTokenAddr === "0x0000000000000000000000000000000000000000")
+            await contract.methods["swap"](
+                [inTokenAddr, outTokenAddr, wei_amount],
+                [account, account],
+                wei_limit,
+                deadline
+            ).send({ from: account, value: wei_amount });
+        else
+            await contract.methods["swap"](
+                [inTokenAddr, outTokenAddr, wei_amount],
+                [account, account],
+                wei_limit,
+                deadline
+            ).send({ from: account });
     } catch (e) {
         console.log(e.message);
     }
@@ -133,7 +156,17 @@ export const batchSwapTokens = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-    const wei_amount = await toWeiVal(provider, inTokenAddr, amount);
+    let wei_amount = "0";
+    // let wei_limit = "0";
+    if (inTokenAddr === "0x0000000000000000000000000000000000000000")
+        wei_amount = web3.utils.toWei(amount.toString());
+    else
+        wei_amount = await toWeiVal(provider, inTokenAddr, amount);
+
+    // if (outTokenAddr === "0x0000000000000000000000000000000000000000")
+    //     wei_limit = web3.utils.toWei(limit.toString());
+    // else
+    //     wei_limit = await toWeiVal(provider, outTokenAddr, limit);
     let deadline = new Date().getTime() + 1000 * deadTime;
     const traders = [account, account];
 
@@ -177,13 +210,22 @@ export const batchSwapTokens = async (
     if (middleTokens) {
         const contract = new web3.eth.Contract(abi, contractAddr);
         try {
-            await contract.methods["batchSwap"](
-                swaps,
-                assets,
-                traders,
-                limits,
-                deadline
-            ).send({ from: account });
+            if (inTokenAddr === "0x0000000000000000000000000000000000000000")
+                await contract.methods["batchSwap"](
+                    swaps,
+                    assets,
+                    traders,
+                    limits,
+                    deadline
+                ).send({ from: account, value: wei_amount });
+            else
+                await contract.methods["batchSwap"](
+                    swaps,
+                    assets,
+                    traders,
+                    limits,
+                    deadline
+                ).send({ from: account });
         } catch (e) {
             console.log(e.message);
         }
@@ -202,11 +244,11 @@ export const joinPool = async (
     factoryContractAddr
 ) => {
     const abi = routerABI[0];
-    let web3 = new Web3(provider);
+    const web3 = new Web3(provider);
     const poolAddr = await getPoolAddress(
         provider,
-        token1Addr,
-        token2Addr,
+        token1Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token1Addr,
+        token2Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token2Addr,
         factoryContractAddr
     );
 
@@ -216,7 +258,9 @@ export const joinPool = async (
         let tokenB = "";
         let amountA = 0;
         let amountB = 0;
-        if (poolData["tokens"][0] === token1Addr) {
+        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()
+            ||
+            (token1Addr === "0x0000000000000000000000000000000000000000" && poolData["tokens"][0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
             tokenA = token1Addr;
             tokenB = token2Addr;
             amountA = amount1;
@@ -228,10 +272,26 @@ export const joinPool = async (
             amountB = amount1;
         }
 
-        const inAmount = await toWeiVal(provider, tokenA, amountA);
-        const inMaxAmount = await toWeiVal(provider, tokenA, (amountA * (1 + slippage)));
-        const outAmount = await toWeiVal(provider, tokenB, amountB);
-        const outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage));
+        let inAmount = "0";
+        let inMaxAmount = "0";
+        let outAmount = "0";
+        let outMaxAmount = "0";
+        if (tokenA === "0x0000000000000000000000000000000000000000") {
+            inAmount = web3.utils.toWei(amountA.toString());
+            inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+        }
+        else {
+            inAmount = await toWeiVal(provider, tokenA, amountA);
+            inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+        }
+
+        if (tokenB === "0x0000000000000000000000000000000000000000") {
+            outAmount = web3.utils.toWei(amountB.toString());
+            outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+        } else {
+            outAmount = await toWeiVal(provider, tokenB, amountB);
+            outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+        }
         const initUserData = ethers.utils.defaultAbiCoder.encode(
             ["uint256", "uint256[]", "uint256"],
             [
@@ -250,11 +310,18 @@ export const joinPool = async (
         // await token2_contract.methods['increaseAllowance'](c_address, outAmount).send({from: account});
         let contract = new web3.eth.Contract(abi, routerContractAddr);
         try {
-            await contract.methods["joinPool"](account, [
-                [tokenA, tokenB],
-                [inMaxAmount, outMaxAmount],
-                initUserData,
-            ]).send({ from: account });
+            if (tokenA === "0x0000000000000000000000000000000000000000" || tokenB === "0x0000000000000000000000000000000000000000")
+                await contract.methods["joinPool"](account, [
+                    [tokenA, tokenB],
+                    [inMaxAmount, outMaxAmount],
+                    initUserData,
+                ]).send({ from: account, value: (tokenA === "0x0000000000000000000000000000000000000000") ? inAmount : outAmount });
+            else
+                await contract.methods["joinPool"](account, [
+                    [tokenA, tokenB],
+                    [inMaxAmount, outMaxAmount],
+                    initUserData,
+                ]).send({ from: account });
         } catch (e) {
             console.log(e.message);
         }
@@ -357,8 +424,16 @@ export const initAddPool = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-    let token1_wei_val = await toWeiVal(provider, token1Addr, amountA);
-    let token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
+    let token1_wei_val = "0";
+    let token2_wei_val = "0";
+    if (token1Addr === "0x0000000000000000000000000000000000000000")
+        token1_wei_val = web3.utils.toWei(amountA.toString());
+    else
+        token1_wei_val = await toWeiVal(provider, token1Addr, amountA);
+    if (token2Addr === "0x0000000000000000000000000000000000000000")
+        token2_wei_val = web3.utils.toWei(amountB.toString());
+    else
+        token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
     const initialBalances = [token2_wei_val, token1_wei_val];
     const JOIN_KIND_INIT = "0";
 
@@ -369,11 +444,12 @@ export const initAddPool = async (
 
     let contract = new web3.eth.Contract(abi, routerContractAddr);
     try {
+        if(token1Addr === "0x0000000000000000000000000000000000000000" || token2Addr === "0x0000000000000000000000000000000000000000")
         await contract.methods["joinPool"](account, [
             [token2Addr, token1Addr],
             initialBalances,
             initUserData,
-        ]).send({ from: account });
+        ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000")?token1_wei_val:token2_wei_val });
         alert(`Successfully created!`, "success");
     } catch (e) {
         console.log(e.message);
@@ -393,11 +469,10 @@ const toWeiVal = async (provider, tokenAddr, val) => {
 }
 
 export const fromWeiVal = (provider, val, dec) => {
-    let web3 = new Web3(provider);
+    // let web3 = new Web3(provider);
     let decimal = Number(dec);
     let value = val.toString();
     let tval = value / (10 ** decimal);
-    debugger;
     return tval
 };
 
@@ -560,7 +635,8 @@ export const getMiddleToken = async (inValue, inSToken, outSToken, tokenList, pr
     const availableLists = tokenList.filter((item) => {
         return (
             item["address"] !== inSToken["address"] &&
-            item["address"] !== outSToken["address"]
+            item["address"] !== outSToken["address"] &&
+            item["address"] !== "0x0000000000000000000000000000000000000000"
         );
     });
 

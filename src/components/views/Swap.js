@@ -172,15 +172,19 @@ export default function Swap() {
 
   const checkApproved = async (token, val) => {
     const provider = await connector.getProvider();
-    const approval = await tokenApproval(
-      account,
-      provider,
-      token["address"],
-      contractAddresses[selected_chain]["router"]
-    );
+    if (token['address'] !== '0x0000000000000000000000000000000000000000') {
+      const approval = await tokenApproval(
+        account,
+        provider,
+        token["address"],
+        contractAddresses[selected_chain]["router"]
+      );
 
-    setApproval(approval * 1 >= val * 1);
-    setApprovedVal(Number(approval));
+      setApproval(approval * 1 >= val * 1);
+      setApprovedVal(Number(approval));
+    } else {
+      setApproval(true);
+    }
   };
 
   // const calcSlippage = async (inToken, poolData, input, output) => {
@@ -214,13 +218,14 @@ export default function Swap() {
     var bal = 0;
     if (selected === 0) {
       if (token["address"] !== inToken["address"]) {
-        setInToken(token);
+        setInToken({ ...token });
         setInValue(0);
         setValueEth(0);
       }
+      console.log(uniList);
     } else if (selected === 1) {
       if (token["address"] !== outToken["address"]) {
-        setOutToken(token);
+        setOutToken({ ...token });
         setInValue(0);
         setValueEth(0);
       }
@@ -230,10 +235,9 @@ export default function Swap() {
       bal = await getTokenBalance(provider, token["address"], account);
       if (selected === 0) {
         setInBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
-        setFilterData(tempData);
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
         checkApproved(token, inValue);
 
         let inLimBal = bal.toString().replaceAll(",", "");
@@ -244,11 +248,9 @@ export default function Swap() {
         else setLimitedout(true);
       } else if (selected === 1) {
         setOutBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
-
-        setFilterData(tempData);
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
       }
     }
   };
@@ -261,8 +263,19 @@ export default function Swap() {
 
   const findMiddleToken = async () => {
     const provider = await connector.getProvider();
-    let inVal = (Number(inValue) === 0)?1:inValue;
-    var suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    let inVal = (Number(inValue) === 0) ? 1 : inValue;
+    let suitableRouter = [];
+    if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
+      let canToken = { ...inToken };
+      canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+      suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
+      let canToken = { ...outToken };
+      canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+      suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    } else {
+      suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    }
     setMiddleToken(suitableRouter);
     getMiddleTokenSymbol(suitableRouter);
     return suitableRouter;
@@ -271,7 +284,7 @@ export default function Swap() {
   const executeSwap = async () => {
     if (account && inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
-      const limit = valueEth * (1 - swapFee - slippage*0.01);
+      const limit = valueEth * (1 - swapFee - slippage * 0.01);
       setSwapping(true);
       if (middleToken)
         await batchSwapTokens(
@@ -360,6 +373,13 @@ export default function Swap() {
       let inLimBal = inBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
+      let canToken1 = { ...inToken };
+      let canToken2 = { ...outToken };
+      if (inToken['address'] === "0x0000000000000000000000000000000000000000")
+        canToken1['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+      if (outToken['address'] === "0x0000000000000000000000000000000000000000")
+        canToken2['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+
       if (midToken !== undefined && midToken !== null) {
         setIsExist(true);
         if (value * 1 !== 0) {
@@ -367,8 +387,8 @@ export default function Swap() {
             midToken,
             provider,
             value,
-            inToken,
-            outToken,
+            canToken1,
+            canToken2,
             contractAddresses[selected_chain]["hedgeFactory"],
             swapFee
           );
@@ -388,24 +408,24 @@ export default function Swap() {
           midToken,
           provider,
           0.000001,
-          inToken,
-          outToken,
+          canToken1,
+          canToken2,
           contractAddresses[selected_chain]["hedgeFactory"],
           swapFee
         );
-        setTokenPr(numFormat(tokenPr*1000000));
+        setTokenPr(numFormat(tokenPr * 1000000));
 
         if (midToken.length === 1) {
           const poolAddress1 = await getPoolAddress(
             provider,
-            inToken["address"],
+            canToken1["address"],
             midToken[0]["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           const poolAddress2 = await getPoolAddress(
             provider,
             midToken[0]["address"],
-            outToken["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           setPoolAddress([
@@ -415,7 +435,7 @@ export default function Swap() {
         } else {
           const poolAddress1 = await getPoolAddress(
             provider,
-            inToken["address"],
+            canToken1["address"],
             midToken[0]["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
@@ -428,7 +448,7 @@ export default function Swap() {
           const poolAddress3 = await getPoolAddress(
             provider,
             midToken[1]["address"],
-            outToken["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           setPoolAddress([
@@ -441,8 +461,8 @@ export default function Swap() {
         try {
           const poolAddress = await getPoolAddress(
             provider,
-            inToken["address"],
-            outToken["address"],
+            canToken1["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           if (poolAddress !== "0x0000000000000000000000000000000000000000") {
@@ -454,7 +474,7 @@ export default function Swap() {
 
             if (value * 1 !== 0) {
               let amountOut = await calculateSwap(
-                inToken["address"],
+                canToken1["address"],
                 poolData,
                 value
               );
@@ -473,10 +493,10 @@ export default function Swap() {
 
             setPoolAddress([poolAddress.toLowerCase()]);
             var tokenPr = await calculateSwap(
-              inToken["address"],
+              canToken1["address"],
               poolData,
               0.000001);
-            setTokenPr(numFormat(tokenPr*1000000));
+            setTokenPr(numFormat(tokenPr * 1000000));
           } else {
             setIsExist(false);
           }
@@ -950,19 +970,19 @@ export default function Swap() {
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
                 </p>
               )}
             </div>
@@ -981,7 +1001,7 @@ export default function Swap() {
             }
             {(account && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <span style={{color:"red"}}>No exchange rate available</span>
+                <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
             }
             {
@@ -1025,7 +1045,7 @@ export default function Swap() {
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage*0.01))}</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage * 0.01))}</span>
                 </div>
               </div>
               <div>
