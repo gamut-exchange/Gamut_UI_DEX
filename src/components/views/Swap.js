@@ -222,7 +222,6 @@ export default function Swap() {
         setInValue(0);
         setValueEth(0);
       }
-      console.log(uniList);
     } else if (selected === 1) {
       if (token["address"] !== outToken["address"]) {
         setOutToken({ ...token });
@@ -652,24 +651,7 @@ export default function Swap() {
       if (swapTransactionData.swaps && swapTransactionData.swaps.length !== 0) {
         let result = [];
         result = swapTransactionData.swaps.map(item => {
-          let token0_symbol = "";
-          let token1_symbol = "";
-          uniList[selected_chain].map((unit) => {
-            if (unit.address.toLowerCase() === item.tokenIn.toLowerCase())
-              token0_symbol = unit.symbol
-            if (unit.address.toLowerCase() === item.tokenOut.toLowerCase())
-              token1_symbol = unit.symbol
-            return null;
-          });
-          return {
-            ...item,
-            token0: {
-              symbol: token0_symbol
-            },
-            token1: {
-              symbol: token1_symbol
-            }
-          }
+          return item;
         });
         return result;
       } else {
@@ -959,7 +941,6 @@ export default function Swap() {
                   }}
                 />
               </div>
-
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
                   Balance: {numFormat(outBal.toString().replaceAll(",", ""))}
@@ -1229,7 +1210,7 @@ export default function Swap() {
               value={query}
               onChange={filterToken}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#ddd" },
               }}

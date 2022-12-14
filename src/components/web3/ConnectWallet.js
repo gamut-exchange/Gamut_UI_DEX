@@ -238,8 +238,8 @@ const ConnectWallet = ({
                 ) : (
                     <button
                         variant="contained"
-                        className="btn-primary dark:text-dark-primary w-full"
-                        style={{ borderRadius: "0px", minHeight: 44, fontSize: 15 }}
+                        className="btn-primary w-full"
+                        style={{ borderRadius: "0px", minHeight: 44, fontSize: 15, color:"white", backgroundColor:"#0074f0" }}
                         onClick={handleChainChange}
                     >
                         Connect to {chain.toUpperCase()}
@@ -282,8 +282,8 @@ const ConnectWallet = ({
                 ) : (
                     <button
                         variant="contained"
-                        className="btn-primary dark:text-dark-primary w-full"
-                        style={{ borderRadius: "0px", minHeight: 44, fontSize: 15 }}
+                        className="btn-primary w-full"
+                        style={{ borderRadius: "0px", minHeight: 44, fontSize: 15, color:"white", backgroundColor:"#0074f0" }}
                         onClick={handleChainChange}
                     >
                         Connect to {chain.toUpperCase()}

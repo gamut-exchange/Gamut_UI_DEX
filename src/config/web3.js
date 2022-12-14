@@ -22,7 +22,7 @@ export const getTokenBalance = async (provider, tokenAddr, account) => {
         let decimal = await contract.methods["decimals"]().call();
         let result = Number(bal / 10 ** decimal);
         if (Number(result) > 999)
-            result = result.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            result = result.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return result;
     }
 };
@@ -378,11 +378,15 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
+    const limit1 = await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString());
+    const limit2 = await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString());
+
+
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["exitPool"](account, [
             [token1Addr, token2Addr],
-            [await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()), await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString())],
+            [limit1, limit2],
             initUserData,
         ]).send({ from: account });
     } catch (e) {
@@ -444,12 +448,12 @@ export const initAddPool = async (
 
     let contract = new web3.eth.Contract(abi, routerContractAddr);
     try {
-        if(token1Addr === "0x0000000000000000000000000000000000000000" || token2Addr === "0x0000000000000000000000000000000000000000")
-        await contract.methods["joinPool"](account, [
-            [token2Addr, token1Addr],
-            initialBalances,
-            initUserData,
-        ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000")?token1_wei_val:token2_wei_val });
+        if (token1Addr === "0x0000000000000000000000000000000000000000" || token2Addr === "0x0000000000000000000000000000000000000000")
+            await contract.methods["joinPool"](account, [
+                [token2Addr, token1Addr],
+                initialBalances,
+                initUserData,
+            ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000") ? token1_wei_val : token2_wei_val });
         alert(`Successfully created!`, "success");
     } catch (e) {
         console.log(e.message);
@@ -464,7 +468,7 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     let decimal = await contract.methods["decimals"]().call();
     decimal = Number(decimal);
     let value = Number((Math.floor(val * Math.pow(10, decimal)) / Math.pow(10, decimal)).toFixed(decimal));
-    let tval = web3.utils.toBN(value * (10 ** decimal)).toString();
+    let tval = web3.utils.toBN(toLongNum(value * (10 ** decimal))).toString();
     return tval;
 }
 
@@ -475,6 +479,25 @@ export const fromWeiVal = (provider, val, dec) => {
     let tval = value / (10 ** decimal);
     return tval
 };
+
+function toLongNum(x) {
+    if (Math.abs(x) < 1.0) {
+        var e = parseInt(x.toString().split('e-')[1]);
+        if (e) {
+            x *= Math.pow(10, e - 1);
+            x = '0.' + (new Array(e)).join('0') + x.toString().substring(2);
+        }
+    } else {
+        var e = parseInt(x.toString().split('+')[1]);
+        if (e > 20) {
+            e -= 20;
+            x /= Math.pow(10, e);
+            x += (new Array(e + 1)).join('0');
+        }
+    }
+    return x;
+}
+
 
 // getting faucet tokens part
 

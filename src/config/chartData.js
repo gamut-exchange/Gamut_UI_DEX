@@ -7,15 +7,23 @@ import {
 
 export const SWAP_TRANSACTIONS = gql`
   query swapTransactions($address: Bytes!) {
-    swapEvents(last:1000, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
+    swaps(last:1000, orderBy: timestamp, orderDirection: desc, where: { sender: $address }, subgraphError: allow) {
       id
       timestamp
       sender
-      amountIn
-      amountOut
-      tokenIn
-      tokenOut
-      transaction
+      amount0
+      amount1
+      token0 {
+        id
+        symbol
+      }
+      token1 {
+        id
+        symbol
+      }
+      transaction {
+        id
+      }
     }
   }
 `
@@ -50,7 +58,7 @@ export const EXIT_TRANSACTIONS = gql`
       sender
       amountUSD
       liquidity
-      value0
+      amountsOut
       token0 {
         symbol
         decimals
@@ -118,10 +126,9 @@ export const POOL_PRICES = (poolString) => {
     },
     fetchPolicy: 'cache-first',
   });
-  
   const formattedData = useMemo(() => {
     if (data) {
-      return data.swapEvents
+      return data.swaps
     } else {
       return undefined
     }
@@ -173,7 +180,6 @@ export const POOL_PRICES = (poolString) => {
     fetchPolicy: 'cache-first',
     pollInterval: 20000,
   });
-  
   const formattedData = useMemo(() => {
     if (data) {
       return data.exits

@@ -236,33 +236,25 @@ export default function Liquidity() {
           setIsExist(true);
           const sliderInit = await sliderInitVal(poolData, token);
           setSliderValue(sliderInit * 100);
+          
+          let inLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
+          let outLimBal = outBal ? outBal.toString().replaceAll(",", "") : 0;
+          const valEth = await calculateRatio(token, poolData, value);
+          if (
+            Number(value) <= Number(inLimBal) &&
+            Number(valEth) <= Number(outLimBal)
+          )
+            setLimitedout(false);
+          else setLimitedout(true);
         } catch (error) {
           console.log(error.message);
           setIsExist(false);
         }
-
-        let inLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
-        let outLimBal = outBal ? outBal.toString().replaceAll(",", "") : 0;
-        if (
-          Number(value) <= Number(inLimBal) &&
-          Number(valueEth) <= Number(outLimBal)
-        )
-          setLimitedout(false);
-        else setLimitedout(true);
       } else if (selected === 1) {
         setOutBal(bal);
         let tempData = uniList[selected_chain].filter((item) => {
           return item["address"] !== token["address"];
         });
-
-        let inLimBal = inBal ? inBal.toString().replaceAll(",", "") : 0;
-        let outLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
-        if (
-          Number(value) <= Number(inLimBal) &&
-          Number(valueEth) <= Number(outLimBal)
-        )
-          setLimitedout(false);
-        else setLimitedout(true);
 
         setFilterData(tempData);
         setOutToken(token);
@@ -279,6 +271,15 @@ export default function Liquidity() {
           setIsExist(true);
           const sliderInit = await sliderInitVal(poolData, inToken);
           setSliderValue(sliderInit * 100);
+          let inLimBal = inBal ? inBal.toString().replaceAll(",", "") : 0;
+          let outLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
+          const valEth = await calculateRatio(inToken, poolData, value);
+          if (
+            Number(value) <= Number(inLimBal) &&
+            Number(valEth) <= Number(outLimBal)
+          )
+            setLimitedout(false);
+          else setLimitedout(true);
         } catch (error) {
           console.log(error.message);
           setIsExist(false);
@@ -329,7 +330,7 @@ export default function Liquidity() {
         token2["address"],
         contractAddresses[selected_chain]["router"]
       );
-    debugger;
+
     setApproval1(token1["address"] === "0x0000000000000000000000000000000000000000" || approved1 * 1 >= val1 * 1);
     setApproval2(token2["address"] === "0x0000000000000000000000000000000000000000" || approved2 * 1 >= val2 * 1);
     setApprovedVal1(approved1);
@@ -368,6 +369,7 @@ export default function Liquidity() {
         ? 0
         : numFormat(valEth);
     setValueEth(valEth);
+    return valEth;
   };
 
   const executeAddPool = async () => {
@@ -570,11 +572,13 @@ export default function Liquidity() {
 
   useEffect(() => {
     if (account) {
-      getInitialInfo();
-      const intervalId = setInterval(() => {
+      if (inToken["address"].toLowerCase() !== outToken["address"].toLowerCase()) {
         getInitialInfo();
-      }, 40000);
-      return () => clearInterval(intervalId);
+        const intervalId = setInterval(() => {
+          getInitialInfo();
+        }, 40000);
+        return () => clearInterval(intervalId);
+      }
     } else {
       getCurrentPoolAddress();
       const intervalId = setInterval(() => {
@@ -586,20 +590,11 @@ export default function Liquidity() {
   }, [account, value, inToken, outToken]);
 
   useEffect(() => {
-    if (account && inToken["address"] !== outToken["address"]) {
-      getInitialInfo();
-    } else {
-      getCurrentPoolAddress();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inToken, outToken]);
-
-  useEffect(() => {
     setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, selected_chain]);
+  }, [account, dispatch, selected_chain]);
 
   const formattedWeightsData = useMemo(() => {
     if (weightData && weightData.weights) {
@@ -689,6 +684,7 @@ export default function Liquidity() {
                   value={value}
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   onChange={handleValue}
+                  readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -718,10 +714,21 @@ export default function Liquidity() {
             {/* Drop down Start  */}
             <FormControl
               sx={{ m: 0 }}
-              style={{ alignItems: "flex-start", display: "inline" }}
+              style={{ alignItems: "flex-start", display: "block", float: "left" }}
               variant="standard"
             >
-              <div style={{ backgroundColor: "#12122c" }}>
+              <span
+                style={{
+                  color: "white",
+                  fontWeight: "500",
+                  fontSize: "16px",
+                  display: "block",
+                  textAlign: "left",
+                }}
+              >
+                To
+              </span>
+              <div style={{ backgroundColor: "#12122c", display: "block", float: "left", width: "100%" }}>
                 <Button
                   onClick={() => handleMopen(1)}
                   style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
@@ -748,18 +755,19 @@ export default function Liquidity() {
                   }}
                 />
               </div>
-              <div style={{ float: "left", width: "100%" }}>
+              <div style={{ float: "left", display: "block", width: "100%" }}>
                 <span style={{ color: grayColor, float: "left" }}>
                   Balance: {outBal}
                 </span>
               </div>
-              <div style={{ color: "white", display: "block", textAlign: "left", marginTop: "8px" }}>
+              <div style={{ color: "white", display: "block", float: "left", marginTop: "8px", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
+                    float: "left"
                   }}
-                />{" "}
-                Pool Compositon {sliderValue.toPrecision(4)}% {inToken["symbol"]} + {(100 - sliderValue).toPrecision(4)}% {outToken["symbol"]}
+                />
+                <span style={{ float: "left" }}>Pool Compositon {sliderValue.toPrecision(4)}% {inToken["symbol"]} + {(100 - sliderValue).toPrecision(4)}% {outToken["symbol"]}</span>
                 <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
                   <Settings />
                 </span>
@@ -1015,7 +1023,7 @@ export default function Liquidity() {
               value={query}
               onChange={filterToken}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#ddd" },
               }}

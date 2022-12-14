@@ -23,7 +23,7 @@ function History(props) {
   }
 
   const viewBlockUrl = (hash) => {
-    window.open(`https://goerli.etherscan.io/tx/${hash}`);
+    window.open(`https://explorer.kava.io/tx/${hash}`);
   };
 
   const handleChange = (e) => {
@@ -82,7 +82,7 @@ function History(props) {
 
                 <div style={{ float: "right", display: "inline" }}>
                   <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountIn))} {item.token0.symbol}
+                    {numFormat(Math.abs(item.amount0))} {item.token0.symbol}
                   </span>
                 </div>
               </div>
@@ -94,7 +94,7 @@ function History(props) {
 
                 <div style={{ float: "right", display: "inline" }}>
                   <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountOut))} {item.token1.symbol}
+                    {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
                   </span>
                 </div>
               </div>
@@ -117,8 +117,8 @@ function History(props) {
                 </span>
 
                 <div style={{ float: "right", display: "inline", cursor: "pointer" }}>
-                  <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.transaction)}>
-                    {`${item.transaction.substring(0, 12)} ... ${item.transaction.substring(item.transaction.length - 6)}`}
+                  <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.transaction.id)}>
+                    {`${item.transaction.id.substring(0, 12)} ... ${item.transaction.id.substring(item.transaction.id.length - 6)}`}
                   </span>
                 </div>
               </div>
@@ -263,7 +263,7 @@ function History(props) {
 
                 <div style={{ float: "right", display: "inline" }}>
                   <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.value0[0]))} {item.token0.symbol}
+                    {numFormat(web3.utils.fromWei(item.amountsOut[0]))} {item.token0.symbol}
                   </span>
                 </div>
               </div>
@@ -275,7 +275,7 @@ function History(props) {
 
                 <div style={{ float: "right", display: "inline" }}>
                   <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.value0[1]))} {item.token1.symbol}
+                    {numFormat(web3.utils.fromWei(item.amountsOut[1]))} {item.token1.symbol}
                   </span>
                 </div>
               </div>

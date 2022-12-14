@@ -364,7 +364,7 @@ export default function CLiquidity() {
                   type="number"
                   value={inVal}
                   onChange={handleInVal}
-                  InputProps={{ inputProps: { min: "0", max: inBal.toString().replaceAll(",", "") } }}
+                  inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   readOnly={(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) ? false : true}
                   style={{
                     color: "#FFFFFF",
@@ -651,11 +651,11 @@ export default function CLiquidity() {
               value={query}
               onChange={filterToken}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#ddd" },
               }}
-              InputLabelProps={{
+              inputLabelProps={{
                 style: { color: "#ddd" },
               }}
             />

@@ -60,19 +60,19 @@ export function useInactiveListener(suppress = false) {
           }
         };
 
-        const handleNetworkChanged = (networkId) => {
-          activate(injected);
-        };
+        // const handleNetworkChanged = (networkId) => {
+        //   activate(injected);
+        // };
 
         ethereum.on("chainChanged", handleChainChanged);
         ethereum.on("accountsChanged", handleAccountsChanged);
-        ethereum.on("networkChanged", handleNetworkChanged);
+        // ethereum.on("networkChanged", handleNetworkChanged);
 
         return () => {
           if (ethereum.removeListener) {
             ethereum.removeListener("chainChanged", handleChainChanged);
             ethereum.removeListener("accountsChanged", handleAccountsChanged);
-            ethereum.removeListener("networkChanged", handleNetworkChanged);
+            // ethereum.removeListener("networkChanged", handleNetworkChanged);
           }
         };
       }
