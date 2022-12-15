@@ -569,6 +569,9 @@ export default function RLiquidity() {
             </FormControl>
             {/* </FormControl> */}
             <div style={{ width: "100%" }}>
+              <span style={{ float: "left", color: grayColor, paddingTop:"7px" }}>
+                Percentage to remove:
+              </span>
               <Slider
                 size="small"
                 value={lpPercentage}
@@ -585,7 +588,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
                   startIcon={
                     <img
                       src={tokenB.logoURL}
@@ -623,7 +626,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
                   startIcon={
                     <img
                       src={tokenA.logoURL}
