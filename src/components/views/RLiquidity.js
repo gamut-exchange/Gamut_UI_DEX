@@ -864,6 +864,7 @@ export default function RLiquidity() {
                   <li
                     key={item["address"] + index}
                     className="flex gap-x-1"
+                    style={{cursor:"pointer"}}
                     onClick={() => selectToken(item)}
                   >
                     <div className="relative flex">
