@@ -668,12 +668,12 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight:49 }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                 >
@@ -731,12 +731,12 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c", display: "block", float: "left", width: "100%" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight:49 }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                 >

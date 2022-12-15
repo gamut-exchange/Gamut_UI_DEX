@@ -326,7 +326,7 @@ export default function CLiquidity() {
       >
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 10 }} className="home__mainC">
-          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
+          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", float:"left", width:"100%" }} className="home__main">
 
             <Typography
               variant="h5"
@@ -348,13 +348,13 @@ export default function CLiquidity() {
 
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
                   onClick={() => handleMopen(0)}
                   startIcon={
                     <img
                       alt=""
                       src={inToken['logoURL']}
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                 >
@@ -375,8 +375,8 @@ export default function CLiquidity() {
                   }}
                 />
               </div>
-              <div style={{ display: "block", textAlign: "left" }}>
-                <span style={{ color: grayColor }}>
+              <div style={{ display: "block", float: "left", width:"100%" }}>
+                <span style={{ float:"left", color: grayColor }}>
                   Balance: {inBal}
                 </span>
               </div>
@@ -393,13 +393,13 @@ export default function CLiquidity() {
             >
               <div>
                 <Button
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
                   onClick={() => handleMopen(1)}
                   startIcon={
                     <img
                       alt=""
                       src={outToken['logoURL']}
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                 >
@@ -421,14 +421,14 @@ export default function CLiquidity() {
                   }}
                 />
               </div>
-              <div style={{ display: "block", textAlign: "left" }}>
-                <span style={{ color: grayColor }}>
+              <div style={{ display: "block", float: "left", width:"100%" }}>
+                <span style={{ float:"left", color: grayColor }}>
                   Balance: {outBal}
                 </span>
               </div>
             </FormControl>
-            <div style={{ textAlign: "left", marginTop: "27px" }}>
-              <span style={{ color: "white" }}>
+            <div style={{ float: "left", marginTop: "10px", width:"100%" }}>
+              <span style={{ float:"left", color: "white" }}>
                 Weight: {weight}% ({inToken["symbol"]}) + {100 - weight}% ({outToken["symbol"]})
               </span>
               <Slider
@@ -442,13 +442,13 @@ export default function CLiquidity() {
                 aria-label="Small"
                 valueLabelDisplay="auto"
               />
-              <div>
-                <span style={{ textAlign: "start", color: "white", fontSize: "18px" }}>
+              <div style={{float:"left", width:"100%"}}>
+                <span style={{ float: "left", color: "white", fontSize: "18px" }}>
                   Trading Fee:{" "}
                 </span>
 
                 <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
-                  <span style={{ textAlign: "right", color: "#6d6d7d" }}>0.1%</span>
+                  <span style={{ float: "right", color: "#6d6d7d" }}>0.1%</span>
                 </div>
               </div>
               {account &&

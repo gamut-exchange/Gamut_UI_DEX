@@ -91,6 +91,8 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 
 export default function RLiquidity() {
   const grayColor = "#6d6d7d";
+  const slippage = 5;
+
   const selected_chain = useSelector((state) => state.selectedChain);
   const { account, connector } = useWeb3React();
   const [setting, setSetting] = useState(false);
@@ -109,7 +111,7 @@ export default function RLiquidity() {
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
-  const [slippage, setSlippage] = useState(5);
+  // const [slippage, setSlippage] = useState(5);
   // const [slippageFlag, setSlippageFlag] = useState(false);
 
   const dispatch = useDispatch();
@@ -295,9 +297,9 @@ export default function RLiquidity() {
       return Number(val).toFixed(8) * 1;
   }
 
-  const valueLabelFormat = (value) => {
-    return value + "%";
-  }
+  // const valueLabelFormat = (value) => {
+  //   return value + "%";
+  // }
 
   const CustomTooltip0 = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -588,12 +590,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
                   startIcon={
                     <img
                       src={tokenB.logoURL}
                       alt=""
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                   disabled={true}
@@ -626,12 +628,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
                   startIcon={
                     <img
                       src={tokenA.logoURL}
                       alt=""
-                      className="w-8"
+                      style={{height:30}}
                     />
                   }
                   disabled={true}
