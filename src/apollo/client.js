@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 
 export const goerliClient = new ApolloClient({
-  uri: 'https://api.studio.thegraph.com/query/39251/gamut-goerli/v0.0.6',
+  uri: 'https://api.studio.thegraph.com/query/39251/gamut-goerli/v0.1.1.2',
   cache: new InMemoryCache({
     typePolicies: {
       Token: {

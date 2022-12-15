@@ -109,12 +109,12 @@ export default function RLiquidity() {
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
-  const [slippage, setSlippage] = useState(1);
-  const [slippageFlag, setSlippageFlag] = useState(false);
+  const [slippage, setSlippage] = useState(5);
+  // const [slippageFlag, setSlippageFlag] = useState(false);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
-  let exitTransactionsData = useExitTransactionsData(account);
+  const exitTransactionsData = useExitTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const StyledModal = tw.div`
@@ -208,6 +208,17 @@ export default function RLiquidity() {
   };
 
   const getStatusData = async () => {
+    const result1 = uniList[selected_chain].filter((item) => {
+      return item.symbol === selectedItem['symbols'][0];
+    });
+
+    setTokenA(result1[0]);
+
+    const result2 = uniList[selected_chain].filter((item) => {
+      return item.symbol === selectedItem['symbols'][1];
+    });
+
+    setTokenB(result2[0]);
     if (account) {
       const provider = await connector.getProvider();
       const poolData = await getPoolData(
@@ -218,26 +229,26 @@ export default function RLiquidity() {
       setWeightA(weight1);
       setScale((weight1 * 100));
 
-      const result1 = uniList[selected_chain].filter((item) => {
-        return item.address.toLowerCase() === poolData["tokens"][0].toLowerCase();
-      });
+      // const result1 = uniList[selected_chain].filter((item) => {
+      //   return item.address.toLowerCase() === poolData["tokens"][0].toLowerCase();
+      // });
 
-      setTokenA(result1[0]);
+      // setTokenA(result1[0]);
 
-      const result2 = uniList[selected_chain].filter((item) => {
-        return item.address.toLowerCase() === poolData["tokens"][1].toLowerCase();
-      });
+      // const result2 = uniList[selected_chain].filter((item) => {
+      //   return item.address.toLowerCase() === poolData["tokens"][1].toLowerCase();
+      // });
 
-      setTokenB(result2[0]);
+      // setTokenB(result2[0]);
 
       let amount = await getPoolBalance(
         account,
         provider,
         selectedItem["address"]
       );
-      amount = Number(amount).toPrecision(6);
+      amount = numFormat(amount);
       setPoolAmount(amount);
-      setValue(((amount * lpPercentage) / 100).toFixed(2));
+      setValue(numFormat((amount * lpPercentage) / 100));
       let totalLPAmount = await getPoolSupply(
         provider,
         selectedItem["address"]
@@ -413,6 +424,17 @@ export default function RLiquidity() {
   }, [selectedItem])
 
   useEffect(() => {
+    const result1 = uniList[selected_chain].filter((item) => {
+      return item.symbol === selectedItem['symbols'][0];
+    });
+
+    setTokenA(result1[0]);
+
+    const result2 = uniList[selected_chain].filter((item) => {
+      return item.symbol === selectedItem['symbols'][1];
+    });
+
+    setTokenB(result2[0]);
     if (account) {
       const getInfo = async () => {
         const provider = await connector.getProvider();
@@ -424,17 +446,17 @@ export default function RLiquidity() {
         setWeightA(weight1);
         setScale((weight1 * 100));
 
-        const result1 = uniList[selected_chain].filter((item) => {
-          return item.address.toLowerCase() === pData["tokens"][0].toLowerCase();
-        });
+        // const result1 = uniList[selected_chain].filter((item) => {
+        //   return item.address.toLowerCase() === pData["tokens"][0].toLowerCase();
+        // });
 
-        setTokenA(result1[0]);
+        // setTokenA(result1[0]);
 
-        const result2 = uniList[selected_chain].filter((item) => {
-          return item.address.toLowerCase() === pData["tokens"][1].toLowerCase();
-        });
+        // const result2 = uniList[selected_chain].filter((item) => {
+        //   return item.address.toLowerCase() === pData["tokens"][1].toLowerCase();
+        // });
 
-        setTokenB(result2[0]);
+        // setTokenB(result2[0]);
 
         let amount = await getPoolBalance(
           account,
@@ -445,7 +467,7 @@ export default function RLiquidity() {
           provider,
           selectedItem["address"]
         );
-        amount = Number(amount).toPrecision(6);
+        amount = numFormat(amount);
         setTotalLPTokens(amount2);
         setPoolAmount(amount);
         await calculateOutput(
@@ -578,7 +600,7 @@ export default function RLiquidity() {
                 <BootstrapInput
                   id="demo-customized-textbox"
                   type="text"
-                  value={outTokenB.toPrecision(6)}
+                  value={numFormat(outTokenB)}
                   style={{
                     color: "#FFFFFF",
                     width: isMobile ? "55%" : "60%",
@@ -616,7 +638,7 @@ export default function RLiquidity() {
                 <BootstrapInput
                   id="demo-customized-textbox"
                   type="text"
-                  value={outTokenA.toPrecision(6)}
+                  value={numFormat(outTokenA)}
                   style={{
                     color: "#FFFFFF",
                     width: isMobile ? "55%" : "60%",
@@ -637,7 +659,7 @@ export default function RLiquidity() {
                   fontSize: "18px",
                 }}
               />{" "}
-              <span>Ratio {Number(scale).toPrecision(4)}% {tokenB.symbol} - {(100 - scale).toPrecision(4)}% {tokenA.symbol}</span>
+              <span>Ratio {numFormat(scale)}% {tokenB.symbol} - {numFormat(100 - scale)}% {tokenA.symbol}</span>
               <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
                 <Settings />
               </span>
@@ -659,7 +681,7 @@ export default function RLiquidity() {
                     max={99.9}
                     valueLabelDisplay="auto"
                   />
-                  <div className="s" style={{ float: "left", width: "100%" }}>
+                  {/* <div className="s" style={{ float: "left", width: "100%" }}>
                     <span style={{ float: "left", color: grayColor }}>
                       Max Slippage:
                     </span>
@@ -670,7 +692,7 @@ export default function RLiquidity() {
                       <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
                     </span>
                     {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
+                  </div> */}
                 </div>
                 : null
             }
@@ -824,7 +846,7 @@ export default function RLiquidity() {
               value={query}
               onChange={filterLP}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#bbb" },
               }}
@@ -834,10 +856,10 @@ export default function RLiquidity() {
             />
             <hr className="my-6" />
             <ul className="flex flex-col gap-y-6" style={{ overflowY: "scroll" }}>
-              {filterData.map((item) => {
+              {filterData.map((item, index) => {
                 return (
                   <li
-                    key={item["address"]}
+                    key={item["address"] + index}
                     className="flex gap-x-1"
                     onClick={() => selectToken(item)}
                   >

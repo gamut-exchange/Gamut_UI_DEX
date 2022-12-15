@@ -100,7 +100,6 @@ export default function CLiquidity() {
   const [weight, setWeight] = useState(50);
   const [limitedOut, setLimitedout] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
 
   const dispatch = useDispatch();
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -153,8 +152,8 @@ export default function CLiquidity() {
       const bal = await getTokenBalance(provider, token["address"], account);
       if (selected === 0) {
         setInBal(bal);
-        let inLimBal = bal ? bal.replaceAll(",", "") : 0;
-        let outLimBal = outBal ? outBal.replaceAll(",", "") : 0;
+        let inLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
+        let outLimBal = outBal ? outBal.toString().replaceAll(",", "") : 0;
         if (
           Number(inVal) > 0 &&
           Number(outVal) > 0 &&
@@ -166,8 +165,8 @@ export default function CLiquidity() {
         await checkPairStatus(token['address'].toLowerCase(), outToken['address'].toLowerCase());
       } else if (selected === 1) {
         setOutBal(bal);
-        let inLimBal = inBal ? inBal.replaceAll(",", "") : 0;
-        let outLimBal = bal ? bal.replaceAll(",", "") : 0;
+        let inLimBal = inBal ? inBal.toString().replaceAll(",", "") : 0;
+        let outLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
         if (
           Number(inVal) > 0 &&
           Number(outVal) > 0 &&
@@ -189,8 +188,8 @@ export default function CLiquidity() {
       try {
         const poolAddr = await getPoolAddress(
           provider,
-          token1Addr,
-          token2Addr,
+          token1Addr === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token1Addr,
+          token2Addr === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token2Addr,
           contractAddresses[selected_chain]["hedgeFactory"]
         );
         if (poolAddr === "0x0000000000000000000000000000000000000000")
@@ -198,12 +197,16 @@ export default function CLiquidity() {
         else {
           const poolData = await getPoolData(provider, poolAddr);
           if (Number(poolData.balances[0]) === 0) {
-            let approved1 = await tokenApproval(account, provider, token1Addr, contractAddresses[selected_chain]["router"]);
-            if (approved1 < inVal)
+            let approved1 = 0;
+            if (token1Addr !== "0x0000000000000000000000000000000000000000")
+              approved1 = await tokenApproval(account, provider, token1Addr, contractAddresses[selected_chain]["router"]);
+            if (approved1 < inVal && token1Addr !== "0x0000000000000000000000000000000000000000")
               setPairStatus(3);
             else {
-              let approved2 = await tokenApproval(account, provider, token2Addr, contractAddresses[selected_chain]["router"]);
-              if (approved2 < outVal)
+              let approved2 = 0;
+              if (token2Addr !== "0x0000000000000000000000000000000000000000")
+                approved2 = await tokenApproval(account, provider, token2Addr, contractAddresses[selected_chain]["router"]);
+              if (approved2 < outVal && token2Addr !== "0x0000000000000000000000000000000000000000")
                 setPairStatus(4)
               else {
                 setPairStatus(5);
@@ -221,8 +224,8 @@ export default function CLiquidity() {
 
   const handleInVal = (e) => {
     setInVal(Number(e.target.value));
-    let inLimBal = inBal.replaceAll(",", "");
-    let outLimBal = outBal.replaceAll(",", "");
+    let inLimBal = inBal.toString().replaceAll(",", "");
+    let outLimBal = outBal.toString().replaceAll(",", "");
     if (
       Number(e.target.value) > 0 &&
       Number(outVal) > 0 &&
@@ -235,8 +238,8 @@ export default function CLiquidity() {
 
   const handleOutVal = (e) => {
     setOutVal(Number(e.target.value));
-    let inLimBal = inBal.replaceAll(",", "");
-    let outLimBal = outBal.replaceAll(",", "");
+    let inLimBal = inBal.toString().replaceAll(",", "");
+    let outLimBal = outBal.toString().replaceAll(",", "");
     if (
       Number(e.target.value) > 0 &&
       Number(inVal) > 0 &&
@@ -252,7 +255,10 @@ export default function CLiquidity() {
     try {
       if (pairStatus === 2) {
         setCreating(true);
-        await createPool(account, provider, inToken["address"], outToken["address"], weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
+        await createPool(account, provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
         setCreating(false);
         checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
@@ -262,7 +268,7 @@ export default function CLiquidity() {
         setCreating(false);
         checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
-      if (pairStatus == 4) {
+      if (pairStatus === 4) {
         setCreating(true);
         await approveToken(account, provider, outToken["address"], outVal * 1.1, contractAddresses[selected_chain]["router"]);
         setCreating(false);
@@ -272,12 +278,14 @@ export default function CLiquidity() {
         setCreating(true);
         const poolAddr = await getPoolAddress(
           provider,
-          inToken["address"],
-          outToken["address"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
           contractAddresses[selected_chain]["hedgeFactory"]
         );
         const poolData = await getPoolData(provider, poolAddr);
-        if (poolData.tokens[0].toLowerCase() === inToken["address"].toLowerCase())
+        if (poolData.tokens[0].toLowerCase() === inToken["address"].toLowerCase()
+          ||
+          (inToken["address"] === "0x0000000000000000000000000000000000000000" && poolData.tokens[0].toLowerCase() === "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6".toLowerCase()))
           await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
         else
           await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
@@ -305,6 +313,7 @@ export default function CLiquidity() {
     if (account) {
       checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inVal, outVal]);
 
   return (
@@ -355,7 +364,7 @@ export default function CLiquidity() {
                   type="number"
                   value={inVal}
                   onChange={handleInVal}
-                  InputProps={{ inputProps: { min: "0", max: inBal.toString().replaceAll(",", "") } }}
+                  inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   readOnly={(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) ? false : true}
                   style={{
                     color: "#FFFFFF",
@@ -642,11 +651,11 @@ export default function CLiquidity() {
               value={query}
               onChange={filterToken}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#ddd" },
               }}
-              InputLabelProps={{
+              inputLabelProps={{
                 style: { color: "#ddd" },
               }}
             />

@@ -23,7 +23,6 @@ import {
   Settings,
   ArrowForward,
 } from "@mui/icons-material";
-import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { createChart } from "lightweight-charts";
 import {
@@ -173,15 +172,19 @@ export default function Swap() {
 
   const checkApproved = async (token, val) => {
     const provider = await connector.getProvider();
-    const approval = await tokenApproval(
-      account,
-      provider,
-      token["address"],
-      contractAddresses[selected_chain]["router"]
-    );
+    if (token['address'] !== '0x0000000000000000000000000000000000000000') {
+      const approval = await tokenApproval(
+        account,
+        provider,
+        token["address"],
+        contractAddresses[selected_chain]["router"]
+      );
 
-    setApproval(approval * 1 >= val * 1);
-    setApprovedVal(Number(approval));
+      setApproval(approval * 1 >= val * 1);
+      setApprovedVal(Number(approval));
+    } else {
+      setApproval(true);
+    }
   };
 
   // const calcSlippage = async (inToken, poolData, input, output) => {
@@ -215,13 +218,13 @@ export default function Swap() {
     var bal = 0;
     if (selected === 0) {
       if (token["address"] !== inToken["address"]) {
-        setInToken(token);
+        setInToken({ ...token });
         setInValue(0);
         setValueEth(0);
       }
     } else if (selected === 1) {
       if (token["address"] !== outToken["address"]) {
-        setOutToken(token);
+        setOutToken({ ...token });
         setInValue(0);
         setValueEth(0);
       }
@@ -231,14 +234,12 @@ export default function Swap() {
       bal = await getTokenBalance(provider, token["address"], account);
       if (selected === 0) {
         setInBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
-        setFilterData(tempData);
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
         checkApproved(token, inValue);
 
         let inLimBal = bal.toString().replaceAll(",", "");
-        let outLimBal = outBal.toString().replaceAll(",", "");
         if (
           Number(inValue) <= Number(inLimBal)
         )
@@ -246,11 +247,9 @@ export default function Swap() {
         else setLimitedout(true);
       } else if (selected === 1) {
         setOutBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
-
-        setFilterData(tempData);
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
       }
     }
   };
@@ -263,8 +262,19 @@ export default function Swap() {
 
   const findMiddleToken = async () => {
     const provider = await connector.getProvider();
-    let inVal = (Number(inValue) === 0)?1:inValue;
-    var suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    let inVal = (Number(inValue) === 0) ? 1 : inValue;
+    let suitableRouter = [];
+    if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
+      let canToken = { ...inToken };
+      canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+      suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
+      let canToken = { ...outToken };
+      canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+      suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    } else {
+      suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    }
     setMiddleToken(suitableRouter);
     getMiddleTokenSymbol(suitableRouter);
     return suitableRouter;
@@ -273,7 +283,7 @@ export default function Swap() {
   const executeSwap = async () => {
     if (account && inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
-      const limit = valueEth * (1 - swapFee - slippage*0.01);
+      const limit = valueEth * (1 - swapFee - slippage * 0.01);
       setSwapping(true);
       if (middleToken)
         await batchSwapTokens(
@@ -360,9 +370,15 @@ export default function Swap() {
   const getStatusData = async (value) => {
     if (account && inToken !== outToken) {
       let inLimBal = inBal.toString().replaceAll(",", "");
-      let outLimBal = outBal.toString().replaceAll(",", "");
       const provider = await connector.getProvider();
       const midToken = await findMiddleToken();
+      let canToken1 = { ...inToken };
+      let canToken2 = { ...outToken };
+      if (inToken['address'] === "0x0000000000000000000000000000000000000000")
+        canToken1['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+      if (outToken['address'] === "0x0000000000000000000000000000000000000000")
+        canToken2['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+
       if (midToken !== undefined && midToken !== null) {
         setIsExist(true);
         if (value * 1 !== 0) {
@@ -370,8 +386,8 @@ export default function Swap() {
             midToken,
             provider,
             value,
-            inToken,
-            outToken,
+            canToken1,
+            canToken2,
             contractAddresses[selected_chain]["hedgeFactory"],
             swapFee
           );
@@ -390,25 +406,25 @@ export default function Swap() {
         let tokenPr = await calcOutput(
           midToken,
           provider,
-          1,
-          inToken,
-          outToken,
+          0.000001,
+          canToken1,
+          canToken2,
           contractAddresses[selected_chain]["hedgeFactory"],
           swapFee
         );
-        setTokenPr(numFormat(tokenPr));
+        setTokenPr(numFormat(tokenPr * 1000000));
 
         if (midToken.length === 1) {
           const poolAddress1 = await getPoolAddress(
             provider,
-            inToken["address"],
+            canToken1["address"],
             midToken[0]["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           const poolAddress2 = await getPoolAddress(
             provider,
             midToken[0]["address"],
-            outToken["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           setPoolAddress([
@@ -418,7 +434,7 @@ export default function Swap() {
         } else {
           const poolAddress1 = await getPoolAddress(
             provider,
-            inToken["address"],
+            canToken1["address"],
             midToken[0]["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
@@ -431,7 +447,7 @@ export default function Swap() {
           const poolAddress3 = await getPoolAddress(
             provider,
             midToken[1]["address"],
-            outToken["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           setPoolAddress([
@@ -444,8 +460,8 @@ export default function Swap() {
         try {
           const poolAddress = await getPoolAddress(
             provider,
-            inToken["address"],
-            outToken["address"],
+            canToken1["address"],
+            canToken2["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           if (poolAddress !== "0x0000000000000000000000000000000000000000") {
@@ -457,7 +473,7 @@ export default function Swap() {
 
             if (value * 1 !== 0) {
               let amountOut = await calculateSwap(
-                inToken["address"],
+                canToken1["address"],
                 poolData,
                 value
               );
@@ -476,10 +492,10 @@ export default function Swap() {
 
             setPoolAddress([poolAddress.toLowerCase()]);
             var tokenPr = await calculateSwap(
-              inToken["address"],
+              canToken1["address"],
               poolData,
-              1);
-            setTokenPr(numFormat(tokenPr));
+              0.000001);
+            setTokenPr(numFormat(tokenPr * 1000000));
           } else {
             setIsExist(false);
           }
@@ -511,11 +527,11 @@ export default function Swap() {
 
   const numFormat = (val) => {
     if (Number(val) > 1)
-      return Number(val).toFixed(2) * 1;
-    else if (Number(val) > 0.001)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Number(val) > 0.001)
       return Number(val).toFixed(6) * 1;
+    else if (Number(val) > 0.00001)
+      return Number(val).toFixed(8) * 1;
     else
       return Number(val).toFixed(8) * 1;
   }
@@ -635,24 +651,7 @@ export default function Swap() {
       if (swapTransactionData.swaps && swapTransactionData.swaps.length !== 0) {
         let result = [];
         result = swapTransactionData.swaps.map(item => {
-          let token0_symbol = "";
-          let token1_symbol = "";
-          uniList[selected_chain].map((unit) => {
-            if (unit.address.toLowerCase() === item.tokenIn.toLowerCase())
-              token0_symbol = unit.symbol
-            if (unit.address.toLowerCase() === item.tokenOut.toLowerCase())
-              token1_symbol = unit.symbol
-            return null;
-          });
-          return {
-            ...item,
-            token0: {
-              symbol: token0_symbol
-            },
-            token1: {
-              symbol: token1_symbol
-            }
-          }
+          return item;
         });
         return result;
       } else {
@@ -882,7 +881,7 @@ export default function Swap() {
               </div>
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance: {inBal}
+                  Balance: {numFormat(inBal.toString().replaceAll(",", ""))}
                 </span>
 
                 <p style={{ float: "right", color: grayColor }}>
@@ -942,10 +941,9 @@ export default function Swap() {
                   }}
                 />
               </div>
-
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance: {outBal}
+                  Balance: {numFormat(outBal.toString().replaceAll(",", ""))}
                 </span>
               </div>
               <br />
@@ -953,19 +951,19 @@ export default function Swap() {
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize:"18px" }} />{" "}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize:"18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
                 </p>
               )}
             </div>
@@ -984,7 +982,7 @@ export default function Swap() {
             }
             {(account && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <span style={{color:"red"}}>No exchange rate available</span>
+                <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
             }
             {
@@ -1028,7 +1026,7 @@ export default function Swap() {
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage*0.01))}</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage * 0.01))}</span>
                 </div>
               </div>
               <div>
@@ -1176,13 +1174,13 @@ export default function Swap() {
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             {!isExist &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart aveilable!</p>
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart available!</p>
               </div>
             }
 
             {(isExist && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <CircularProgress style={{ marginTop: 160 }} />
+                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chart data available</p>
               </div>
             }
             <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>
@@ -1212,7 +1210,7 @@ export default function Swap() {
               value={query}
               onChange={filterToken}
               label="Search"
-              InputProps={{
+              inputProps={{
                 type: "search",
                 style: { color: "#ddd" },
               }}
