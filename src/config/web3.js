@@ -82,7 +82,6 @@ export const approveToken = async (
     value,
     contractAddr
 ) => {
-    debugger;
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
@@ -520,15 +519,15 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
-    const limit1 = await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString());
-    const limit2 = await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString());
+    // const limit1 = await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString());
+    // const limit2 = await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString());
 
 
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["exitPool"](account, [
             [token1Addr, token2Addr],
-            [limit1, limit2],
+            ["0", "0"],
             initUserData,
         ]).send({ from: account });
     } catch (e) {
@@ -575,11 +574,11 @@ export const fromWeiVal = (provider, val, dec) => {
     // let web3 = new Web3(provider);
     let decimal = Number(dec);
     let value = val.toString();
-    let tval = value / (10 ** decimal);
+    let tval = toLongNum(value / (10 ** decimal));
     return tval
 };
 
-function toLongNum(x) {
+export const toLongNum = (x) => {
     if (Math.abs(x) < 1.0) {
         let e1 = parseInt(x.toString().split('e-')[1]);
         if (e1) {
@@ -761,7 +760,6 @@ export const getMiddleToken = async (inValue, inSToken, outSToken, tokenList, pr
             item["address"] !== "0x0000000000000000000000000000000000000000"
         );
     });
-    debugger;
     console.log(availableLists);
     console.log(tokenList);
     let suitableRouter = [];

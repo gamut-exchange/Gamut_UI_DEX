@@ -154,7 +154,6 @@ export default function Swap() {
     let e_val = event.target.value;
     if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
       e_val = e_val.substr(1);
-    debugger;
     setInValue(e_val);
     // setFee(event.target.value * swapFee);
     if (account && isExist)

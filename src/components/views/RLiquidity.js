@@ -29,17 +29,16 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
+  toLongNum
 } from "../../config/web3";
 import { poolList, uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
   LineChart,
   Line,
-  XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Brush,
   ResponsiveContainer,
 } from "recharts";
 
@@ -91,7 +90,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 
 export default function RLiquidity() {
   const grayColor = "#6d6d7d";
-  const slippage = 5;
+  const slippage = 50;
 
   const selected_chain = useSelector((state) => state.selectedChain);
   const { account, connector } = useWeb3React();
@@ -189,8 +188,8 @@ export default function RLiquidity() {
     const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
     const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
-    setOutTokenA(numFormat(amount1));
-    setOutTokenB(numFormat(amount2));
+    setOutTokenA(amount1);
+    setOutTokenB(amount2);
   };
 
   const filterLP = (e) => {
@@ -294,7 +293,7 @@ export default function RLiquidity() {
     else if (Number(val) > 0.00001)
       return Number(val).toFixed(6) * 1;
     else
-      return Number(val).toFixed(8) * 1;
+      return toLongNum(Number(val).toFixed(8));
   }
 
   // const valueLabelFormat = (value) => {
