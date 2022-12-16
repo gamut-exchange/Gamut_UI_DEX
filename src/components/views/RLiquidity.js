@@ -529,13 +529,13 @@ export default function RLiquidity() {
                         src={selectedItem["logoURLs"][0]}
                         alt=""
                         style={{ float: "left" }}
-                        className="w-4 md:w-6"
+                        className="w-4 md:w-5"
                       />
                       <img
                         src={selectedItem["logoURLs"][1]}
                         alt=""
                         style={{ float: "left", marginLeft: -5 }}
-                        className="w-4 md:w-6"
+                        className="w-4 md:w-5"
                       />
                     </div>
                   }
@@ -682,8 +682,8 @@ export default function RLiquidity() {
                     value={scale}
                     onChange={handleScale}
                     step={0.1}
-                    min={0.1}
-                    max={99.9}
+                    min={0}
+                    max={100}
                     valueLabelDisplay="auto"
                   />
                   {/* <div className="s" style={{ float: "left", width: "100%" }}>
@@ -768,7 +768,7 @@ export default function RLiquidity() {
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token0"]}</b> weight
                 </h3>
               )}
@@ -786,7 +786,7 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip0 />} />
                   <Line
@@ -799,7 +799,7 @@ export default function RLiquidity() {
                 </LineChart>
               </ResponsiveContainer>
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2 mt-4" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token1"]}</b> weight
                 </h3>
               )}
@@ -817,7 +817,7 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip1 />} />
                   <Line
@@ -827,7 +827,7 @@ export default function RLiquidity() {
                     fill="#82ca9d"
                     strokeWidth={2}
                   />
-                  <Brush height={25} />
+                  {/* <Brush height={25} /> */}
                 </LineChart>
               </ResponsiveContainer>
             </div>

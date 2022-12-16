@@ -151,10 +151,14 @@ export default function Swap() {
 
   const handleClose = () => setMopen(false);
   const handleValue = async (event) => {
-    setInValue(event.target.value * 1);
+    let e_val = event.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    debugger;
+    setInValue(e_val);
     // setFee(event.target.value * swapFee);
-    if (account)
-      checkApproved(inToken, event.target.value);
+    if (account && isExist)
+      checkApproved(inToken, e_val);
   };
 
   const filterToken = (e) => {
@@ -261,23 +265,28 @@ export default function Swap() {
   };
 
   const findMiddleToken = async () => {
-    const provider = await connector.getProvider();
-    let inVal = (Number(inValue) === 0) ? 1 : inValue;
-    let suitableRouter = [];
-    if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
-      let canToken = { ...inToken };
-      canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
-      suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
-    } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
-      let canToken = { ...outToken };
-      canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
-      suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    if (inToken['address'].toLowerCase() !== outToken['address'].toLowerCase()) {
+      const provider = await connector.getProvider();
+      let inVal = (Number(inValue) === 0) ? 1 : inValue;
+      let suitableRouter = [];
+      if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
+        let canToken = { ...inToken };
+        canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+        suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
+        let canToken = { ...outToken };
+        canToken['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+        suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      } else {
+        suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      }
+
+      setMiddleToken(suitableRouter);
+      getMiddleTokenSymbol(suitableRouter);
+      return suitableRouter;
     } else {
-      suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      return null;
     }
-    setMiddleToken(suitableRouter);
-    getMiddleTokenSymbol(suitableRouter);
-    return suitableRouter;
   };
 
   const executeSwap = async () => {
@@ -320,7 +329,7 @@ export default function Swap() {
         account,
         provider,
         inToken["address"],
-        amount * 1.01,
+        amount * 1.1,
         contractAddresses[selected_chain]["router"]
       );
       setUnlocking(false);
@@ -331,11 +340,13 @@ export default function Swap() {
   const setInLimit = (point) => {
     if (inBal) {
       let val = inBal.toString().replaceAll(",", "");
-      setInValue(numFormat(val / point));
+      setInValue(val / point);
       if (point === 1)
         setLimitedout(false);
       else
         setLimitedout(true);
+      if (account && isExist)
+        checkApproved(inToken, val / point);
     }
   };
 
@@ -853,12 +864,12 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight:49 }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
                       alt=""
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -869,6 +880,7 @@ export default function Swap() {
                   value={inValue}
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   onChange={handleValue}
+                  onKeyUp={handleValue}
                   readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
@@ -917,12 +929,12 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight:49 }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
                       alt=""
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -1023,6 +1035,14 @@ export default function Swap() {
             <div style={{ textAlign: "left" }}>
               <div>
                 <span style={{ textAlign: "start", color: "white" }}>
+                  Price Impact:
+                </span>
+                <div style={{ float: "right", display: "inline" }}>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat((valueEth / (inValue * tokenPr + 0.000000001)) * 100)}%</span>
+                </div>
+              </div>
+              <div>
+                <span style={{ textAlign: "start", color: "white" }}>
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
@@ -1079,7 +1099,7 @@ export default function Swap() {
                                   variant="contained"
                                   sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                                   onClick={() =>
-                                    approveTk(Number(inValue - approval))
+                                    approveTk(Number(inValue))
                                   }
                                   style={{
                                     background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
@@ -1094,7 +1114,7 @@ export default function Swap() {
                                   }
                                   disabled={limitedout || unlocking}
                                 >
-                                  {unlocking ? "Unlocking..." : "Unlock " + Math.ceil(inValue - approvedVal) + " " + inToken["value"]}
+                                  {unlocking ? "Unlocking..." : "Unlock " + numFormat(inValue - approvedVal) + " " + inToken["value"]}
                                 </Button>
                                 <Button
                                   size="large"

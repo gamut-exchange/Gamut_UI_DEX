@@ -109,6 +109,7 @@ function Header(props) {
                 <Button
                   variant="contained"
                   className="btn-primary dark:text-dark-primary w-full"
+                  id="connect_wallet_btn"
                   style={{
                     borderRadius: "0px",
                     height: 44,
@@ -331,6 +332,7 @@ function Header(props) {
                           <Button
                             variant="contained"
                             className="btn-primary dark:text-dark-primary w-full"
+                            id="connect_wallet_btn"
                             style={{
                               borderRadius: "4px",
                               height: 44,

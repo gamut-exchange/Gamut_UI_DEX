@@ -182,7 +182,9 @@ export default function CLiquidity() {
 
   const checkPairStatus = async (token1Addr, token2Addr) => {
     const provider = await connector.getProvider();
-    if (token1Addr === token2Addr)
+    if (token1Addr === token2Addr 
+      || (token1Addr === "0x0000000000000000000000000000000000000000" && token2Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()) 
+      ||(token2Addr === "0x0000000000000000000000000000000000000000" && token1Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()))
       setPairStatus(1);
     else {
       try {
@@ -223,13 +225,16 @@ export default function CLiquidity() {
   }
 
   const handleInVal = (e) => {
-    setInVal(Number(e.target.value));
+    let e_val = e.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    setInVal(e_val);
     let inLimBal = inBal.toString().replaceAll(",", "");
     let outLimBal = outBal.toString().replaceAll(",", "");
     if (
-      Number(e.target.value) > 0 &&
+      Number(e_val) > 0 &&
       Number(outVal) > 0 &&
-      Number(e.target.value) <= Number(inLimBal) &&
+      Number(e_val) <= Number(inLimBal) &&
       Number(outVal) <= Number(outLimBal)
     )
       setLimitedout(false);
@@ -237,13 +242,16 @@ export default function CLiquidity() {
   }
 
   const handleOutVal = (e) => {
-    setOutVal(Number(e.target.value));
+    let e_val = e.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    setOutVal(e_val);
     let inLimBal = inBal.toString().replaceAll(",", "");
     let outLimBal = outBal.toString().replaceAll(",", "");
     if (
-      Number(e.target.value) > 0 &&
+      Number(e_val) > 0 &&
       Number(inVal) > 0 &&
-      Number(e.target.value) <= Number(outLimBal) &&
+      Number(e_val) <= Number(outLimBal) &&
       Number(inVal) <= Number(inLimBal)
     )
       setLimitedout(false);
@@ -325,7 +333,7 @@ export default function CLiquidity() {
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
         <SwapCmp />
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 10 }} className="home__mainC">
+        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", float:"left", width:"100%" }} className="home__main">
 
             <Typography
@@ -604,7 +612,7 @@ export default function CLiquidity() {
             </div>
           </Item>
         </Grid>
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 10 }}>
+        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }}>
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
             <div style={{ textAlign: "center" }}>
               <h2 style={{ fontSize: 22 }}>Pool Creation Guide </h2>

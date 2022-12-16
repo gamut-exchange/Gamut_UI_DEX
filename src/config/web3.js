@@ -82,6 +82,7 @@ export const approveToken = async (
     value,
     contractAddr
 ) => {
+    debugger;
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
@@ -295,7 +296,7 @@ export const joinPool = async (
         const initUserData = ethers.utils.defaultAbiCoder.encode(
             ["uint256", "uint256[]", "uint256"],
             [
-                1,
+                "1",
                 //amounts In
                 [inAmount, outAmount],
                 //minimum amount of Lp tokens you are willing to accept
@@ -327,6 +328,147 @@ export const joinPool = async (
         }
     }
 };
+
+export const joinOnePool = async (
+    account,
+    provider,
+    token1Addr,
+    token2Addr,
+    amount1,
+    amount2,
+    slippage,
+    routerContractAddr,
+    factoryContractAddr
+) => {
+    const abi = routerABI[0];
+    const web3 = new Web3(provider);
+    const poolAddr = await getPoolAddress(
+        provider,
+        token1Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token1Addr,
+        token2Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token2Addr,
+        factoryContractAddr
+    );
+
+    if (poolAddr) {
+        const poolData = await getPoolData(provider, poolAddr);
+        let tokenA = "";
+        let tokenB = "";
+        let amountA = 0;
+        let amountB = 0;
+        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()
+            ||
+            (token1Addr === "0x0000000000000000000000000000000000000000" && poolData["tokens"][0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
+            tokenA = token1Addr;
+            tokenB = token2Addr;
+            amountA = amount1;
+            amountB = amount2;
+        } else {
+            tokenA = token2Addr;
+            tokenB = token1Addr;
+            amountA = amount2;
+            amountB = amount1;
+        }
+
+        let inAmount = "0";
+        let inMaxAmount = "0";
+        let outAmount = "0";
+        let outMaxAmount = "0";
+        if (tokenA === "0x0000000000000000000000000000000000000000") {
+            inAmount = web3.utils.toWei(amountA.toString());
+            inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+        }
+        else {
+            inAmount = await toWeiVal(provider, tokenA, amountA);
+            inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+        }
+
+        if (tokenB === "0x0000000000000000000000000000000000000000") {
+            outAmount = web3.utils.toWei(amountB.toString());
+            outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+        } else {
+            outAmount = await toWeiVal(provider, tokenB, amountB);
+            outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+        }
+
+        const initUserData = ethers.utils.defaultAbiCoder.encode(
+            ["uint256", "uint256", "uint256", "uint256"],
+            [
+                "2",
+                //amounts In
+                Number(inAmount)===0?outAmount:inAmount,
+                Number(inAmount)===0?"1":"0",
+                //minimum amount of Lp tokens you are willing to accept
+                web3.utils.toWei("0"),
+            ]
+        );
+
+        // let token1_contract = new web3.eth.Contract(tokenAbi, token1Addr);
+        // await token1_contract.methods['increaseAllowance'](c_address, inAmount).send({from: account});
+
+        // let token2_contract = new web3.eth.Contract(tokenAbi, token2Addr);
+        // await token2_contract.methods['increaseAllowance'](c_address, outAmount).send({from: account});
+        let contract = new web3.eth.Contract(abi, routerContractAddr);
+        try {
+            if (tokenA === "0x0000000000000000000000000000000000000000" || tokenB === "0x0000000000000000000000000000000000000000")
+                await contract.methods["joinPool"](account, [
+                    [tokenA, tokenB],
+                    [inMaxAmount, outMaxAmount],
+                    initUserData,
+                ]).send({ from: account, value: (tokenA === "0x0000000000000000000000000000000000000000") ? inAmount : outAmount });
+            else
+                await contract.methods["joinPool"](account, [
+                    [tokenA, tokenB],
+                    [inMaxAmount, outMaxAmount],
+                    initUserData,
+                ]).send({ from: account });
+        } catch (e) {
+            console.log(e.message);
+        }
+    }
+};
+
+export const initAddPool = async (
+    account,
+    provider,
+    token1Addr,
+    token2Addr,
+    amountA,
+    amountB,
+    routerContractAddr
+) => {
+    const abi = routerABI[0];
+    let web3 = new Web3(provider);
+    let token1_wei_val = "0";
+    let token2_wei_val = "0";
+    if (token1Addr === "0x0000000000000000000000000000000000000000")
+        token1_wei_val = web3.utils.toWei(amountA.toString());
+    else
+        token1_wei_val = await toWeiVal(provider, token1Addr, amountA);
+    if (token2Addr === "0x0000000000000000000000000000000000000000")
+        token2_wei_val = web3.utils.toWei(amountB.toString());
+    else
+        token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
+    const initialBalances = [token2_wei_val, token1_wei_val];
+    const JOIN_KIND_INIT = "0";
+
+    const initUserData = ethers.utils.defaultAbiCoder.encode(
+        ["uint256", "uint256[]"],
+        [JOIN_KIND_INIT, initialBalances]
+    );
+
+    let contract = new web3.eth.Contract(abi, routerContractAddr);
+    try {
+        if (token1Addr === "0x0000000000000000000000000000000000000000" || token2Addr === "0x0000000000000000000000000000000000000000")
+            await contract.methods["joinPool"](account, [
+                [token2Addr, token1Addr],
+                initialBalances,
+                initUserData,
+            ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000") ? token1_wei_val : token2_wei_val });
+        alert(`Successfully created!`, "success");
+    } catch (e) {
+        console.log(e.message);
+    }
+}
 
 export const getPoolBalance = async (account, provider, poolAddr) => {
     const abi = poolABI[0];
@@ -415,49 +557,6 @@ export const createPool = async (
         console.log(e.message);
     }
 
-}
-
-export const initAddPool = async (
-    account,
-    provider,
-    token1Addr,
-    token2Addr,
-    amountA,
-    amountB,
-    routerContractAddr
-) => {
-    const abi = routerABI[0];
-    let web3 = new Web3(provider);
-    let token1_wei_val = "0";
-    let token2_wei_val = "0";
-    if (token1Addr === "0x0000000000000000000000000000000000000000")
-        token1_wei_val = web3.utils.toWei(amountA.toString());
-    else
-        token1_wei_val = await toWeiVal(provider, token1Addr, amountA);
-    if (token2Addr === "0x0000000000000000000000000000000000000000")
-        token2_wei_val = web3.utils.toWei(amountB.toString());
-    else
-        token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
-    const initialBalances = [token2_wei_val, token1_wei_val];
-    const JOIN_KIND_INIT = "0";
-
-    const initUserData = ethers.utils.defaultAbiCoder.encode(
-        ["uint256", "uint256[]"],
-        [JOIN_KIND_INIT, initialBalances]
-    );
-
-    let contract = new web3.eth.Contract(abi, routerContractAddr);
-    try {
-        if (token1Addr === "0x0000000000000000000000000000000000000000" || token2Addr === "0x0000000000000000000000000000000000000000")
-            await contract.methods["joinPool"](account, [
-                [token2Addr, token1Addr],
-                initialBalances,
-                initUserData,
-            ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000") ? token1_wei_val : token2_wei_val });
-        alert(`Successfully created!`, "success");
-    } catch (e) {
-        console.log(e.message);
-    }
 }
 
 const toWeiVal = async (provider, tokenAddr, val) => {
@@ -657,12 +756,14 @@ export const calcOutput = async (
 export const getMiddleToken = async (inValue, inSToken, outSToken, tokenList, provider, factoryContractAddr, swapFee) => {
     const availableLists = tokenList.filter((item) => {
         return (
-            item["address"] !== inSToken["address"] &&
-            item["address"] !== outSToken["address"] &&
+            item["address"].toLowerCase() !== inSToken["address"].toLowerCase() &&
+            item["address"].toLowerCase() !== outSToken["address"].toLowerCase() &&
             item["address"] !== "0x0000000000000000000000000000000000000000"
         );
     });
-
+    debugger;
+    console.log(availableLists);
+    console.log(tokenList);
     let suitableRouter = [];
     // const provider = await connector.getProvider();
     for (let i = 0; i < availableLists.length; i++) {
