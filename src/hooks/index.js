@@ -72,7 +72,7 @@ export function useInactiveListener(suppress = false) {
           if (ethereum.removeListener) {
             ethereum.removeListener("chainChanged", handleChainChanged);
             ethereum.removeListener("accountsChanged", handleAccountsChanged);
-            ethereum.removeListener("networkChanged", handleNetworkChanged);
+            // ethereum.removeListener("networkChanged", handleNetworkChanged);
           }
         };
       }
