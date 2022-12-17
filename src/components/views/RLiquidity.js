@@ -596,7 +596,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "10px" : "11px", fontWeight: "bold" }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "9px" : "10px" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
@@ -626,7 +626,7 @@ export default function RLiquidity() {
                   min={0}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -664,7 +664,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenB.logoURL}
@@ -682,7 +682,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenB)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -702,7 +702,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenA.logoURL}
@@ -720,7 +720,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenA)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
