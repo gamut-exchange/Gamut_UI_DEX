@@ -895,7 +895,9 @@ export default function Swap() {
                   fontWeight: "500",
                   fontSize: "16px",
                   display: "block",
-                  textAlign: "left",
+                  float: "left",
+                  textAlign:"left",
+                  width:"100%"
                 }}
               >
                 From
