@@ -39,3 +39,25 @@ input[type=number] {
 .css-1v2lvtn-MuiPaginationItem-root {
     color: white!important;
 }
+
+.footer-icon {
+    fill: #14A9FF;
+    width: 24px;
+    height: 24px;
+  }
+  .footer-icon2 {
+    fill: #14A9FF;
+    width: 24px;
+    height: 24px;
+  }
+  .footer-icon3 {
+    fill: #14A9FF;
+    width: 24px;
+    height: 24px;
+    margin:0px 20px;
+  }
+  .footer-icon4 {
+    fill: #14A9FF;
+    width: 24px;
+    height: 24px;
+  }

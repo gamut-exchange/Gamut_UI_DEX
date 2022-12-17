@@ -125,6 +125,7 @@ export default function Swap() {
   const [deadlineFlag, setDeadlineFlag] = useState(false);
   const [noChartData, setNoChartData] = useState(false);
   const [isExist, setIsExist] = useState(false);
+  const [priceDirection, setPriceDirection] = useState(true);
 
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
@@ -1024,7 +1025,7 @@ export default function Swap() {
                     fontSize: "18px",
                   }}
                 />{" "}
-                <button onClick={reverseToken}>1 {inToken["symbol"]} = {tokenPr} {outToken["symbol"]}</button>
+                <button onClick={() =>setPriceDirection(!priceDirection)}>{priceDirection?"1 "+inToken["symbol"]+ " = "+tokenPr+" "+outToken["symbol"]:"1"+outToken["symbol"]+ " = "+numFormat(1/tokenPr)+" "+inToken["symbol"]}</button>
               </div>
             }
             {(account && !isExist) &&
