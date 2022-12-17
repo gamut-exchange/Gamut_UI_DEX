@@ -60,17 +60,14 @@ const ChartHome = (chartData) => {
   };
 
   const filterChart = (timeIntervel) => {
-    console.log("Formatted Data:", chartData.chartData);
     // const timeNow = Math.floor(Date.now() / 1000 - timeIntervel);
     var previousTime = chartData.chartData[0]?.time;
-    console.log("Start Time:", previousTime);
     const filteredData = chartData.chartData.filter((data) => {
       if (data?.time >= previousTime + timeIntervel) {
         previousTime = data?.time;
         return data?.time;
       }
     });
-    console.log("Filtered Data:", filteredData);
     if (areaSeries) {
       chart.removeSeries(areaSeries);
       areaSeries = null;
@@ -86,7 +83,6 @@ const ChartHome = (chartData) => {
     } else {
       areaSeries.setData(filteredData);
     }
-    // console.log("Filtering...", timeNow, "FilteredData:", filteredData);
   };
 
   useEffect(() => {

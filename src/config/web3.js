@@ -519,15 +519,15 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
-    // const limit1 = await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString());
-    // const limit2 = await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString());
+    const limit1 = (token1Amount>0.00001 && token2Amount>0.00001)?await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()):"0";
+    const limit2 = (token1Amount>0.00001 && token2Amount>0.00001)?await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString()):"0";
 
 
     let contract = new web3.eth.Contract(abi, contractAddr);
     try {
         await contract.methods["exitPool"](account, [
             [token1Addr, token2Addr],
-            ["0", "0"],
+            [limit1, limit2],
             initUserData,
         ]).send({ from: account });
     } catch (e) {
@@ -760,8 +760,6 @@ export const getMiddleToken = async (inValue, inSToken, outSToken, tokenList, pr
             item["address"] !== "0x0000000000000000000000000000000000000000"
         );
     });
-    console.log(availableLists);
-    console.log(tokenList);
     let suitableRouter = [];
     // const provider = await connector.getProvider();
     for (let i = 0; i < availableLists.length; i++) {

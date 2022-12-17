@@ -90,8 +90,6 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 
 export default function RLiquidity() {
   const grayColor = "#6d6d7d";
-  const slippage = 50;
-
   const selected_chain = useSelector((state) => state.selectedChain);
   const { account, connector } = useWeb3React();
   const [setting, setSetting] = useState(false);
@@ -110,8 +108,9 @@ export default function RLiquidity() {
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
-  // const [slippage, setSlippage] = useState(5);
-  // const [slippageFlag, setSlippageFlag] = useState(false);
+  const [slippage, setSlippage] = useState(1);
+  const [slippageFlag, setSlippageFlag] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
@@ -190,7 +189,60 @@ export default function RLiquidity() {
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
     setOutTokenA(amount1);
     setOutTokenB(amount2);
+    calculateImpact(outTokenA, poolData, amount1, amount2);
   };
+
+  const calculateImpact = async (inToken, poolData, inVal, outVal) => {
+    let weight_from;
+    let weight_to;
+    let balance_from;
+    let balance_to;
+    let decimal_from;
+    let decimal_to;
+    let amount1 = 0;
+    let amount2 = 0;
+
+    if (tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase()) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+      decimal_from = poolData.decimals[0];
+      decimal_to = poolData.decimals[1];
+      amount1 = inVal;
+      amount2 = outVal;
+    } else {
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      decimal_from = poolData.decimals[1];
+      decimal_to = poolData.decimals[0];
+      amount1 = outVal;
+      amount2 = inVal;
+    }
+
+    let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
+    let remain_amount = 0;
+    if (amount1 > amount2 * price) {
+      remain_amount = (amount1 - amount2 * price) / (2 * price);
+      let amountOut = await calculateSwap(
+        tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? tokenB.address : tokenA.address,
+        poolData,
+        remain_amount
+      );
+      setPriceImpact(numFormat((amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100));
+    } else {
+      remain_amount = (amount2 * price - amount1) / 2;
+      let amountOut = await calculateSwap(
+        tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? tokenA.address : tokenB.address,
+        poolData,
+        remain_amount
+      );
+
+      setPriceImpact(numFormat((amountOut / (remain_amount / (price + 0.000000000000000001) + 0.0000000000000001) - 1) * 100));
+    }
+  }
 
   const filterLP = (e) => {
     let search_qr = e.target.value;
@@ -278,7 +330,7 @@ export default function RLiquidity() {
         tokenB.address,
         outTokenA,
         outTokenB,
-        slippage * 0.01,
+        slippage*0.01,
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
@@ -286,19 +338,19 @@ export default function RLiquidity() {
   };
 
   const numFormat = (val) => {
-    if (Number(val) > 1)
+    if (Math.abs(val) > 1)
       return Number(val).toFixed(2) * 1;
-    else if (Number(val) > 0.001)
+    else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(6) * 1;
     else
       return toLongNum(Number(val).toFixed(8));
   }
 
-  // const valueLabelFormat = (value) => {
-  //   return value + "%";
-  // }
+  const valueLabelFormat = (value) => {
+    return value + "%";
+  }
 
   const CustomTooltip0 = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -504,15 +556,35 @@ export default function RLiquidity() {
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "600", color: "white" }}
-              gutterBottom
-              style={{ textAlign: "left", margin: "12px 0px" }}
-            >
-              Remove Liquidity
-            </Typography>
-            {/* Drop down Start  */}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "600", color: "white" }}
+                gutterBottom
+                style={{ textAlign: "left", margin: "12px 0px" }}
+              >
+                Remove Liquidity
+              </Typography>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+                <Settings />
+              </span>
+            </div>
+            {
+              setting ?
+                <div className="s" style={{ float: "left", width: "100%", margin:"-15px 0px 20px 0px" }}>
+                  <span style={{ float: "left", color: grayColor }}>
+                    Max Slippage:
+                  </span>
+                  <span style={{ float: "right", color: grayColor }}>
+                    <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1%</a>
+                    <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5%</a>
+                    <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1%</a>
+                    <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
+                  </span>
+                  {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
+                </div>
+                : null
+            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -570,7 +642,7 @@ export default function RLiquidity() {
             </FormControl>
             {/* </FormControl> */}
             <div style={{ width: "100%" }}>
-              <span style={{ float: "left", color: grayColor, paddingTop:"7px" }}>
+              <span style={{ float: "left", color: grayColor, paddingTop: "7px" }}>
                 Percentage to remove:
               </span>
               <Slider
@@ -589,12 +661,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenB.logoURL}
                       alt=""
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                   disabled={true}
@@ -627,12 +699,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenA.logoURL}
                       alt=""
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                   disabled={true}
@@ -661,45 +733,35 @@ export default function RLiquidity() {
               <InfoOutlinedIcon
                 style={{
                   fontSize: "18px",
+                  marginTop: "-2px"
                 }}
               />{" "}
               <span>Ratio {numFormat(scale)}% {tokenB.symbol} - {numFormat(100 - scale)}% {tokenA.symbol}</span>
-              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
-                <Settings />
-              </span>
             </div>
-            {
-              setting ?
-                <div className="mt-2">
-                  <div className="s" sx={{ width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Change Ratio:
-                    </span>
-                  </div>
-                  <Slider
-                    size="small"
-                    value={scale}
-                    onChange={handleScale}
-                    step={0.1}
-                    min={0}
-                    max={100}
-                    valueLabelDisplay="auto"
-                  />
-                  {/* <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1%</a>
-                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5%</a>
-                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1%</a>
-                      <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div> */}
-                </div>
-                : null
-            }
+            <div className="mt-2">
+              <div className="s" sx={{ width: "100%" }}>
+                <span style={{ float: "left", color: grayColor }}>
+                  Change Ratio:
+                </span>
+              </div>
+              <Slider
+                size="small"
+                value={scale}
+                onChange={handleScale}
+                step={0.1}
+                min={0}
+                max={100}
+                valueLabelDisplay="auto"
+              />
+            </div>
+            <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
+              <span style={{ float: "left", color: "white" }}>
+                Price Impact:
+              </span>
+              <div style={{ float: "right", display: "inline" }}>
+                <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+              </div>
+            </div>
             <div style={{ textAlign: "left" }}>
               {/* <span style={{ textAlign: "start", color: "white" }}>
                 Price Impact:
@@ -865,7 +927,7 @@ export default function RLiquidity() {
                   <li
                     key={item["address"] + index}
                     className="flex gap-x-1"
-                    style={{cursor:"pointer"}}
+                    style={{ cursor: "pointer" }}
                     onClick={() => selectToken(item)}
                   >
                     <div className="relative flex">

@@ -35,3 +35,7 @@ input[type=number] {
 .MuiStepLabel-labelContainer .MuiStepLabel-label {
     color: white!important;
 }
+
+.css-1v2lvtn-MuiPaginationItem-root {
+    color: white!important;
+}

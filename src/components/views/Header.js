@@ -75,7 +75,7 @@ function Header(props) {
         <Link to="/" style={{ textDecoration: "none", color: "white" }}>
           <ListItem disablePadding>
             <ListItemButton sx={{ textAlign: "center" }}>
-              <ListItemText primary={"Trade"} />
+              <ListItemText primary={"Swap"} />
             </ListItemButton>
           </ListItem>
         </Link>

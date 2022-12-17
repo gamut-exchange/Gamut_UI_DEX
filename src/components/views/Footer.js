@@ -31,10 +31,9 @@ function Footer() {
   </Grid>
   <Grid item xs={4} md={4}>
   <Item  style={{ backgroundColor: "transparent", color: "white"}}  elevation={0}>
-
-      <Twitter />
+      <Twitter style={{ marginRight:"10px" }} />
       <Instagram />
-      <Facebook />
+      <Facebook style={{ marginLeft:"10px" }} />
       </Item>
   </Grid>
  

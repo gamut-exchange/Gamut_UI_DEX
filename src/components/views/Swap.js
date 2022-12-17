@@ -536,11 +536,11 @@ export default function Swap() {
   };
 
   const numFormat = (val) => {
-    if (Number(val) > 1)
+    if (Math.abs(val) > 1)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.001)
+    else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(6) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(8) * 1;
     else
       return Number(val).toFixed(8) * 1;
@@ -836,14 +836,53 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "600", color: "white" }}
-              gutterBottom
-              style={{ textAlign: "left", margin: "12px 0px" }}
-            >
-              Trade On-Chain
-            </Typography>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "600", color: "white" }}
+                gutterBottom
+                style={{ textAlign: "left", margin: "12px 0px" }}
+              >
+                Trade On-Chain
+              </Typography>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop:"15px" }}>
+                <Settings />
+              </span>
+            </div>
+            {
+              setting ? (
+                <div>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Max Slippage:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
+                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
+                  </div>
+                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Time Deadline:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
+                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
+                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
+                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
+                  </div>
+                  <br />
+                  <br />
+                </div>
+              )
+                :
+                null
+            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -962,19 +1001,19 @@ export default function Swap() {
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
                 </p>
               )}
             </div>
@@ -985,51 +1024,13 @@ export default function Swap() {
                     fontSize: "18px",
                   }}
                 />{" "}
-                1 {inToken["symbol"]} = {tokenPr} {outToken["symbol"]}
-                <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
-                  <Settings />
-                </span>
+                <button onClick={reverseToken}>1 {inToken["symbol"]} = {tokenPr} {outToken["symbol"]}</button>
               </div>
             }
             {(account && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
-            }
-            {
-              setting ? (
-                <div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
-                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
-                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Time Deadline:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
-                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
-                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
-                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
-                    </span>
-                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} />
-                  <br />
-                </div>
-              )
-                :
-                null
             }
             <div style={{ textAlign: "left" }}>
               <div>
@@ -1040,7 +1041,7 @@ export default function Swap() {
                   <span style={{ textAlign: "right", color: "white" }}>{numFormat((valueEth / (inValue * tokenPr + 0.000000001)) * 100)}%</span>
                 </div>
               </div>
-              <div>
+              <div style={{ marginTop: "5px" }}>
                 <span style={{ textAlign: "start", color: "white" }}>
                   Minimum Output after Slippage:
                 </span>
