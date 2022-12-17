@@ -100,7 +100,7 @@ export default function Liquidity() {
 
   const [setting, setSetting] = useState(false);
   const [isExist, setIsExist] = useState(false);
-  const [ratio, setRatio] = useState(1);
+  const [ratio, setRatio] = useState(50);
   const [mopen, setMopen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = React.useState(0);
@@ -545,18 +545,32 @@ export default function Liquidity() {
     setLimitedout(false);
     if (account && isExist)
       checkApproved(inToken, outToken, val1 / position, valueEth);
+    if (Number(val1 / position) === 0) {
+      setRatio(0)
+    } else if (Number(valueEth) === 0) {
+      setRatio(100)
+    } else {
+      setRatio(numFormat(val1 / position / ((val1 / position) * 1 + valueEth * 1)) * 100);
+    }
   };
 
-  const setOutLimit = (point) => {
+  const setOutLimit = (position) => {
     if (outBal) {
       let val2 = outBal.toString().replaceAll(",", "");
-      setValueEth(val2 / point);
-      if (point === 1)
+      setValueEth(val2 / position);
+      if (position === 1)
         setLimitedout(false);
       else
         setLimitedout(true);
       if (account && isExist)
-        checkApproved(inToken, outToken, value, val2 / point);
+        checkApproved(inToken, outToken, value, val2 / position);
+      if (Number(value) === 0) {
+        setRatio(0)
+      } else if (Number(val2 / position) === 0) {
+        setRatio(100)
+      } else {
+        setRatio(numFormat(value / ((val2 / position) * 1 + value * 1)) * 100);
+      }
     }
   };
 
@@ -924,7 +938,7 @@ export default function Liquidity() {
                     float: "left",
                   }}
                 />
-                <span style={{ float: "left", paddingLeft: "5px" }}>Pool Composition {ratio.toPrecision(5)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(5)}% {outToken["symbol"]}</span>
+                <span style={{ float: "left", paddingLeft: "5px" }}>Pool Composition {ratio.toPrecision(6)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(6)}% {outToken["symbol"]}</span>
               </div>
               <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
                 <span style={{ float: "left", color: "white" }}>
