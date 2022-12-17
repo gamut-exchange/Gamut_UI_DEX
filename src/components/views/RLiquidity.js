@@ -596,7 +596,7 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "10 px" : "11px", fontWeight: "bold" }}
+                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "10px" : "11px", fontWeight: "bold" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
@@ -941,7 +941,7 @@ export default function RLiquidity() {
                         alt=""
                       />
                     </div>
-                    <p className="text-light-primary text-lg">
+                    <p className="text-light-primary text-lg" >
                       {item["symbols"][0]} - {item["symbols"][1]} LP Token
                     </p>
                   </li>
