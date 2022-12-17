@@ -182,7 +182,15 @@ export default function Liquidity() {
     } else if (Number(valueEth) === 0) {
       setRatio(100)
     } else {
-      setRatio(numFormat(valueEth / (e_val * 1 + valueEth * 1)) * 100);
+      const provider = await connector.getProvider();
+      const poolAddress = await getPoolAddress(
+        provider,
+        inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+        contractAddresses[selected_chain]["hedgeFactory"]
+      );
+      const poolData = await getPoolData(provider, poolAddress);
+      calculateRatio(inToken, poolData, e_val * 1, valueEth);
     }
     if (isExist)
       checkApproved(inToken, outToken, e_val, valueEth);
@@ -214,7 +222,15 @@ export default function Liquidity() {
     } else if (Number(e_val) === 0) {
       setRatio(100)
     } else {
-      setRatio(numFormat(e_val / (e_val * 1 + value * 1)) * 100);
+      const provider = await connector.getProvider();
+      const poolAddress = await getPoolAddress(
+        provider,
+        inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+        contractAddresses[selected_chain]["hedgeFactory"]
+      );
+      const poolData = await getPoolData(provider, poolAddress);
+      calculateRatio(inToken, poolData, value, e_val * 1);
     }
     if (isExist)
       checkApproved(inToken, outToken, value, e_val);
@@ -380,39 +396,33 @@ export default function Liquidity() {
     setApproval((token1["address"] === "0x0000000000000000000000000000000000000000" || approved1 * 1 >= val1 * 1) && (token2["address"] === "0x0000000000000000000000000000000000000000" || approved2 * 1 >= val2 * 1));
   };
 
-  // const calculateRatio = async (inToken, poolData, input) => {
-  //   let weight_from;
-  //   let weight_to;
-  //   let balance_from;
-  //   let balance_to;
-  //   let decimal_from;
-  //   let decimal_to;
-
-  //   if (inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
-  //     balance_from = poolData.balances[0];
-  //     balance_to = poolData.balances[1];
-  //     weight_from = poolData.weights[0];
-  //     weight_to = poolData.weights[1];
-  //     decimal_from = poolData.decimals[0];
-  //     decimal_to = poolData.decimals[1];
-  //   } else {
-  //     weight_from = poolData.weights[1];
-  //     weight_to = poolData.weights[0];
-  //     balance_from = poolData.balances[1];
-  //     balance_to = poolData.balances[0];
-  //     decimal_from = poolData.decimals[1];
-  //     decimal_to = poolData.decimals[0];
-  //   }
-  //   let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
-  //   setRatio(price);
-  //   let valEth = price * input;
-  //   valEth =
-  //     valEth * 1 === 0
-  //       ? 0
-  //       : numFormat(valEth);
-  //   setValueEth(valEth);
-  //   return valEth;
-  // };
+  const calculateRatio = async (inToken, poolData, input, output) => {
+    let weight_from;
+    let weight_to;
+    let balance_from;
+    let balance_to;
+    let decimal_from;
+    let decimal_to;
+    const in_token = inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"];
+    if (in_token.toLowerCase() === poolData.tokens[0].toLowerCase()) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+      decimal_from = poolData.decimals[0];
+      decimal_to = poolData.decimals[1];
+    } else {
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      decimal_from = poolData.decimals[1];
+      decimal_to = poolData.decimals[0];
+    }
+    let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
+    let calc_ratio = input * price / (input * price + output);
+    setRatio(calc_ratio * 100);
+  };
 
   const calculateImpact = async (in_token, out_token, poolData, inVal, outVal) => {
     let weight_from;
@@ -424,7 +434,7 @@ export default function Liquidity() {
     let amount1 = 0;
     let amount2 = 0;
 
-    if (in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
+    if (in_token.toLowerCase() === poolData.tokens[0].toLowerCase()) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
@@ -449,7 +459,7 @@ export default function Liquidity() {
     if (amount1 > amount2 * price) {
       remain_amount = (amount1 - amount2 * price) / (2 * price);
       let amountOut = await calculateSwap(
-        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? out_token["address"] : in_token["address"],
+        in_token.toLowerCase() === poolData.tokens[0].toLowerCase() ? out_token : in_token,
         poolData,
         remain_amount
       );
@@ -457,7 +467,7 @@ export default function Liquidity() {
     } else {
       remain_amount = (amount2 * price - amount1) / 2;
       let amountOut = await calculateSwap(
-        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token["address"] : out_token["address"],
+        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token : out_token,
         poolData,
         remain_amount
       );
@@ -539,29 +549,38 @@ export default function Liquidity() {
   };
 
 
-  const setInLimit = (position) => {
-    let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
-    setValue(val1 / position);
-    setLimitedout(false);
-    if (account && isExist)
-      checkApproved(inToken, outToken, val1 / position, valueEth);
-    if (Number(val1 / position) === 0) {
-      setRatio(0)
-    } else if (Number(valueEth) === 0) {
-      setRatio(100)
-    } else {
-      setRatio(numFormat(val1 / position / ((val1 / position) * 1 + valueEth * 1)) * 100);
+  const setInLimit = async (position) => {
+    if (inBal) {
+      let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
+      setValue(val1 / position);
+      setLimitedout(false);
+      if (account && isExist)
+        checkApproved(inToken, outToken, val1 / position, valueEth);
+      if (Number(val1 / position) === 0) {
+        setRatio(0)
+      } else if (Number(valueEth) === 0) {
+        setRatio(100)
+      } else {
+        const provider = await connector.getProvider();
+        const poolAddress = await getPoolAddress(
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(provider, poolAddress);
+        calculateRatio(inToken, poolData, val1 / position, valueEth);
+      }
+      if (isExist)
+        checkApproved(inToken, outToken, val1 / position, valueEth);
     }
   };
 
-  const setOutLimit = (position) => {
+  const setOutLimit = async (position) => {
     if (outBal) {
       let val2 = outBal.toString().replaceAll(",", "");
       setValueEth(val2 / position);
-      if (position === 1)
-        setLimitedout(false);
-      else
-        setLimitedout(true);
+      setLimitedout(false);
       if (account && isExist)
         checkApproved(inToken, outToken, value, val2 / position);
       if (Number(value) === 0) {
@@ -569,8 +588,18 @@ export default function Liquidity() {
       } else if (Number(val2 / position) === 0) {
         setRatio(100)
       } else {
-        setRatio(numFormat(value / ((val2 / position) * 1 + value * 1)) * 100);
+        const provider = await connector.getProvider();
+        const poolAddress = await getPoolAddress(
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(provider, poolAddress);
+        calculateRatio(inToken, poolData, value, val2 / position);
       }
+      if (isExist)
+        checkApproved(inToken, outToken, value, val2 / position);
     }
   };
 
