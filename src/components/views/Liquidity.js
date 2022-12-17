@@ -467,7 +467,7 @@ export default function Liquidity() {
     } else {
       remain_amount = (amount2 * price - amount1) / 2;
       let amountOut = await calculateSwap(
-        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token : out_token,
+        in_token.toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token : out_token,
         poolData,
         remain_amount
       );
