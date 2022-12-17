@@ -145,17 +145,17 @@ export default function RLiquidity() {
     setScale(newValue * 1);
     let weight1 = newValue / 100;
     setWeightA(weight1);
-    await calculateOutput(totalLPTokens, value, weight1);
+    await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
   };
 
   const handleSlider = async (event, newValue) => {
     setLpPercentage(newValue);
     const val = numFormat(poolAmount * (newValue / 100));
     setValue(val);
-    await calculateOutput(totalLPTokens, val, weightA);
+    await calculateOutput(totalLPTokens, val, weightA, tokenA, tokenB);
   };
 
-  const calculateOutput = async (totalLkTk, inValue, weight1) => {
+  const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
     const provider = await connector.getProvider();
     const poolData = await getPoolData(
       provider,
@@ -189,10 +189,11 @@ export default function RLiquidity() {
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
     setOutTokenA(amount1);
     setOutTokenB(amount2);
-    calculateImpact(outTokenA, poolData, amount1, amount2);
+    if (token1.length !== 0 && token2.length !== 0)
+      calculateImpact(poolData, amount1, amount2, token1, token2);
   };
 
-  const calculateImpact = async (inToken, poolData, inVal, outVal) => {
+  const calculateImpact = async (poolData, inVal, outVal, token1, token2) => {
     let weight_from;
     let weight_to;
     let balance_from;
@@ -202,7 +203,7 @@ export default function RLiquidity() {
     let amount1 = 0;
     let amount2 = 0;
 
-    if (tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase()) {
+    if (token1.address.toLowerCase() === poolData.tokens[0].toLowerCase()) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
@@ -227,7 +228,7 @@ export default function RLiquidity() {
     if (amount1 > amount2 * price) {
       remain_amount = (amount1 - amount2 * price) / (2 * price);
       let amountOut = await calculateSwap(
-        tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? tokenB.address : tokenA.address,
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token2.address : token1.address,
         poolData,
         remain_amount
       );
@@ -235,7 +236,7 @@ export default function RLiquidity() {
     } else {
       remain_amount = (amount2 * price - amount1) / 2;
       let amountOut = await calculateSwap(
-        tokenA.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? tokenA.address : tokenB.address,
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token1.address : token2.address,
         poolData,
         remain_amount
       );
@@ -307,7 +308,7 @@ export default function RLiquidity() {
         selectedItem["address"]
       );
       setTotalLPTokens(totalLPAmount);
-      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1);
+      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1, result1[0], result2[0]);
     }
   }
 
@@ -330,7 +331,7 @@ export default function RLiquidity() {
         tokenB.address,
         outTokenA,
         outTokenB,
-        slippage*0.01,
+        slippage * 0.01,
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
@@ -526,7 +527,9 @@ export default function RLiquidity() {
         await calculateOutput(
           amount2,
           (amount * lpPercentage) / 100,
-          weight1
+          weight1,
+          result1[0],
+          result2[0]
         );
       };
 
@@ -571,7 +574,7 @@ export default function RLiquidity() {
             </div>
             {
               setting ?
-                <div className="s" style={{ float: "left", width: "100%", margin:"-15px 0px 20px 0px" }}>
+                <div className="s" style={{ float: "left", width: "100%", margin: "-15px 0px 20px 0px" }}>
                   <span style={{ float: "left", color: grayColor }}>
                     Max Slippage:
                   </span>

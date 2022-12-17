@@ -193,7 +193,9 @@ export default function Liquidity() {
       provider,
       poolAddress
     );
-    calculateImpact(inToken, poolData, e_val, valueEth);
+    calculateImpact(inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+      outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+      poolData, e_val, valueEth);
   };
 
   const handleValueEth = async (event) => {
@@ -222,7 +224,10 @@ export default function Liquidity() {
       provider,
       poolAddress
     );
-    calculateImpact(inToken, poolData, value, e_val);
+    calculateImpact(
+      inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+      outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+      poolData, value, e_val);
   }
 
   const filterToken = (e) => {
@@ -278,7 +283,9 @@ export default function Liquidity() {
             setLimitedout(false);
           else setLimitedout(true);
           if (value * 1 !== 0 || valueEth * 1 !== 0)
-            calculateImpact(token, poolData, value, valueEth);
+            calculateImpact(token["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token["address"],
+              outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
+              poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
           setIsExist(false);
@@ -311,7 +318,10 @@ export default function Liquidity() {
             setLimitedout(false);
           else setLimitedout(true);
           if (value * 1 !== 0 || valueEth * 1 !== 0)
-            calculateImpact(inToken, poolData, value, valueEth);
+            calculateImpact(
+              inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+              token["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token["address"],
+              poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
           setIsExist(false);
@@ -404,7 +414,7 @@ export default function Liquidity() {
   //   return valEth;
   // };
 
-  const calculateImpact = async (inToken, poolData, inVal, outVal) => {
+  const calculateImpact = async (in_token, out_token, poolData, inVal, outVal) => {
     let weight_from;
     let weight_to;
     let balance_from;
@@ -414,7 +424,7 @@ export default function Liquidity() {
     let amount1 = 0;
     let amount2 = 0;
 
-    if (inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
+    if (in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
@@ -439,7 +449,7 @@ export default function Liquidity() {
     if (amount1 > amount2 * price) {
       remain_amount = (amount1 - amount2 * price) / (2 * price);
       let amountOut = await calculateSwap(
-        inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? outToken["address"] : inToken["address"],
+        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? out_token["address"] : in_token["address"],
         poolData,
         remain_amount
       );
@@ -447,7 +457,7 @@ export default function Liquidity() {
     } else {
       remain_amount = (amount2 * price - amount1) / 2;
       let amountOut = await calculateSwap(
-        inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? inToken["address"] : outToken["address"],
+        in_token["address"].toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token["address"] : out_token["address"],
         poolData,
         remain_amount
       );
