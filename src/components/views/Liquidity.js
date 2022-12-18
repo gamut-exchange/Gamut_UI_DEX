@@ -13,7 +13,8 @@ import {
   Modal,
   Typography,
   InputBase,
-  TextField
+  TextField,
+  CircularProgress
 } from "@mui/material";
 import {
   AddCircleOutline,
@@ -1128,7 +1129,7 @@ export default function Liquidity() {
                   <b>{formattedWeightsData[0]["token0"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              {!searching && <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={500}
                   height={200}
@@ -1153,13 +1154,18 @@ export default function Liquidity() {
                     strokeWidth={2}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer>}
+              {searching &&
+                <div style={{ minHeight: "374px", textAlign: "center" }}>
+                  <CircularProgress style={{ marginTop: "155px" }} />
+                </div>
+              }
               {formattedWeightsData[0] && (
                 <h3 className="model-title mb-2 mt-4" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token1"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              {!searching && <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={500}
                   height={200}
@@ -1185,7 +1191,12 @@ export default function Liquidity() {
                   />
                   {/* <Brush height={25} /> */}
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer>}
+              {searching &&
+                <div style={{ minHeight: "374px", textAlign: "center" }}>
+                  <CircularProgress style={{ marginTop: "155px" }} />
+                </div>
+              }
             </div>
           </Item>
           {account &&

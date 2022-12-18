@@ -15,7 +15,8 @@ import {
   FormControl,
   Typography,
   Slider,
-  InputBase
+  InputBase,
+  CircularProgress
 } from "@mui/material";
 import { Stack } from "@mui/system";
 import {
@@ -127,6 +128,7 @@ export default function Swap() {
   const [isExist, setIsExist] = useState(false);
   const [priceDirection, setPriceDirection] = useState(true);
   const [finding, setFinding] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
 
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
@@ -795,6 +797,13 @@ export default function Swap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formattedPricesData]);
 
+  useEffect(() => {
+    if (account && Number(inValue) != 0)
+      setPriceImpact(numFormat(((valueEth / (inValue * tokenPr + 0.000000001)) - 1) * 100));
+    else
+      setPriceImpact(0);
+  }, [valueEth, inValue, tokenPr]);
+
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
@@ -806,7 +815,7 @@ export default function Swap() {
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding:"0px 0px 8px 0px" }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding: "0px 0px 8px 0px" }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -851,7 +860,7 @@ export default function Swap() {
               >
                 Trade On-Chain
               </Typography>
-              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop:"15px" }}>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
                 <Settings />
               </span>
             </div>
@@ -901,8 +910,8 @@ export default function Swap() {
                   fontSize: "16px",
                   display: "block",
                   float: "left",
-                  textAlign:"left",
-                  width:"100%"
+                  textAlign: "left",
+                  width: "100%"
                 }}
               >
                 From
@@ -1027,7 +1036,7 @@ export default function Swap() {
             </div>
             {account && isExist && !finding &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <button onClick={() =>setPriceDirection(!priceDirection)}>{priceDirection?"1 "+inToken["symbol"]+ " = "+tokenPr+" "+outToken["symbol"]:"1"+outToken["symbol"]+ " = "+numFormat(1/tokenPr)+" "+inToken["symbol"]}</button>
+                <button onClick={() => setPriceDirection(!priceDirection)}>{priceDirection ? "1 " + inToken["symbol"] + " = " + tokenPr + " " + outToken["symbol"] : "1" + outToken["symbol"] + " = " + numFormat(1 / tokenPr) + " " + inToken["symbol"]}</button>
               </div>
             }
             {account && finding &&
@@ -1037,7 +1046,7 @@ export default function Swap() {
                     fontSize: "18px",
                   }}
                 />{" "}
-                <button>{"1 "+inToken["symbol"]+ " = ..."+outToken["symbol"]}</button>
+                <button>{"1 " + inToken["symbol"] + " = ..." + outToken["symbol"]}</button>
               </div>
             }
             {(account && !finding && !isExist) &&
@@ -1051,7 +1060,7 @@ export default function Swap() {
                   Price Impact:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(((valueEth / (inValue * tokenPr + 0.000000001))-1) * 100)}%</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
                 </div>
               </div>
               <div style={{ marginTop: "5px" }}>
@@ -1222,18 +1231,24 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
-            {!isExist &&
+            {!isExist && !finding &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart available!</p>
               </div>
             }
 
-            {(isExist && noChartData) &&
+            {finding &&
+              <div style={{ minHeight: "374px", textAlign: "center" }}>
+                <CircularProgress style={{ marginTop: "155px" }} />
+              </div>
+            }
+
+            {(isExist && !finding && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chart data available</p>
               </div>
             }
-            <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>
+            <div style={{ display: (noChartData || !isExist || finding) ? "none" : "block" }}>
               <p style={{ color: "white", fontSize: "15px", fontWeight: "bold", float: "left" }}>{inToken["symbol"]} / {outToken["symbol"]}</p>
               <div ref={chartRef} className="w-full" />
             </div>

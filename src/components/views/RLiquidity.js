@@ -578,7 +578,7 @@ export default function RLiquidity() {
                     Max Slippage:
                   </span>
                   <span style={{ float: "right", color: grayColor }}>
-                    <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer"}}>0.1%</span>
+                    <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
                     <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
                     <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
                     <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
@@ -794,9 +794,12 @@ export default function RLiquidity() {
                     }}
                     disabled={Number(value) === 0 || removing}
                   >
-                    {Number(value) === 0
-                      ? "Define your Liquidity Input"
-                      : (removing ? "Removing Liquidity" : "Confirm")}
+                    {Number(poolAmount) === 0 ? "No Liquidity Found" :
+                      (Number(value) === 0
+                        ? "Define your Liquidity Input"
+                        : (removing ? "Removing Liquidity" : "Confirm")
+                      )
+                    }
                   </Button>
                 }
                 {!account &&
