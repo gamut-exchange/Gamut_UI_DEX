@@ -299,8 +299,8 @@ export default function RLiquidity() {
         provider,
         selectedItem["address"]
       );
-      amount = numFormat(amount);
       setPoolAmount(amount);
+      amount = numFormat(amount);
       setValue(numFormat((amount * lpPercentage) / 100));
       let totalLPAmount = await getPoolSupply(
         provider,
@@ -317,14 +317,15 @@ export default function RLiquidity() {
   };
 
   const executeRemovePool = async () => {
-    if (!(Number(value) <= 0 || Number(value) > poolAmount)) {
+    if (!(Number(value) <= 0)) {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
+      let real_val = toLongNum(poolAmount*lpPercentage/100);
       setRemoving(true);
       await removePool(
         account,
         provider,
-        value,
+        real_val,
         ratio,
         tokenA.address,
         tokenB.address,
@@ -333,6 +334,7 @@ export default function RLiquidity() {
         slippage * 0.01,
         contractAddresses[selected_chain]["router"]
       );
+      getStatusData();
       setRemoving(false);
     }
   };
@@ -520,9 +522,9 @@ export default function RLiquidity() {
           provider,
           selectedItem["address"]
         );
+        setPoolAmount(amount);
         amount = numFormat(amount);
         setTotalLPTokens(amount2);
-        setPoolAmount(amount);
         await calculateOutput(
           amount2,
           (amount * lpPercentage) / 100,
