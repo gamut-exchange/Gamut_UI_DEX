@@ -322,6 +322,18 @@ export default function Swap() {
           contractAddresses[selected_chain]["router"]
         );
       setSwapping(false);
+      let inBal = await getTokenBalance(
+        provider,
+        inToken["address"],
+        account
+      );
+      let outBal = await getTokenBalance(
+        provider,
+        outToken["address"],
+        account
+      );
+      setInBal(inBal);
+      setOutBal(outBal);
     }
   };
 
@@ -798,10 +810,11 @@ export default function Swap() {
   }, [formattedPricesData]);
 
   useEffect(() => {
-    if (account && Number(inValue) != 0)
+    if (account && Number(inValue) !== 0)
       setPriceImpact(numFormat(((valueEth / (inValue * tokenPr + 0.000000001)) - 1) * 100));
     else
       setPriceImpact(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valueEth, inValue, tokenPr]);
 
   return (

@@ -334,8 +334,8 @@ export default function RLiquidity() {
         slippage * 0.01,
         contractAddresses[selected_chain]["router"]
       );
-      getStatusData();
       setRemoving(false);
+      await getStatusData();
     }
   };
 
@@ -800,7 +800,7 @@ export default function RLiquidity() {
                     }}
                     disabled={Number(value) === 0 || removing}
                   >
-                    {Number(poolAmount) === 0 ? "No Liquidity Found" :
+                    {Number(numFormat(poolAmount)) === 0 ? "No Liquidity Found" :
                       (Number(value) === 0
                         ? "Define your Liquidity Input"
                         : (removing ? "Removing Liquidity" : "Confirm")

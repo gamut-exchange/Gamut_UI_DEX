@@ -511,8 +511,13 @@ export default function Liquidity() {
           contractAddresses[selected_chain]["router"],
           contractAddresses[selected_chain]["hedgeFactory"]
         );
-      
       setAdding(false);
+      let n_inBal = await getTokenBalance(provider, inToken["address"], account);
+      let n_outBal = await getTokenBalance(provider, outToken["address"], account);
+      setInBal(n_inBal);
+      setOutBal(n_outBal);
+      setValue(0);
+      setValueEth(0);
     }
   };
 

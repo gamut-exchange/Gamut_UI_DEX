@@ -511,7 +511,7 @@ export const removePool = async (
 ) => {
     const abi = routerABI[0];
     let web3 = new Web3(provider);
-    const totalAmount = await web3.utils.toWei((Math.floor(amount * Math.pow(10, 18)) / Math.pow(10, 18)).toFixed(18));
+    const totalAmount = await web3.utils.toWei((Math.floor(amount * Math.pow(10, 16)) / Math.pow(10, 16)).toFixed(16));
     const tokenRatio = await web3.utils.toWei(ratio.toString());
 
     const initUserData = ethers.utils.defaultAbiCoder.encode(
