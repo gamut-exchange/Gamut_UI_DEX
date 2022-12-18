@@ -6,13 +6,13 @@ import Footer from './components/views/Footer';
 import CLiquidity from './components/views/CLiquidity';
 import Liquidity from './components/views/Liquidity';
 import RLiquidity from './components/views/RLiquidity';
-import {BrowserRouter, Route, Routes } from "react-router-dom";
+import {HashRouter, Route, Routes } from "react-router-dom";
 
 
 function App() {
   return (
     <div className='Dark__Theme' style={{minHeight:"100vh", padding:"4px"}}>
-      <BrowserRouter>
+      <HashRouter>
       <Header />
       <Routes>
         <Route path="/" element={<Swap />} />
@@ -21,7 +21,7 @@ function App() {
         <Route path="/remove_liquidity" element={<RLiquidity />} />
      </Routes>
       <Footer />
-    </BrowserRouter>
+    </HashRouter>
     </div>
   );
 }

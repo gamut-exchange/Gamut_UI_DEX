@@ -19,7 +19,6 @@ import {
   Settings,
 } from "@mui/icons-material";
 import tw from "twin.macro";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SwapCmp from "./SwapCmp";
 import { useWeightsData, useExitTransactionsData } from "../../config/chartData";
 import {
@@ -29,17 +28,16 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
+  toLongNum
 } from "../../config/web3";
 import { poolList, uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
   LineChart,
   Line,
-  XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Brush,
   ResponsiveContainer,
 } from "recharts";
 
@@ -109,8 +107,9 @@ export default function RLiquidity() {
   const [outTokenA, setOutTokenA] = useState(0);
   const [outTokenB, setOutTokenB] = useState(0);
   const [removing, setRemoving] = useState(false);
-  const [slippage, setSlippage] = useState(5);
-  // const [slippageFlag, setSlippageFlag] = useState(false);
+  const [slippage, setSlippage] = useState(1);
+  const [slippageFlag, setSlippageFlag] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
@@ -145,17 +144,17 @@ export default function RLiquidity() {
     setScale(newValue * 1);
     let weight1 = newValue / 100;
     setWeightA(weight1);
-    await calculateOutput(totalLPTokens, value, weight1);
+    await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
   };
 
   const handleSlider = async (event, newValue) => {
     setLpPercentage(newValue);
     const val = numFormat(poolAmount * (newValue / 100));
     setValue(val);
-    await calculateOutput(totalLPTokens, val, weightA);
+    await calculateOutput(totalLPTokens, val, weightA, tokenA, tokenB);
   };
 
-  const calculateOutput = async (totalLkTk, inValue, weight1) => {
+  const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
     const provider = await connector.getProvider();
     const poolData = await getPoolData(
       provider,
@@ -187,9 +186,63 @@ export default function RLiquidity() {
     const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
     const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
-    setOutTokenA(numFormat(amount1));
-    setOutTokenB(numFormat(amount2));
+    setOutTokenA(amount1);
+    setOutTokenB(amount2);
+    if (token1.length !== 0 && token2.length !== 0)
+      calculateImpact(poolData, amount1, amount2, token1, token2);
   };
+
+  const calculateImpact = async (poolData, inVal, outVal, token1, token2) => {
+    let weight_from;
+    let weight_to;
+    let balance_from;
+    let balance_to;
+    let decimal_from;
+    let decimal_to;
+    let amount1 = 0;
+    let amount2 = 0;
+
+    if (token1.address.toLowerCase() === poolData.tokens[0].toLowerCase()) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+      decimal_from = poolData.decimals[0];
+      decimal_to = poolData.decimals[1];
+      amount1 = inVal;
+      amount2 = outVal;
+    } else {
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      decimal_from = poolData.decimals[1];
+      decimal_to = poolData.decimals[0];
+      amount1 = outVal;
+      amount2 = inVal;
+    }
+
+    let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
+    let remain_amount = 0;
+    if (amount1 > amount2 * price) {
+      remain_amount = (amount1 - amount2 * price) / (2 * price);
+      let amountOut = await calculateSwap(
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token2.address : token1.address,
+        poolData,
+        remain_amount
+      );
+      setPriceImpact(numFormat((amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100));
+    } else {
+      remain_amount = (amount2 * price - amount1) / 2;
+      let amountOut = await calculateSwap(
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token1.address : token2.address,
+        poolData,
+        remain_amount
+      );
+
+      setPriceImpact(numFormat((amountOut / (remain_amount / (price + 0.000000000000000001) + 0.0000000000000001) - 1) * 100));
+    }
+  }
 
   const filterLP = (e) => {
     let search_qr = e.target.value;
@@ -246,15 +299,15 @@ export default function RLiquidity() {
         provider,
         selectedItem["address"]
       );
-      amount = numFormat(amount);
       setPoolAmount(amount);
+      amount = numFormat(amount);
       setValue(numFormat((amount * lpPercentage) / 100));
       let totalLPAmount = await getPoolSupply(
         provider,
         selectedItem["address"]
       );
       setTotalLPTokens(totalLPAmount);
-      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1);
+      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1, result1[0], result2[0]);
     }
   }
 
@@ -264,14 +317,15 @@ export default function RLiquidity() {
   };
 
   const executeRemovePool = async () => {
-    if (!(Number(value) <= 0 || Number(value) > poolAmount)) {
+    if (!(Number(value) <= 0)) {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
+      let real_val = toLongNum(poolAmount*lpPercentage/100);
       setRemoving(true);
       await removePool(
         account,
         provider,
-        value,
+        real_val,
         ratio,
         tokenA.address,
         tokenB.address,
@@ -281,18 +335,19 @@ export default function RLiquidity() {
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
+      await getStatusData();
     }
   };
 
   const numFormat = (val) => {
-    if (Number(val) > 1)
+    if (Math.abs(val) > 1)
       return Number(val).toFixed(2) * 1;
-    else if (Number(val) > 0.001)
+    else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(6) * 1;
     else
-      return Number(val).toFixed(8) * 1;
+      return toLongNum(Number(val).toFixed(8));
   }
 
   const valueLabelFormat = (value) => {
@@ -467,13 +522,15 @@ export default function RLiquidity() {
           provider,
           selectedItem["address"]
         );
+        setPoolAmount(amount);
         amount = numFormat(amount);
         setTotalLPTokens(amount2);
-        setPoolAmount(amount);
         await calculateOutput(
           amount2,
           (amount * lpPercentage) / 100,
-          weight1
+          weight1,
+          result1[0],
+          result2[0]
         );
       };
 
@@ -503,15 +560,39 @@ export default function RLiquidity() {
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "600", color: "white" }}
-              gutterBottom
-              style={{ textAlign: "left", margin: "12px 0px" }}
-            >
-              Remove Liquidity
-            </Typography>
-            {/* Drop down Start  */}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "600", color: "white" }}
+                gutterBottom
+                style={{ textAlign: "left", margin: "12px 0px" }}
+              >
+                Remove Liquidity
+              </Typography>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+                <Settings />
+              </span>
+            </div>
+            {
+              setting ?
+                <div>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Max Slippage:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
+                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
+                  </div>
+                  <br />
+                  <br />
+                </div>
+                : null
+            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -520,20 +601,20 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "10 px" : "11px", fontWeight: "bold" }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "9px" : "10px" }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
                         src={selectedItem["logoURLs"][0]}
                         alt=""
                         style={{ float: "left" }}
-                        className="w-4 md:w-6"
+                        className="w-4 md:w-5"
                       />
                       <img
                         src={selectedItem["logoURLs"][1]}
                         alt=""
                         style={{ float: "left", marginLeft: -5 }}
-                        className="w-4 md:w-6"
+                        className="w-4 md:w-5"
                       />
                     </div>
                   }
@@ -550,7 +631,7 @@ export default function RLiquidity() {
                   min={0}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -569,7 +650,7 @@ export default function RLiquidity() {
             </FormControl>
             {/* </FormControl> */}
             <div style={{ width: "100%" }}>
-              <span style={{ float: "left", color: grayColor, paddingTop:"7px" }}>
+              <span style={{ float: "left", color: grayColor, paddingTop: "7px" }}>
                 Percentage to remove:
               </span>
               <Slider
@@ -588,12 +669,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenB.logoURL}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                   disabled={true}
@@ -606,7 +687,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenB)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -626,12 +707,12 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: isMobile ? "45%" : "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:50 }}
+                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   startIcon={
                     <img
                       src={tokenA.logoURL}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                   disabled={true}
@@ -644,7 +725,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenA)}
                   style={{
                     color: "#FFFFFF",
-                    width: isMobile ? "55%" : "60%",
+                    width: "50%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -657,48 +738,32 @@ export default function RLiquidity() {
             <br />
             <br />
             <div style={{ color: "white", display: "block", textAlign: "left", marginTop: "9px", marginBottom: "12px" }}>
-              <InfoOutlinedIcon
-                style={{
-                  fontSize: "18px",
-                }}
-              />{" "}
               <span>Ratio {numFormat(scale)}% {tokenB.symbol} - {numFormat(100 - scale)}% {tokenA.symbol}</span>
-              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
-                <Settings />
-              </span>
             </div>
-            {
-              setting ?
-                <div className="mt-2">
-                  <div className="s" sx={{ width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Change Ratio:
-                    </span>
-                  </div>
-                  <Slider
-                    size="small"
-                    value={scale}
-                    onChange={handleScale}
-                    step={0.1}
-                    min={0.1}
-                    max={99.9}
-                    valueLabelDisplay="auto"
-                  />
-                  {/* <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1%</a>
-                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5%</a>
-                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1%</a>
-                      <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div> */}
-                </div>
-                : null
-            }
+            <div className="mt-2">
+              <div className="s" sx={{ width: "100%" }}>
+                <span style={{ float: "left", color: grayColor }}>
+                  Change Ratio:
+                </span>
+              </div>
+              <Slider
+                size="small"
+                value={scale}
+                onChange={handleScale}
+                step={0.1}
+                min={0}
+                max={100}
+                valueLabelDisplay="auto"
+              />
+            </div>
+            <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
+              <span style={{ float: "left", color: "white" }}>
+                Price Impact:
+              </span>
+              <div style={{ float: "right", display: "inline" }}>
+                <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+              </div>
+            </div>
             <div style={{ textAlign: "left" }}>
               {/* <span style={{ textAlign: "start", color: "white" }}>
                 Price Impact:
@@ -735,9 +800,12 @@ export default function RLiquidity() {
                     }}
                     disabled={Number(value) === 0 || removing}
                   >
-                    {Number(value) === 0
-                      ? "Define your Liquidity Input"
-                      : (removing ? "Removing Liquidity" : "Confirm")}
+                    {Number(numFormat(poolAmount)) === 0 ? "No Liquidity Found" :
+                      (Number(value) === 0
+                        ? "Define your Liquidity Input"
+                        : (removing ? "Removing Liquidity" : "Confirm")
+                      )
+                    }
                   </Button>
                 }
                 {!account &&
@@ -766,7 +834,7 @@ export default function RLiquidity() {
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token0"]}</b> weight
                 </h3>
               )}
@@ -784,7 +852,7 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip0 />} />
                   <Line
@@ -797,7 +865,7 @@ export default function RLiquidity() {
                 </LineChart>
               </ResponsiveContainer>
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2 mt-4" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token1"]}</b> weight
                 </h3>
               )}
@@ -815,7 +883,7 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip1 />} />
                   <Line
@@ -825,7 +893,7 @@ export default function RLiquidity() {
                     fill="#82ca9d"
                     strokeWidth={2}
                   />
-                  <Brush height={25} />
+                  {/* <Brush height={25} /> */}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -864,7 +932,7 @@ export default function RLiquidity() {
                   <li
                     key={item["address"] + index}
                     className="flex gap-x-1"
-                    style={{cursor:"pointer"}}
+                    style={{ cursor: "pointer" }}
                     onClick={() => selectToken(item)}
                   >
                     <div className="relative flex">
@@ -875,7 +943,7 @@ export default function RLiquidity() {
                         alt=""
                       />
                     </div>
-                    <p className="text-light-primary text-lg">
+                    <p className="text-light-primary text-lg" >
                       {item["symbols"][0]} - {item["symbols"][1]} LP Token
                     </p>
                   </li>

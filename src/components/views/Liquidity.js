@@ -13,21 +13,23 @@ import {
   Modal,
   Typography,
   InputBase,
-  TextField
+  TextField,
+  CircularProgress
 } from "@mui/material";
 import {
   AddCircleOutline,
   Settings,
 } from "@mui/icons-material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useWeightsData, useJoinTransactionsData } from "../../config/chartData";
 import {
   getTokenBalance,
   getPoolAddress,
   getPoolData,
   joinPool,
+  joinOnePool,
   tokenApproval,
   approveToken,
+  calculateSwap,
 } from "../../config/web3";
 import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
@@ -36,11 +38,9 @@ import History from './History';
 import {
   LineChart,
   Line,
-  XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Brush,
   ResponsiveContainer,
 } from "recharts";
 
@@ -100,7 +100,7 @@ export default function Liquidity() {
 
   const [setting, setSetting] = useState(false);
   const [isExist, setIsExist] = useState(false);
-  const [ratio, setRatio] = useState(1);
+  const [ratio, setRatio] = useState(50);
   const [mopen, setMopen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = React.useState(0);
@@ -111,7 +111,7 @@ export default function Liquidity() {
   const [valueEth, setValueEth] = useState(0);
   const [inBal, setInBal] = useState(0);
   const [outBal, setOutBal] = useState(0);
-  const [sliderValue, setSliderValue] = useState(50);
+  // const [sliderValue, setSliderValue] = useState(50);
   const [approval, setApproval] = useState(false);
   const [filterData, setFilterData] = useState(uniList[selected_chain]);
   const [limitedout, setLimitedout] = useState(false);
@@ -123,8 +123,10 @@ export default function Liquidity() {
   const [adding, setAdding] = useState(false);
   const [slippage, setSlippage] = useState(0.1);
   const [slippageFlag, setSlippageFlag] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
   // const [deadline, setDeadline] = useState(900);
   // const [deadlineFlag, setDeadlineFlag] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -151,45 +153,99 @@ export default function Liquidity() {
 
   const handleClose = () => setMopen(false);
 
-  const handleSlider = (event, newValue) => {
-    setSliderValue(newValue);
-    if (inToken["address"] !== outToken["address"]) {
-      let valEth = (ratio * (1 - newValue / 100) * value) / (newValue / 100);
-      valEth =
-        valEth * 1 === 0
-          ? 0
-          : valEth * 1 > 1
-            ? valEth.toFixed(2)
-            : valEth.toFixed(6);
-      setValueEth(valEth);
-    }
-  };
+  // const handleSlider = (event, newValue) => {
+  //   setSliderValue(newValue);
+  //   if (inToken["address"] !== outToken["address"]) {
+  //     let valEth = (ratio * (1 - newValue / 100) * value) / (newValue / 100);
+  //     valEth =
+  //       valEth * 1 === 0
+  //         ? 0
+  //         : valEth * 1 > 1
+  //           ? valEth.toFixed(2)
+  //           : valEth.toFixed(6);
+  //     setValueEth(valEth);
+  //   }
+  // };
 
   const handleValue = async (event) => {
-    setValue(event.target.value);
+    let e_val = event.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    setValue(e_val);
     let inLimBal = inBal.toString().replaceAll(",", "");
-    let outLimBal = outBal.toString().replaceAll(",", "");
-
-    if (inToken["address"] !== outToken["address"]) {
-      let valEth =
-        (event.target.value * ratio * (100 - sliderValue)) / sliderValue;
-      valEth =
-        valEth * 1 === 0
-          ? 0
-          : valEth * 1 > 1
-            ? valEth.toFixed(2)
-            : valEth.toFixed(6);
-      setValueEth(valEth);
-      checkApproved(inToken, outToken, poolAddress, event.target.value, valEth);
-
-      if (
-        Number(event.target.value) <= Number(inLimBal) &&
-        Number(valEth) <= Number(outLimBal)
-      )
-        setLimitedout(false);
-      else setLimitedout(true);
+    if (
+      Number(e_val) <= Number(inLimBal)
+    )
+      setLimitedout(false);
+    else setLimitedout(true);
+    if (Number(e_val) === 0) {
+      setRatio(0)
+    } else if (Number(valueEth) === 0) {
+      setRatio(100)
+    } else {
+      const provider = await connector.getProvider();
+      const poolAddress = await getPoolAddress(
+        provider,
+        inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+        contractAddresses[selected_chain]["hedgeFactory"]
+      );
+      const poolData = await getPoolData(provider, poolAddress);
+      calculateRatio(inToken, poolData, e_val * 1, valueEth);
     }
+    if (isExist)
+      checkApproved(inToken, outToken, e_val, valueEth);
+
+
+    const provider = await connector.getProvider();
+    const poolData = await getPoolData(
+      provider,
+      poolAddress
+    );
+    calculateImpact(inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+      outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+      poolData, e_val, valueEth);
   };
+
+  const handleValueEth = async (event) => {
+    let e_val = event.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    setValueEth(e_val);
+    let outLimBal = outBal.toString().replaceAll(",", "");
+    if (
+      Number(e_val) <= Number(outLimBal)
+    )
+      setLimitedout(false);
+    else setLimitedout(true);
+    if (Number(value) === 0) {
+      setRatio(0)
+    } else if (Number(e_val) === 0) {
+      setRatio(100)
+    } else {
+      const provider = await connector.getProvider();
+      const poolAddress = await getPoolAddress(
+        provider,
+        inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+        contractAddresses[selected_chain]["hedgeFactory"]
+      );
+      const poolData = await getPoolData(provider, poolAddress);
+      calculateRatio(inToken, poolData, value, e_val * 1);
+    }
+    if (isExist)
+      checkApproved(inToken, outToken, value, e_val);
+
+    const provider = await connector.getProvider();
+    const poolData = await getPoolData(
+      provider,
+      poolAddress
+    );
+    calculateImpact(
+      inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+      outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+      poolData, value, e_val);
+  }
 
   const filterToken = (e) => {
     let search_qr = e.target.value;
@@ -222,6 +278,7 @@ export default function Liquidity() {
         });
         setFilterData(tempData);
         try {
+          setSearching(true);
           const poolAddr = await getPoolAddress(
             provider,
             token["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token["address"],
@@ -232,22 +289,25 @@ export default function Liquidity() {
             provider,
             poolAddr
           );
-          checkApproved(token, outToken, poolAddr, value, valueEth);
+          checkApproved(token, outToken, value, valueEth);
+          setSearching(false);
           setIsExist(true);
-          const sliderInit = await sliderInitVal(poolData, token);
-          setSliderValue(sliderInit * 100);
-          
+          // const sliderInit = await sliderInitVal(poolData, token);
+          // setSliderValue(sliderInit * 100);
+
           let inLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
-          let outLimBal = outBal ? outBal.toString().replaceAll(",", "") : 0;
-          const valEth = await calculateRatio(token, poolData, value);
           if (
-            Number(value) <= Number(inLimBal) &&
-            Number(valEth) <= Number(outLimBal)
+            Number(value) <= Number(inLimBal)
           )
             setLimitedout(false);
           else setLimitedout(true);
+          if (value * 1 !== 0 || valueEth * 1 !== 0)
+            calculateImpact(token["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token["address"],
+              outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+              poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
+          setSearching(false);
           setIsExist(false);
         }
       } else if (selected === 1) {
@@ -260,6 +320,7 @@ export default function Liquidity() {
         setOutToken(token);
 
         try {
+          setSearching(true);
           const poolAddr = await getPoolAddress(
             provider,
             inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
@@ -267,52 +328,56 @@ export default function Liquidity() {
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           const poolData = await getPoolData(provider, poolAddr);
-          checkApproved(inToken, token, poolAddr, value, valueEth);
+          checkApproved(inToken, token, value, valueEth);
+          setSearching(false);
           setIsExist(true);
-          const sliderInit = await sliderInitVal(poolData, inToken);
-          setSliderValue(sliderInit * 100);
-          let inLimBal = inBal ? inBal.toString().replaceAll(",", "") : 0;
+          // const sliderInit = await sliderInitVal(poolData, inToken);
+          // setSliderValue(sliderInit * 100);
           let outLimBal = bal ? bal.toString().replaceAll(",", "") : 0;
-          const valEth = await calculateRatio(inToken, poolData, value);
           if (
-            Number(value) <= Number(inLimBal) &&
-            Number(valEth) <= Number(outLimBal)
+            Number(valueEth) <= Number(outLimBal)
           )
             setLimitedout(false);
           else setLimitedout(true);
+          if (value * 1 !== 0 || valueEth * 1 !== 0)
+            calculateImpact(
+              inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+              token["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token["address"],
+              poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
+          setSearching(false);
           setIsExist(false);
         }
       }
     }
   };
 
-  const sliderInitVal = async (poolData, inToken) => {
-    // let balance_from;
-    // let balance_to;
-    let weight_from;
-    // let weight_to;
+  // const sliderInitVal = async (poolData, inToken) => {
+  //   // let balance_from;
+  //   // let balance_to;
+  //   let weight_from;
+  //   // let weight_to;
 
-    if (inToken["address"] === poolData.tokens[0]) {
-      // balance_from = poolData.balances[0];
-      // balance_to = poolData.balances[1];
-      weight_from = poolData.weights[0];
-      // weight_to = poolData.weights[1];
-    } else {
-      // balance_from = poolData.balances[1];
-      // balance_to = poolData.balances[0];
-      weight_from = poolData.weights[1];
-      // weight_to = poolData.weights[0];
-    }
+  //   if (inToken["address"] === poolData.tokens[0]) {
+  //     // balance_from = poolData.balances[0];
+  //     // balance_to = poolData.balances[1];
+  //     weight_from = poolData.weights[0];
+  //     // weight_to = poolData.weights[1];
+  //   } else {
+  //     // balance_from = poolData.balances[1];
+  //     // balance_to = poolData.balances[0];
+  //     weight_from = poolData.weights[1];
+  //     // weight_to = poolData.weights[0];
+  //   }
 
-    // let pricePool = balance_from / weight_from / (balance_to / weight_to);
-    let x = weight_from / 10 ** 18;
+  //   // let pricePool = balance_from / weight_from / (balance_to / weight_to);
+  //   let x = weight_from / 10 ** 18;
 
-    return x;
-  };
+  //   return x;
+  // };
 
-  const checkApproved = async (token1, token2, poolAddr, val1, val2) => {
+  const checkApproved = async (token1, token2, val1, val2) => {
     const provider = await connector.getProvider();
     let approved1 = "0";
     let approved2 = "0";
@@ -338,15 +403,15 @@ export default function Liquidity() {
     setApproval((token1["address"] === "0x0000000000000000000000000000000000000000" || approved1 * 1 >= val1 * 1) && (token2["address"] === "0x0000000000000000000000000000000000000000" || approved2 * 1 >= val2 * 1));
   };
 
-  const calculateRatio = async (inToken, poolData, input) => {
+  const calculateRatio = async (inToken, poolData, input, output) => {
     let weight_from;
     let weight_to;
     let balance_from;
     let balance_to;
     let decimal_from;
     let decimal_to;
-
-    if (inToken["address"].toLowerCase() === poolData.tokens[0].toLowerCase()) {
+    const in_token = inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"];
+    if (in_token.toLowerCase() === poolData.tokens[0].toLowerCase()) {
       balance_from = poolData.balances[0];
       balance_to = poolData.balances[1];
       weight_from = poolData.weights[0];
@@ -362,32 +427,101 @@ export default function Liquidity() {
       decimal_to = poolData.decimals[0];
     }
     let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
-    setRatio(price);
-    let valEth = price * input;
-    valEth =
-      valEth * 1 === 0
-        ? 0
-        : numFormat(valEth);
-    setValueEth(valEth);
-    return valEth;
+    let calc_ratio = input * price / (input * price + output);
+    setRatio(calc_ratio * 100);
   };
+
+  const calculateImpact = async (in_token, out_token, poolData, inVal, outVal) => {
+    let weight_from;
+    let weight_to;
+    let balance_from;
+    let balance_to;
+    let decimal_from;
+    let decimal_to;
+    let amount1 = 0;
+    let amount2 = 0;
+
+    if (in_token.toLowerCase() === poolData.tokens[0].toLowerCase()) {
+      balance_from = poolData.balances[0];
+      balance_to = poolData.balances[1];
+      weight_from = poolData.weights[0];
+      weight_to = poolData.weights[1];
+      decimal_from = poolData.decimals[0];
+      decimal_to = poolData.decimals[1];
+      amount1 = inVal;
+      amount2 = outVal;
+    } else {
+      weight_from = poolData.weights[1];
+      weight_to = poolData.weights[0];
+      balance_from = poolData.balances[1];
+      balance_to = poolData.balances[0];
+      decimal_from = poolData.decimals[1];
+      decimal_to = poolData.decimals[0];
+      amount1 = outVal;
+      amount2 = inVal;
+    }
+
+    let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
+    let remain_amount = 0;
+    if (amount1 > amount2 * price) {
+      remain_amount = (amount1 - amount2 * price) / (2 * price);
+      let amountOut = await calculateSwap(
+        in_token.toLowerCase() === poolData.tokens[0].toLowerCase() ? out_token : in_token,
+        poolData,
+        remain_amount
+      );
+      setPriceImpact(numFormat((amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100));
+    } else {
+      remain_amount = (amount2 * price - amount1) / 2;
+      let amountOut = await calculateSwap(
+        in_token.toLowerCase() === poolData.tokens[0].toLowerCase() ? in_token : out_token,
+        poolData,
+        remain_amount
+      );
+
+      setPriceImpact(numFormat((amountOut / (remain_amount / (price + 0.000000000000000001) + 0.0000000000000001) - 1) * 100));
+    }
+  }
 
   const executeAddPool = async () => {
     if (inToken["address"] !== outToken["address"]) {
       const provider = await connector.getProvider();
       setAdding(true);
-      await joinPool(
-        account,
-        provider,
-        inToken["address"],
-        outToken["address"],
-        value,
-        valueEth,
-        slippage * 0.01,
-        contractAddresses[selected_chain]["router"],
-        contractAddresses[selected_chain]["hedgeFactory"]
-      );
+      if (Number(value) !== 0 && Number(valueEth) !== 0)
+        await joinPool(
+          account,
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          value,
+          valueEth,
+          slippage * 0.01,
+          contractAddresses[selected_chain]["router"],
+          contractAddresses[selected_chain]["hedgeFactory"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000",
+          outToken["address"] === "0x0000000000000000000000000000000000000000"
+        );
+      else
+        await joinOnePool(
+          account,
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          value,
+          valueEth,
+          slippage * 0.01,
+          contractAddresses[selected_chain]["router"],
+          contractAddresses[selected_chain]["hedgeFactory"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000",
+          outToken["address"] === "0x0000000000000000000000000000000000000000"
+        );
       setAdding(false);
+      let n_inBal = await getTokenBalance(provider, inToken["address"], account);
+      let n_outBal = await getTokenBalance(provider, outToken["address"], account);
+      setInBal(n_inBal);
+      setOutBal(n_outBal);
+      setValue(0);
+      setValueEth(0);
     }
   };
 
@@ -432,11 +566,58 @@ export default function Liquidity() {
   };
 
 
-  const setInLimit = (position) => {
-    let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
-    setValue(numFormat(val1 / position));
-    if (position === 1) setLimitedout(true);
-    else setLimitedout(false);
+  const setInLimit = async (position) => {
+    if (inBal) {
+      let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
+      setValue(val1 / position);
+      setLimitedout(false);
+      if (account && isExist)
+        checkApproved(inToken, outToken, val1 / position, valueEth);
+      if (Number(val1 / position) === 0) {
+        setRatio(0)
+      } else if (Number(valueEth) === 0) {
+        setRatio(100)
+      } else {
+        const provider = await connector.getProvider();
+        const poolAddress = await getPoolAddress(
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(provider, poolAddress);
+        calculateRatio(inToken, poolData, val1 / position, valueEth);
+      }
+      if (isExist)
+        checkApproved(inToken, outToken, val1 / position, valueEth);
+    }
+  };
+
+  const setOutLimit = async (position) => {
+    if (outBal) {
+      let val2 = outBal.toString().replaceAll(",", "");
+      setValueEth(val2 / position);
+      setLimitedout(false);
+      if (account && isExist)
+        checkApproved(inToken, outToken, value, val2 / position);
+      if (Number(value) === 0) {
+        setRatio(0)
+      } else if (Number(val2 / position) === 0) {
+        setRatio(100)
+      } else {
+        const provider = await connector.getProvider();
+        const poolAddress = await getPoolAddress(
+          provider,
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          contractAddresses[selected_chain]["hedgeFactory"]
+        );
+        const poolData = await getPoolData(provider, poolAddress);
+        calculateRatio(inToken, poolData, value, val2 / position);
+      }
+      if (isExist)
+        checkApproved(inToken, outToken, value, val2 / position);
+    }
   };
 
   const getCurrentPoolAddress = async () => {
@@ -455,6 +636,7 @@ export default function Liquidity() {
 
   const getInitialInfo = async () => {
     try {
+      setSearching(true);
       const provider = await connector.getProvider();
       const poolAddress = await getPoolAddress(
         provider,
@@ -462,11 +644,13 @@ export default function Liquidity() {
         outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
         contractAddresses[selected_chain]["hedgeFactory"]
       );
-      const poolData = await getPoolData(provider, poolAddress);
+      // const poolData = await getPoolData(provider, poolAddress);
+      setSearching(false);
       setIsExist(true);
       setPoolAddress(poolAddress);
-      await calculateRatio(inToken, poolData, value);
+      // await calculateRatio(inToken, poolData, value);
     } catch (error) {
+      setSearching(false);
       setIsExist(false);
     }
   };
@@ -556,11 +740,12 @@ export default function Liquidity() {
   };
 
   const numFormat = (val) => {
-    if (Number(val) > 1)
+    console.log(val);
+    if (Math.abs(val) > 1)
       return Number(val).toFixed(2) * 1;
-    else if (Number(val) > 0.001)
+    else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(6) * 1;
     else
       return Number(val).toFixed(8) * 1;
@@ -571,6 +756,9 @@ export default function Liquidity() {
   }
 
   useEffect(() => {
+    setFilterData(uniList[selected_chain]);
+    selectToken(uniList[selected_chain][0], 0);
+    selectToken(uniList[selected_chain][1], 1);
     if (account) {
       if (inToken["address"].toLowerCase() !== outToken["address"].toLowerCase()) {
         getInitialInfo();
@@ -586,13 +774,6 @@ export default function Liquidity() {
       }, 40000);
       return () => clearInterval(intervalId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, value, inToken, outToken]);
-
-  useEffect(() => {
-    setFilterData(uniList[selected_chain]);
-    selectToken(uniList[selected_chain][0], 0);
-    selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, dispatch, selected_chain]);
 
@@ -641,14 +822,41 @@ export default function Liquidity() {
         <SwapCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "600", color: "white" }}
-              gutterBottom
-              style={{ textAlign: "left", margin: "12px 0px" }}
-            >
-              Add Liquidity
-            </Typography>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "600", color: "white" }}
+                gutterBottom
+                style={{ textAlign: "left", margin: "12px 0px" }}
+              >
+                Add Liquidity
+              </Typography>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+                <Settings />
+              </span>
+            </div>
+            {
+              setting ? (
+                <div>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Max Slippage:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
+                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
+                  </div>
+                  <br />
+                  <br />
+                  <br />
+                </div>
+              )
+                : null
+            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -668,12 +876,12 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -699,10 +907,10 @@ export default function Liquidity() {
                   Balance: {inBal}
                 </span>
                 <span style={{ float: "right", color: grayColor }}>
-                  <span onClick={() => setInLimit(4)}>25%</span>
-                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(2)}>50%</span>
-                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1.3333)}>75%</span>
-                  <span style={{ paddingLeft: "5px" }} onClick={() => setInLimit(1)}>100%</span>
+                  <span style={{ cursor: "pointer" }} onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1)}>100%</span>
                 </span>
               </div>
             </FormControl>
@@ -731,12 +939,12 @@ export default function Liquidity() {
               <div style={{ backgroundColor: "#12122c", display: "block", float: "left", width: "100%" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -744,8 +952,10 @@ export default function Liquidity() {
                 </Button>
                 <BootstrapInput
                   type="number"
+                  inputProps={{ min: 0, max: Number(outBal.toString().replaceAll(",", "")) }}
+                  onChange={handleValueEth}
                   value={valueEth}
-                  readOnly={true}
+                  readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -759,65 +969,31 @@ export default function Liquidity() {
                 <span style={{ color: grayColor, float: "left" }}>
                   Balance: {outBal}
                 </span>
+                <p style={{ float: "right", color: grayColor }}>
+                  <span style={{ cursor: "pointer" }} onClick={() => setOutLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(1)}>100%</span>
+                </p>
               </div>
-              <div style={{ color: "white", display: "block", float: "left", marginTop: "8px", width: "100%" }}>
-                <InfoOutlinedIcon
-                  style={{
-                    fontSize: "18px",
-                    float: "left"
-                  }}
-                />
-                <span style={{ float: "left" }}>Pool Compositon {sliderValue.toPrecision(4)}% {inToken["symbol"]} + {(100 - sliderValue).toPrecision(4)}% {outToken["symbol"]}</span>
-                <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
-                  <Settings />
+              <div style={{ color: "white", display: "block", float: "left", marginTop: "12px", width: "100%" }}>
+                <span style={{ float: "left", paddingLeft: "0px" }}>Ratio {ratio.toPrecision(6)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(6)}% {outToken["symbol"]}</span>
+              </div>
+              <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
+                <span style={{ float: "left", color: "white" }}>
+                  Price Impact:
                 </span>
+                <div style={{ float: "right", display: "inline" }}>
+                  <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+                </div>
               </div>
               <br />
             </FormControl>
-            {
-              setting ? (
-                <div>
-                  <div style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Add custom Proportion:
-                    </span>
-                    <Slider
-                      size="small"
-                      aria-label="Default"
-                      defaultValue={50}
-                      value={sliderValue}
-                      onChange={handleSlider}
-                      step={0.01}
-                      min={0.1}
-                      max={99.9}
-                      disabled={!isExist}
-                      valueLabelDisplay="auto"
-                    />
-                  </div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <a href="#;" onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "" }}>0.1%</a>
-                      <a href="#;" onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "" }}>0.5%</a>
-                      <a href="#;" onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "" }}>1%</a>
-                      <a href="#;" onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px" }}>custom</a>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <br />
-                  <br />
-                </div>
-              )
-                : null
-            }
             <div style={{ textAlign: "left" }}>
               <div>
-                {account && (
+                {account && !searching && (
                   <>
-                    {isExist && !limitedout && Number(value) > 0 ? (
+                    {isExist && !limitedout && (Number(value) > 0 || Number(valueEth) > 0) ? (
                       <>
                         {approval ? (
                           <Button
@@ -845,7 +1021,7 @@ export default function Liquidity() {
                               size="large"
                               variant="contained"
                               sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                              onClick={() => { !approval1 ? approveTK1(Number(value - approvedVal1)) : approveTK2(Number(valueEth - approvedVal2)) }}
+                              onClick={() => { !approval1 ? approveTK1(Number(value)) : approveTK2(Number(valueEth)) }}
                               style={{
                                 background: (unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
                                 color: (unlocking) ? "#ddd" : "#fff",
@@ -859,9 +1035,9 @@ export default function Liquidity() {
                               }
                               disabled={unlocking}
                             >
-                              {unlocking ? "Unlocking..." : (!approval1 ? "Unlock " + Number(value - approvedVal1).toFixed(4)
+                              {unlocking ? "Unlocking..." : (!approval1 ? "Unlock " + numFormat(value - approvedVal1)
                                 .toString()
-                                .concat("", inToken["value"].toUpperCase())
+                                .concat(" ", inToken["value"].toUpperCase())
                                 : "Unlock " + Number(valueEth - approvedVal2).toFixed(4)
                                   .toString()
                                   .concat("", outToken["value"].toUpperCase()))}
@@ -912,6 +1088,27 @@ export default function Liquidity() {
                   </>
                 )}
 
+                {searching &&
+                  <div className="">
+                    <Button
+                      size={isMobile ? "small" : "large"}
+                      variant="contained"
+                      sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                      className="btn-disabled font-bold w-full dark:text-black mt-20 flex-1"
+                      style={{
+                        background: "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                        color: "#ddd",
+                        textAlign: "center",
+                        marginRight: "8px",
+                        maxHeight: 57
+                      }}
+                    >
+                      {""}
+                      {"Searching Liquidity Pool"}
+                    </Button>
+                  </div>
+                }
+
                 {!account && (
                   <Button
                     size={isMobile ? "small" : "large"}
@@ -938,11 +1135,11 @@ export default function Liquidity() {
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token0"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              {!searching && <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={500}
                   height={200}
@@ -956,7 +1153,7 @@ export default function Liquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip0 />} />
                   <Line
@@ -967,13 +1164,18 @@ export default function Liquidity() {
                     strokeWidth={2}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer>}
+              {searching &&
+                <div style={{ minHeight: "374px", textAlign: "center" }}>
+                  <CircularProgress style={{ marginTop: "155px" }} />
+                </div>
+              }
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-4" style={{ fontSize: 18, color: "white" }}>
+                <h3 className="model-title mb-2 mt-4" style={{ fontSize: 18, color: "white" }}>
                   <b>{formattedWeightsData[0]["token1"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              {!searching && <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={500}
                   height={200}
@@ -987,7 +1189,7 @@ export default function Liquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip1 />} />
                   <Line
@@ -997,9 +1199,14 @@ export default function Liquidity() {
                     fill="#82ca9d"
                     strokeWidth={2}
                   />
-                  <Brush height={25} />
+                  {/* <Brush height={25} /> */}
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer>}
+              {searching &&
+                <div style={{ minHeight: "374px", textAlign: "center" }}>
+                  <CircularProgress style={{ marginTop: "155px" }} />
+                </div>
+              }
             </div>
           </Item>
           {account &&

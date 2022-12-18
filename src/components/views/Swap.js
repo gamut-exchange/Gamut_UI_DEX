@@ -15,7 +15,8 @@ import {
   FormControl,
   Typography,
   Slider,
-  InputBase
+  InputBase,
+  CircularProgress
 } from "@mui/material";
 import { Stack } from "@mui/system";
 import {
@@ -125,6 +126,9 @@ export default function Swap() {
   const [deadlineFlag, setDeadlineFlag] = useState(false);
   const [noChartData, setNoChartData] = useState(false);
   const [isExist, setIsExist] = useState(false);
+  const [priceDirection, setPriceDirection] = useState(true);
+  const [finding, setFinding] = useState(false);
+  const [priceImpact, setPriceImpact] = useState(0);
 
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
@@ -151,10 +155,13 @@ export default function Swap() {
 
   const handleClose = () => setMopen(false);
   const handleValue = async (event) => {
-    setInValue(event.target.value * 1);
+    let e_val = event.target.value;
+    if (e_val.charAt(0) === "0" && e_val.charAt(1) !== "." && e_val.length > 1)
+      e_val = e_val.substr(1);
+    setInValue(e_val);
     // setFee(event.target.value * swapFee);
-    if (account)
-      checkApproved(inToken, event.target.value);
+    if (account && isExist)
+      checkApproved(inToken, e_val);
   };
 
   const filterToken = (e) => {
@@ -261,23 +268,29 @@ export default function Swap() {
   };
 
   const findMiddleToken = async () => {
-    const provider = await connector.getProvider();
-    let inVal = (Number(inValue) === 0) ? 1 : inValue;
-    let suitableRouter = [];
-    if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
-      let canToken = { ...inToken };
-      canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
-      suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
-    } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
-      let canToken = { ...outToken };
-      canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
-      suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+    if (inToken['address'].toLowerCase() !== outToken['address'].toLowerCase()) {
+      setFinding(true);
+      const provider = await connector.getProvider();
+      let inVal = (Number(inValue) === 0) ? 1 : inValue;
+      let suitableRouter = [];
+      if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
+        let canToken = { ...inToken };
+        canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+        suitableRouter = await getMiddleToken(inVal, canToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      } else if (outToken['address'] === "0x0000000000000000000000000000000000000000") {
+        let canToken = { ...outToken };
+        canToken['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
+        suitableRouter = await getMiddleToken(inVal, inToken, canToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      } else {
+        suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      }
+
+      setMiddleToken(suitableRouter);
+      getMiddleTokenSymbol(suitableRouter);
+      return suitableRouter;
     } else {
-      suitableRouter = await getMiddleToken(inVal, inToken, outToken, uniList[selected_chain], provider, contractAddresses[selected_chain]["hedgeFactory"], swapFee);
+      return null;
     }
-    setMiddleToken(suitableRouter);
-    getMiddleTokenSymbol(suitableRouter);
-    return suitableRouter;
   };
 
   const executeSwap = async () => {
@@ -309,6 +322,18 @@ export default function Swap() {
           contractAddresses[selected_chain]["router"]
         );
       setSwapping(false);
+      let inBal = await getTokenBalance(
+        provider,
+        inToken["address"],
+        account
+      );
+      let outBal = await getTokenBalance(
+        provider,
+        outToken["address"],
+        account
+      );
+      setInBal(inBal);
+      setOutBal(outBal);
     }
   };
 
@@ -320,7 +345,7 @@ export default function Swap() {
         account,
         provider,
         inToken["address"],
-        amount * 1.01,
+        amount * 1.1,
         contractAddresses[selected_chain]["router"]
       );
       setUnlocking(false);
@@ -331,11 +356,13 @@ export default function Swap() {
   const setInLimit = (point) => {
     if (inBal) {
       let val = inBal.toString().replaceAll(",", "");
-      setInValue(numFormat(val / point));
+      setInValue(val / point);
       if (point === 1)
         setLimitedout(false);
       else
         setLimitedout(true);
+      if (account && isExist)
+        checkApproved(inToken, val / point);
     }
   };
 
@@ -380,6 +407,7 @@ export default function Swap() {
         canToken2['address'] = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6";
 
       if (midToken !== undefined && midToken !== null) {
+        setFinding(false);
         setIsExist(true);
         if (value * 1 !== 0) {
           let amountOut = await calcOutput(
@@ -465,6 +493,7 @@ export default function Swap() {
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           if (poolAddress !== "0x0000000000000000000000000000000000000000") {
+            setFinding(false);
             setIsExist(true);
             const poolData = await getPoolData(
               provider,
@@ -497,6 +526,7 @@ export default function Swap() {
               0.000001);
             setTokenPr(numFormat(tokenPr * 1000000));
           } else {
+            setFinding(false);
             setIsExist(false);
           }
         } catch (e) {
@@ -526,11 +556,11 @@ export default function Swap() {
   };
 
   const numFormat = (val) => {
-    if (Number(val) > 1)
+    if (Math.abs(val) > 1)
       return Number(val).toFixed(4) * 1;
-    else if (Number(val) > 0.001)
+    else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(6) * 1;
-    else if (Number(val) > 0.00001)
+    else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(8) * 1;
     else
       return Number(val).toFixed(8) * 1;
@@ -779,6 +809,14 @@ export default function Swap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formattedPricesData]);
 
+  useEffect(() => {
+    if (account && Number(inValue) !== 0)
+      setPriceImpact(numFormat(((valueEth / (inValue * tokenPr + 0.000000001)) - 1) * 100));
+    else
+      setPriceImpact(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valueEth, inValue, tokenPr]);
+
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
@@ -790,7 +828,7 @@ export default function Swap() {
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding: "0px 0px 8px 0px" }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -826,14 +864,53 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
-            <Typography
-              variant="h5"
-              sx={{ fontWeight: "600", color: "white" }}
-              gutterBottom
-              style={{ textAlign: "left", margin: "12px 0px" }}
-            >
-              Trade On-Chain
-            </Typography>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: "600", color: "white" }}
+                gutterBottom
+                style={{ textAlign: "left", margin: "12px 0px" }}
+              >
+                Trade On-Chain
+              </Typography>
+              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+                <Settings />
+              </span>
+            </div>
+            {
+              setting ? (
+                <div>
+                  <div className="s" style={{ float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Max Slippage:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
+                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
+                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
+                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
+                  </div>
+                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
+                    <span style={{ float: "left", color: grayColor }}>
+                      Time Deadline:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
+                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
+                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
+                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    </span>
+                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
+                  </div>
+                  <br />
+                  <br />
+                </div>
+              )
+                :
+                null
+            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -845,7 +922,9 @@ export default function Swap() {
                   fontWeight: "500",
                   fontSize: "16px",
                   display: "block",
+                  float: "left",
                   textAlign: "left",
+                  width: "100%"
                 }}
               >
                 From
@@ -853,12 +932,12 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -869,6 +948,7 @@ export default function Swap() {
                   value={inValue}
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   onChange={handleValue}
+                  onKeyUp={handleValue}
                   readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
@@ -917,12 +997,12 @@ export default function Swap() {
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c" }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
                       alt=""
-                      className="w-8"
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -951,77 +1031,52 @@ export default function Swap() {
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
+                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "18px" }} />{" "}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
                 <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "18px" }} /> {outToken.symbol}
+                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
                 </p>
               )}
             </div>
-            {account && isExist &&
+            {account && isExist && !finding &&
+              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+                <button onClick={() => setPriceDirection(!priceDirection)}>{priceDirection ? "1 " + inToken["symbol"] + " = " + tokenPr + " " + outToken["symbol"] : "1" + outToken["symbol"] + " = " + numFormat(1 / tokenPr) + " " + inToken["symbol"]}</button>
+              </div>
+            }
+            {account && finding &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
                     fontSize: "18px",
                   }}
                 />{" "}
-                1 {inToken["symbol"]} = {tokenPr} {outToken["symbol"]}
-                <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer" }}>
-                  <Settings />
-                </span>
+                <button>{"1 " + inToken["symbol"] + " = ..." + outToken["symbol"]}</button>
               </div>
             }
-            {(account && !isExist) &&
+            {(account && !finding && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
             }
-            {
-              setting ? (
-                <div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
-                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
-                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Time Deadline:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
-                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
-                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
-                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
-                    </span>
-                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <hr style={{ border: "1px solid #6d6d7d", marginTop: "10px" }} />
-                  <br />
-                </div>
-              )
-                :
-                null
-            }
             <div style={{ textAlign: "left" }}>
               <div>
+                <span style={{ textAlign: "start", color: "white" }}>
+                  Price Impact:
+                </span>
+                <div style={{ float: "right", display: "inline" }}>
+                  <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+                </div>
+              </div>
+              <div style={{ marginTop: "5px" }}>
                 <span style={{ textAlign: "start", color: "white" }}>
                   Minimum Output after Slippage:
                 </span>
@@ -1032,7 +1087,7 @@ export default function Swap() {
               <div>
                 {account &&
                   <>
-                    {isExist &&
+                    {isExist && !finding &&
                       <>
                         {(limitedout || Number(inValue) === 0) ? (
                           <Button
@@ -1079,7 +1134,7 @@ export default function Swap() {
                                   variant="contained"
                                   sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
                                   onClick={() =>
-                                    approveTk(Number(inValue - approval))
+                                    approveTk(Number(inValue))
                                   }
                                   style={{
                                     background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
@@ -1094,7 +1149,7 @@ export default function Swap() {
                                   }
                                   disabled={limitedout || unlocking}
                                 >
-                                  {unlocking ? "Unlocking..." : "Unlock " + Math.ceil(inValue - approvedVal) + " " + inToken["value"]}
+                                  {unlocking ? "Unlocking..." : "Unlock " + numFormat(inValue - approvedVal) + " " + inToken["value"]}
                                 </Button>
                                 <Button
                                   size="large"
@@ -1129,7 +1184,7 @@ export default function Swap() {
                         }
                       </>
                     }
-                    {!isExist &&
+                    {!isExist && !finding &&
                       <Button
                         size="large"
                         variant="contained"
@@ -1144,6 +1199,23 @@ export default function Swap() {
                         }}
                       >
                         No router
+                      </Button>
+                    }
+                    {finding &&
+                      <Button
+                        size="large"
+                        variant="contained"
+                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        className="btn-disabled font-bold"
+                        disabled={true}
+                        style={{
+                          textAlign: "center",
+                          background:
+                            "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                          color: "#ddd"
+                        }}
+                      >
+                        Finding Router...
                       </Button>
                     }
                   </>
@@ -1172,18 +1244,24 @@ export default function Swap() {
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
           <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
-            {!isExist &&
+            {!isExist && !finding &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart available!</p>
               </div>
             }
 
-            {(isExist && noChartData) &&
+            {finding &&
+              <div style={{ minHeight: "374px", textAlign: "center" }}>
+                <CircularProgress style={{ marginTop: "155px" }} />
+              </div>
+            }
+
+            {(isExist && !finding && noChartData) &&
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chart data available</p>
               </div>
             }
-            <div style={{ display: (noChartData || !isExist) ? "none" : "block" }}>
+            <div style={{ display: (noChartData || !isExist || finding) ? "none" : "block" }}>
               <p style={{ color: "white", fontSize: "15px", fontWeight: "bold", float: "left" }}>{inToken["symbol"]} / {outToken["symbol"]}</p>
               <div ref={chartRef} className="w-full" />
             </div>

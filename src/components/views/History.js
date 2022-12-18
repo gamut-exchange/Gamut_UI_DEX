@@ -28,7 +28,6 @@ function History(props) {
 
   const handleChange = (e) => {
     const c_page = Number(e.target.innerText);
-    debugger;
     setDisplayData(props.data.slice((c_page-1)*5, (c_page-1)*5+5))
   }
 
