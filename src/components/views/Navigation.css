@@ -15,7 +15,7 @@
     }
 
     .home__main{
-        width: 400px;
+        max-width: 400px;
     }
     .Menu__Mobile{
         border-top: 0px;
@@ -30,7 +30,7 @@
         margin-bottom: 1px;
     }
     .history{
-        width: 400px;
+        max-width: 400px;
         margin: 0 auto;
     }
     .chart__main{
@@ -38,11 +38,11 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        width: 400px;
+        max-width: 400px;
         overflow: hidden;
     }
     .chart{
-        width: 400px;
+        max-width: 400px;
         overflow: hidden;
         margin: 0 auto;
     }
@@ -61,7 +61,7 @@
         margin:0;
     }
     #footer{
-        width: 448px;
+        max-width: 400px;
         display: flex;
         justify-content: center;
         padding:0;
@@ -92,11 +92,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 400px;
+    max-width: 400px;
     overflow: hidden;
 }
 .chart{
-    width: 400px;
+    max-width: 400px;
     overflow: hidden;
     margin: 0 auto;
 }

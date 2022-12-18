@@ -126,6 +126,7 @@ export default function Swap() {
   const [noChartData, setNoChartData] = useState(false);
   const [isExist, setIsExist] = useState(false);
   const [priceDirection, setPriceDirection] = useState(true);
+  const [finding, setFinding] = useState(false);
 
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
@@ -266,6 +267,7 @@ export default function Swap() {
 
   const findMiddleToken = async () => {
     if (inToken['address'].toLowerCase() !== outToken['address'].toLowerCase()) {
+      setFinding(true);
       const provider = await connector.getProvider();
       let inVal = (Number(inValue) === 0) ? 1 : inValue;
       let suitableRouter = [];
@@ -391,6 +393,7 @@ export default function Swap() {
         canToken2['address'] = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
 
       if (midToken !== undefined && midToken !== null) {
+        setFinding(false);
         setIsExist(true);
         if (value * 1 !== 0) {
           let amountOut = await calcOutput(
@@ -476,6 +479,7 @@ export default function Swap() {
             contractAddresses[selected_chain]["hedgeFactory"]
           );
           if (poolAddress !== "0x0000000000000000000000000000000000000000") {
+            setFinding(false);
             setIsExist(true);
             const poolData = await getPoolData(
               provider,
@@ -508,6 +512,7 @@ export default function Swap() {
               0.000001);
             setTokenPr(numFormat(tokenPr * 1000000));
           } else {
+            setFinding(false);
             setIsExist(false);
           }
         } catch (e) {
@@ -1020,7 +1025,7 @@ export default function Swap() {
                 </p>
               )}
             </div>
-            {account && isExist &&
+            {account && isExist && !finding &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <InfoOutlinedIcon
                   style={{
@@ -1030,7 +1035,17 @@ export default function Swap() {
                 <button onClick={() =>setPriceDirection(!priceDirection)}>{priceDirection?"1 "+inToken["symbol"]+ " = "+tokenPr+" "+outToken["symbol"]:"1"+outToken["symbol"]+ " = "+numFormat(1/tokenPr)+" "+inToken["symbol"]}</button>
               </div>
             }
-            {(account && !isExist) &&
+            {account && finding &&
+              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+                <InfoOutlinedIcon
+                  style={{
+                    fontSize: "18px",
+                  }}
+                />{" "}
+                <button>{"1 "+inToken["symbol"]+ " = ..."+outToken["symbol"]}</button>
+              </div>
+            }
+            {(account && !finding && !isExist) &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
                 <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
@@ -1055,7 +1070,7 @@ export default function Swap() {
               <div>
                 {account &&
                   <>
-                    {isExist &&
+                    {isExist && !finding &&
                       <>
                         {(limitedout || Number(inValue) === 0) ? (
                           <Button
@@ -1152,7 +1167,7 @@ export default function Swap() {
                         }
                       </>
                     }
-                    {!isExist &&
+                    {!isExist && !finding &&
                       <Button
                         size="large"
                         variant="contained"
@@ -1167,6 +1182,23 @@ export default function Swap() {
                         }}
                       >
                         No router
+                      </Button>
+                    }
+                    {finding &&
+                      <Button
+                        size="large"
+                        variant="contained"
+                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        className="btn-disabled font-bold"
+                        disabled={true}
+                        style={{
+                          textAlign: "center",
+                          background:
+                            "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                          color: "#ddd"
+                        }}
+                      >
+                        Finding Router...
                       </Button>
                     }
                   </>

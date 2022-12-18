@@ -126,6 +126,7 @@ export default function Liquidity() {
   const [priceImpact, setPriceImpact] = useState(0);
   // const [deadline, setDeadline] = useState(900);
   // const [deadlineFlag, setDeadlineFlag] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -277,6 +278,7 @@ export default function Liquidity() {
         });
         setFilterData(tempData);
         try {
+          setSearching(true);
           const poolAddr = await getPoolAddress(
             provider,
             token["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token["address"],
@@ -288,6 +290,7 @@ export default function Liquidity() {
             poolAddr
           );
           checkApproved(token, outToken, value, valueEth);
+          setSearching(false);
           setIsExist(true);
           // const sliderInit = await sliderInitVal(poolData, token);
           // setSliderValue(sliderInit * 100);
@@ -304,6 +307,7 @@ export default function Liquidity() {
               poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
+          setSearching(false);
           setIsExist(false);
         }
       } else if (selected === 1) {
@@ -316,6 +320,7 @@ export default function Liquidity() {
         setOutToken(token);
 
         try {
+          setSearching(true);
           const poolAddr = await getPoolAddress(
             provider,
             inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
@@ -324,6 +329,7 @@ export default function Liquidity() {
           );
           const poolData = await getPoolData(provider, poolAddr);
           checkApproved(inToken, token, value, valueEth);
+          setSearching(false);
           setIsExist(true);
           // const sliderInit = await sliderInitVal(poolData, inToken);
           // setSliderValue(sliderInit * 100);
@@ -340,6 +346,7 @@ export default function Liquidity() {
               poolData, value, valueEth);
         } catch (error) {
           console.log(error.message);
+          setSearching(false);
           setIsExist(false);
         }
       }
@@ -619,6 +626,7 @@ export default function Liquidity() {
 
   const getInitialInfo = async () => {
     try {
+      setSearching(true);
       const provider = await connector.getProvider();
       const poolAddress = await getPoolAddress(
         provider,
@@ -627,10 +635,12 @@ export default function Liquidity() {
         contractAddresses[selected_chain]["hedgeFactory"]
       );
       // const poolData = await getPoolData(provider, poolAddress);
+      setSearching(false);
       setIsExist(true);
       setPoolAddress(poolAddress);
       // await calculateRatio(inToken, poolData, value);
     } catch (error) {
+      setSearching(false);
       setIsExist(false);
     }
   };
@@ -736,6 +746,9 @@ export default function Liquidity() {
   }
 
   useEffect(() => {
+    setFilterData(uniList[selected_chain]);
+    selectToken(uniList[selected_chain][0], 0);
+    selectToken(uniList[selected_chain][1], 1);
     if (account) {
       if (inToken["address"].toLowerCase() !== outToken["address"].toLowerCase()) {
         getInitialInfo();
@@ -751,13 +764,6 @@ export default function Liquidity() {
       }, 40000);
       return () => clearInterval(intervalId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, inToken, outToken]);
-
-  useEffect(() => {
-    setFilterData(uniList[selected_chain]);
-    selectToken(uniList[selected_chain][0], 0);
-    selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, dispatch, selected_chain]);
 
@@ -981,7 +987,7 @@ export default function Liquidity() {
             </FormControl>
             <div style={{ textAlign: "left" }}>
               <div>
-                {account && (
+                {account && !searching && (
                   <>
                     {isExist && !limitedout && (Number(value) > 0 || Number(valueEth) > 0) ? (
                       <>
@@ -1077,6 +1083,27 @@ export default function Liquidity() {
                     )}
                   </>
                 )}
+
+                {searching &&
+                  <div className="">
+                    <Button
+                      size={isMobile ? "small" : "large"}
+                      variant="contained"
+                      sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                      className="btn-disabled font-bold w-full dark:text-black mt-20 flex-1"
+                      style={{
+                        background: "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                        color: "#ddd",
+                        textAlign: "center",
+                        marginRight: "8px",
+                        maxHeight: 57
+                      }}
+                    >
+                      {""}
+                      {"Searching Liquidity Pool"}
+                    </Button>
+                  </div>
+                }
 
                 {!account && (
                   <Button
