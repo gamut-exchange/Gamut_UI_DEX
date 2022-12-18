@@ -733,12 +733,6 @@ export default function RLiquidity() {
             <br />
             <br />
             <div style={{ color: "white", display: "block", textAlign: "left", marginTop: "9px", marginBottom: "12px" }}>
-              <InfoOutlinedIcon
-                style={{
-                  fontSize: "18px",
-                  marginTop: "-2px"
-                }}
-              />{" "}
               <span>Ratio {numFormat(scale)}% {tokenB.symbol} - {numFormat(100 - scale)}% {tokenA.symbol}</span>
             </div>
             <div className="mt-2">

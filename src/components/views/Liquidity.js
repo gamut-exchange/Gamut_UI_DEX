@@ -967,13 +967,7 @@ export default function Liquidity() {
                 </p>
               </div>
               <div style={{ color: "white", display: "block", float: "left", marginTop: "12px", width: "100%" }}>
-                <InfoOutlinedIcon
-                  style={{
-                    fontSize: "18px",
-                    float: "left",
-                  }}
-                />
-                <span style={{ float: "left", paddingLeft: "5px" }}>Pool Composition {ratio.toPrecision(6)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(6)}% {outToken["symbol"]}</span>
+                <span style={{ float: "left", paddingLeft: "0px" }}>Ratio {ratio.toPrecision(6)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(6)}% {outToken["symbol"]}</span>
               </div>
               <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
                 <span style={{ float: "left", color: "white" }}>

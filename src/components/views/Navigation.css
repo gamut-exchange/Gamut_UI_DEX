@@ -1,11 +1,12 @@
 
 .Menu__Mobile{
     width: 100%;
-    border-top: 1px solid rgba(118, 118, 144, 0.4);
     border-bottom: 1px solid rgba(118, 118, 144, 0.4);
     box-shadow: none;
+    
 
 }
+
 
 @media (max-width: 900px)
 {
@@ -53,7 +54,7 @@
     .swap_b{
         display: flex;
         justify-content: center;
-        margin: 0 auto;
+        margin: 0;
     }
     #footer_m{
         

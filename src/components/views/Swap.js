@@ -806,7 +806,7 @@ export default function Swap() {
         <Grid item xs={12} sm={12} md={6} lg={4} >
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding:"0px 0px 8px 0px" }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -1027,11 +1027,6 @@ export default function Swap() {
             </div>
             {account && isExist && !finding &&
               <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <InfoOutlinedIcon
-                  style={{
-                    fontSize: "18px",
-                  }}
-                />{" "}
                 <button onClick={() =>setPriceDirection(!priceDirection)}>{priceDirection?"1 "+inToken["symbol"]+ " = "+tokenPr+" "+outToken["symbol"]:"1"+outToken["symbol"]+ " = "+numFormat(1/tokenPr)+" "+inToken["symbol"]}</button>
               </div>
             }
@@ -1056,7 +1051,7 @@ export default function Swap() {
                   Price Impact:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat((valueEth / (inValue * tokenPr + 0.000000001)) * 100)}%</span>
+                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(((valueEth / (inValue * tokenPr + 0.000000001))-1) * 100)}%</span>
                 </div>
               </div>
               <div style={{ marginTop: "5px" }}>
