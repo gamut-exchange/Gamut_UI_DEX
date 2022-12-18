@@ -491,25 +491,29 @@ export default function Liquidity() {
         await joinPool(
           account,
           provider,
-          inToken["address"],
-          outToken["address"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
           value,
           valueEth,
           slippage * 0.01,
           contractAddresses[selected_chain]["router"],
-          contractAddresses[selected_chain]["hedgeFactory"]
+          contractAddresses[selected_chain]["hedgeFactory"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000",
+          outToken["address"] === "0x0000000000000000000000000000000000000000"
         );
       else
         await joinOnePool(
           account,
           provider,
-          inToken["address"],
-          outToken["address"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
           value,
           valueEth,
           slippage * 0.01,
           contractAddresses[selected_chain]["router"],
-          contractAddresses[selected_chain]["hedgeFactory"]
+          contractAddresses[selected_chain]["hedgeFactory"],
+          inToken["address"] === "0x0000000000000000000000000000000000000000",
+          outToken["address"] === "0x0000000000000000000000000000000000000000"
         );
       setAdding(false);
       let n_inBal = await getTokenBalance(provider, inToken["address"], account);

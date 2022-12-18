@@ -241,14 +241,16 @@ export const joinPool = async (
     amount2,
     slippage,
     routerContractAddr,
-    factoryContractAddr
+    factoryContractAddr,
+    isCoin1,
+    isCoin2
 ) => {
     const abi = routerABI[0];
     const web3 = new Web3(provider);
     const poolAddr = await getPoolAddress(
         provider,
-        token1Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token1Addr,
-        token2Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token2Addr,
+        token1Addr,
+        token2Addr,
         factoryContractAddr
     );
 
@@ -258,40 +260,57 @@ export const joinPool = async (
         let tokenB = "";
         let amountA = 0;
         let amountB = 0;
-        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()
-            ||
-            (token1Addr === "0x0000000000000000000000000000000000000000" && poolData["tokens"][0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
+        let inAmount = "0";
+        let inMaxAmount = "0";
+        let outAmount = "0";
+        let outMaxAmount = "0";
+
+        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()) {
             tokenA = token1Addr;
             tokenB = token2Addr;
             amountA = amount1;
             amountB = amount2;
+
+            if (isCoin1) {
+                inAmount = web3.utils.toWei(amountA.toString());
+                inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+            }
+            else {
+                inAmount = await toWeiVal(provider, tokenA, amountA);
+                inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+            }
+
+            if (isCoin2) {
+                outAmount = web3.utils.toWei(amountB.toString());
+                outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+            } else {
+                outAmount = await toWeiVal(provider, tokenB, amountB);
+                outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+            }
         } else {
             tokenA = token2Addr;
             tokenB = token1Addr;
             amountA = amount2;
             amountB = amount1;
+
+            if (isCoin2) {
+                inAmount = web3.utils.toWei(amountA.toString());
+                inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+            }
+            else {
+                inAmount = await toWeiVal(provider, tokenA, amountA);
+                inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+            }
+
+            if (isCoin1) {
+                outAmount = web3.utils.toWei(amountB.toString());
+                outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+            } else {
+                outAmount = await toWeiVal(provider, tokenB, amountB);
+                outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+            }
         }
 
-        let inAmount = "0";
-        let inMaxAmount = "0";
-        let outAmount = "0";
-        let outMaxAmount = "0";
-        if (tokenA === "0x0000000000000000000000000000000000000000") {
-            inAmount = web3.utils.toWei(amountA.toString());
-            inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
-        }
-        else {
-            inAmount = await toWeiVal(provider, tokenA, amountA);
-            inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
-        }
-
-        if (tokenB === "0x0000000000000000000000000000000000000000") {
-            outAmount = web3.utils.toWei(amountB.toString());
-            outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
-        } else {
-            outAmount = await toWeiVal(provider, tokenB, amountB);
-            outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
-        }
         const initUserData = ethers.utils.defaultAbiCoder.encode(
             ["uint256", "uint256[]", "uint256"],
             [
@@ -310,12 +329,23 @@ export const joinPool = async (
         // await token2_contract.methods['increaseAllowance'](c_address, outAmount).send({from: account});
         let contract = new web3.eth.Contract(abi, routerContractAddr);
         try {
-            if (tokenA === "0x0000000000000000000000000000000000000000" || tokenB === "0x0000000000000000000000000000000000000000")
-                await contract.methods["joinPool"](account, [
-                    [tokenA, tokenB],
-                    [inMaxAmount, outMaxAmount],
-                    initUserData,
-                ]).send({ from: account, value: (tokenA === "0x0000000000000000000000000000000000000000") ? inAmount : outAmount });
+            if (isCoin1 || isCoin2) {
+                if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()) {
+                    await contract.methods["joinPool"](account, [
+                        [isCoin1 ? "0x0000000000000000000000000000000000000000" : tokenA,
+                        isCoin2 ? "0x0000000000000000000000000000000000000000" : tokenB],
+                        [inMaxAmount, outMaxAmount],
+                        initUserData,
+                    ]).send({ from: account, value: isCoin1 ? inAmount : outAmount });
+                } else {
+                    await contract.methods["joinPool"](account, [
+                        [isCoin2 ? "0x0000000000000000000000000000000000000000" : tokenA,
+                        isCoin1 ? "0x0000000000000000000000000000000000000000" : tokenB],
+                        [inMaxAmount, outMaxAmount],
+                        initUserData,
+                    ]).send({ from: account, value: isCoin2 ? inAmount : outAmount });
+                }
+            }
             else
                 await contract.methods["joinPool"](account, [
                     [tokenA, tokenB],
@@ -337,14 +367,16 @@ export const joinOnePool = async (
     amount2,
     slippage,
     routerContractAddr,
-    factoryContractAddr
+    factoryContractAddr,
+    isCoin1,
+    isCoin2
 ) => {
     const abi = routerABI[0];
     const web3 = new Web3(provider);
     const poolAddr = await getPoolAddress(
         provider,
-        token1Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token1Addr,
-        token2Addr === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : token2Addr,
+        token1Addr,
+        token2Addr,
         factoryContractAddr
     );
 
@@ -354,39 +386,54 @@ export const joinOnePool = async (
         let tokenB = "";
         let amountA = 0;
         let amountB = 0;
-        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()
-            ||
-            (token1Addr === "0x0000000000000000000000000000000000000000" && poolData["tokens"][0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
+        let inAmount = "0";
+        let inMaxAmount = "0";
+        let outAmount = "0";
+        let outMaxAmount = "0";
+        if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()) {
             tokenA = token1Addr;
             tokenB = token2Addr;
             amountA = amount1;
             amountB = amount2;
+
+            if (isCoin1) {
+                inAmount = web3.utils.toWei(amountA.toString());
+                inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+            }
+            else {
+                inAmount = await toWeiVal(provider, tokenA, amountA);
+                inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+            }
+
+            if (isCoin2) {
+                outAmount = web3.utils.toWei(amountB.toString());
+                outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+            } else {
+                outAmount = await toWeiVal(provider, tokenB, amountB);
+                outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+            }
         } else {
             tokenA = token2Addr;
             tokenB = token1Addr;
             amountA = amount2;
             amountB = amount1;
-        }
 
-        let inAmount = "0";
-        let inMaxAmount = "0";
-        let outAmount = "0";
-        let outMaxAmount = "0";
-        if (tokenA === "0x0000000000000000000000000000000000000000") {
-            inAmount = web3.utils.toWei(amountA.toString());
-            inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
-        }
-        else {
-            inAmount = await toWeiVal(provider, tokenA, amountA);
-            inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
-        }
+            if (isCoin2) {
+                inAmount = web3.utils.toWei(amountA.toString());
+                inMaxAmount = web3.utils.toWei((amountA * (1 + slippage)).toString());
+            }
+            else {
+                inAmount = await toWeiVal(provider, tokenA, amountA);
+                inMaxAmount = await toWeiVal(provider, tokenA, amountA * (1 + slippage));
+            }
 
-        if (tokenB === "0x0000000000000000000000000000000000000000") {
-            outAmount = web3.utils.toWei(amountB.toString());
-            outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
-        } else {
-            outAmount = await toWeiVal(provider, tokenB, amountB);
-            outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+            if (isCoin1) {
+                outAmount = web3.utils.toWei(amountB.toString());
+                outMaxAmount = web3.utils.toWei((amountB * (1 + slippage)).toString());
+            } else {
+                outAmount = await toWeiVal(provider, tokenB, amountB);
+                outMaxAmount = await toWeiVal(provider, tokenB, amountB * (1 + slippage))
+            }
         }
 
         const initUserData = ethers.utils.defaultAbiCoder.encode(
@@ -394,8 +441,8 @@ export const joinOnePool = async (
             [
                 "2",
                 //amounts In
-                Number(inAmount)===0?outAmount:inAmount,
-                Number(inAmount)===0?"1":"0",
+                Number(inAmount) === 0 ? outAmount : inAmount,
+                Number(inAmount) === 0 ? "1" : "0",
                 //minimum amount of Lp tokens you are willing to accept
                 web3.utils.toWei("0"),
             ]
@@ -408,12 +455,23 @@ export const joinOnePool = async (
         // await token2_contract.methods['increaseAllowance'](c_address, outAmount).send({from: account});
         let contract = new web3.eth.Contract(abi, routerContractAddr);
         try {
-            if (tokenA === "0x0000000000000000000000000000000000000000" || tokenB === "0x0000000000000000000000000000000000000000")
-                await contract.methods["joinPool"](account, [
-                    [tokenA, tokenB],
-                    [inMaxAmount, outMaxAmount],
-                    initUserData,
-                ]).send({ from: account, value: (tokenA === "0x0000000000000000000000000000000000000000") ? inAmount : outAmount });
+            if (isCoin1 || isCoin2) {
+                if (poolData["tokens"][0].toLowerCase() === token1Addr.toLowerCase()) {
+                    await contract.methods["joinPool"](account, [
+                        [isCoin1 ? "0x0000000000000000000000000000000000000000" : tokenA,
+                        isCoin2 ? "0x0000000000000000000000000000000000000000" : tokenB],
+                        [inMaxAmount, outMaxAmount],
+                        initUserData,
+                    ]).send({ from: account, value: isCoin1 ? inAmount : outAmount });
+                } else {
+                    await contract.methods["joinPool"](account, [
+                        [isCoin2 ? "0x0000000000000000000000000000000000000000" : tokenA,
+                        isCoin1 ? "0x0000000000000000000000000000000000000000" : tokenB],
+                        [inMaxAmount, outMaxAmount],
+                        initUserData,
+                    ]).send({ from: account, value: isCoin2 ? inAmount : outAmount });
+                }
+            }
             else
                 await contract.methods["joinPool"](account, [
                     [tokenA, tokenB],
@@ -519,8 +577,8 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
-    const limit1 = (token1Amount>0.00001 && token2Amount>0.00001)?await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()):"0";
-    const limit2 = (token1Amount>0.00001 && token2Amount>0.00001)?await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString()):"0";
+    const limit1 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()) : "0";
+    const limit2 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString()) : "0";
 
 
     let contract = new web3.eth.Contract(abi, contractAddr);

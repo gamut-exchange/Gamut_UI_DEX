@@ -23,7 +23,7 @@ function Navigation() {
 
   return (
     <Box
-      sx={{ display: "flex", alignItems: "flex-start", pt: 1, mb: 1, mt: 1 }}
+      sx={{ display: "flex", alignItems: "flex-start", pt: 1, mb: 3, mt: 1 }}
       style={{ width: "100%" }}
       className="Menu__Mobile"
     >
@@ -38,14 +38,14 @@ function Navigation() {
           boxShadow: "0px 0px 0px 0px"
         }}
       >
-        <Toolbar style={{ padding: "0px", marginLeft: "0px", marginTop: "8px" }}>
+        <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
           <Box sx={{ display: { xs: "none", sm: "none", md: "block", lg: "block" } }}>
             {/* {navItems.map((item) => ( */}
             <Link to="/" style={{ textDecoration: "none" }}>
               <Button
                 // key={item}
                 sx={{ color: active === "home" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px", marginTop: "16px" }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("home")}
               >
                 {/* {item} */}
@@ -72,7 +72,7 @@ function Navigation() {
               <Button
                 // key={item}
                 sx={{ color: active === "liquidity" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px", marginTop: "16px" }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("liquidity")}
               >
                 {/* {item} */}
