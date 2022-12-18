@@ -19,7 +19,6 @@ import {
   Settings,
 } from "@mui/icons-material";
 import tw from "twin.macro";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SwapCmp from "./SwapCmp";
 import { useWeightsData, useExitTransactionsData } from "../../config/chartData";
 import {

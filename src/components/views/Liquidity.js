@@ -19,7 +19,6 @@ import {
   AddCircleOutline,
   Settings,
 } from "@mui/icons-material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useWeightsData, useJoinTransactionsData } from "../../config/chartData";
 import {
   getTokenBalance,
