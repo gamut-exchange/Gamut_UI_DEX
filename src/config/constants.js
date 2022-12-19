@@ -22,7 +22,7 @@ export const uniList = {
 		{value: "dai", chainId: 5, address: "0x817F61606B7f073854c51ec93beF408708A5b4E4", symbol: "DAI", name: "DAI Coin", decimals: 18, logoURL: "/icons/dai.svg", tags: ["stablecoin"]},
 		{value: "weth", chainId: 5, address: "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6", symbol: "WETH", name: "WETH Coin", decimals: 18, logoURL: "/icons/eth.svg", tags: ["stablecoin"]},
 		{value: "eth", chainId: 5, address: "0x0000000000000000000000000000000000000000", symbol: "ETH", name: "ETH Coin", decimals: 18, logoURL: "/icons/eth.svg", tags: ["stablecoin"]},
-		{value: "usdc", chainId: 5, address: "0x3346B2A939aA13e76Ce8Aa05ECCAe92E0D4F6580", symbol: "USDC", name: "USDC Coin", decimals: 12, logoURL: "/icons/usdt.svg", tags: ["stablecoin"]},
+		{value: "usdc", chainId: 5, address: "0x3346B2A939aA13e76Ce8Aa05ECCAe92E0D4F6580", symbol: "USDT", name: "USDT Coin", decimals: 12, logoURL: "/icons/usdt.svg", tags: ["stablecoin"]},
 		{value: "near", chainId: 5, address: "0x2bffE1D2251Da22E31f2A769A7DfCDfB75770202", symbol: "NEAR", name: "NEAR Coin", decimals: 18, logoURL: "/icons/near.svg", tags: [""]},
 		{value: "kava", chainId: 5, address: "0xB9F8D37D635cE2fEfa9dBD3348c9251c09E251C4", symbol: "KAVA", name: "KAVA Coin", decimals: 18, logoURL: "/icons/kava.svg", tags: [""]},
 		{value: "matic", chainId: 5, address: "0x7d95e5Fc3DD25559D07f272689D857a4DbFf3D38", symbol: "MATIC", name: "MATIC Coin", decimals: 18, logoURL: "/icons/matic.svg", tags: [""]},
@@ -40,7 +40,7 @@ export const poolList = {
 	'goerli': [
 		{value: "other", address:"0xe19CB76dCBB9Da10879e851b4B65be58aAcF33d6", symbols:["WBTC", "WETH"], logoURLs:["/icons/wbtc.svg", "/icons/eth.svg"]},
 		{value: "other", address:"0x7A02Ac8ed36A89463fEedf1123d52cE35bE17e7f", symbols:["WBTC", "DAI"], logoURLs:["/icons/wbtc.svg", "/icons/dai.svg"]},
-		{value: "other", address:"0x6F06BfdbF3449Df95eb88FEcd7bA1B8d365c56c2", symbols:["WBTC", "USDT"], logoURLs:["/icons/wbtc.svg", "/icons/usdt.svg"]},
+		{value: "other", address:"0x6f06bfdbf3449df95eb88fecd7ba1b8d365c56c2", symbols:["WBTC", "USDT"], logoURLs:["/icons/wbtc.svg", "/icons/usdt.svg"]},
 		{value: "other", address:"0x969c9da9F09bbaDb9Fd8A9Fdeb37dC2Dd146d170", symbols:["DAI", "USDT"], logoURLs:["/icons/dai.svg", "/icons/usdt.svg"]}
 	],
 	'fantom': [
