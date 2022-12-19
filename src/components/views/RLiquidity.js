@@ -225,7 +225,7 @@ export default function RLiquidity() {
     let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
     let remain_amount = 0;
     if (amount1 > amount2 * price) {
-      remain_amount = (amount1 - amount2 * price) / (2 * price);
+      remain_amount = (amount1 - amount2 * price) / (price);
       let amountOut = await calculateSwap(
         token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token2.address : token1.address,
         poolData,
@@ -233,7 +233,7 @@ export default function RLiquidity() {
       );
       setPriceImpact(numFormat((amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100));
     } else {
-      remain_amount = (amount2 * price - amount1) / 2;
+      remain_amount = (amount2 * price - amount1);
       let amountOut = await calculateSwap(
         token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token1.address : token2.address,
         poolData,

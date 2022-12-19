@@ -122,7 +122,7 @@ export default function Swap() {
   const [tokenPr, setTokenPr] = useState(0);
   const [slippage, setSlippage] = useState(0.1);
   const [slippageFlag, setSlippageFlag] = useState(false);
-  const [deadline, setDeadline] = useState(900);
+  const [deadline, setDeadline] = useState(30);
   const [deadlineFlag, setDeadlineFlag] = useState(false);
   const [noChartData, setNoChartData] = useState(false);
   const [isExist, setIsExist] = useState(false);
@@ -262,9 +262,10 @@ export default function Swap() {
   };
 
   const reverseToken = async () => {
-    let tempToken = outToken;
-    await selectToken(inToken, 1);
-    await selectToken(tempToken, 0);
+    let tempToken1 = { ...inToken };
+    let tempToken2 = { ...outToken };
+    selectToken(tempToken1, 1);
+    selectToken(tempToken2, 0);
   };
 
   const findMiddleToken = async () => {
@@ -702,19 +703,19 @@ export default function Swap() {
       chart.removeSeries(areaSeries);
       areaSeries = null;
     }
-    areaSeries = dark
-      ? chart.addAreaSeries({
-        topColor: "#0580f482",
-        bottomColor: "#0580f42e",
-        lineColor: "#0580f4",
-        lineWidth: 2,
-      })
-      : chart.addAreaSeries({
-        topColor: "#0580f482",
-        bottomColor: "#0580f42e",
-        lineColor: "#0580f4",
-        lineWidth: 2,
-      });
+    areaSeries = chart.addAreaSeries({
+      topColor: "#0580f482",
+      bottomColor: "#0580f42e",
+      lineColor: "#0580f4",
+      lineWidth: 2,
+    });
+    areaSeries.applyOptions({
+      priceFormat: {
+        type: 'price',
+        precision: 6,
+        minMove: 0.000001,
+      },
+    });
     areaSeries.setData(formattedPricesData);
   }
 
@@ -736,6 +737,10 @@ export default function Swap() {
         horzLines: {
           color: "rgba(42, 46, 57, 0.5)",
         },
+      },
+      priceFormat: {
+        type: 'price',
+        precision: 5
       },
       rightPriceScale: {
         borderVisible: false,
