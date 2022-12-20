@@ -23,7 +23,7 @@ function History(props) {
   }
 
   const viewBlockUrl = (hash) => {
-    window.open(`https://explorer.kava.io/tx/${hash}`);
+    window.open(`https://goerli.etherscan.io/tx/${hash}`);
   };
 
   const handleChange = (e) => {
