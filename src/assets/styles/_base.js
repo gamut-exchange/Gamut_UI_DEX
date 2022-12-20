@@ -237,10 +237,11 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: "420px !important",
         minWidth: "360px !important",
         padding: "24px 24px",
-        backgroundColor: "black!important",
+        backgroundColor: "#07071c!important",
         color: "white!important",
         width: "inherit",
         border: "1px solid gray",
+        borderRadius:"8px!important",
 
         "& .action": {
             padding: "16px 16px",
@@ -272,7 +273,7 @@ const useStyles = makeStyles((theme) => ({
             },
         },
         "& .wallet-list": {
-            padding: "32px 0px",
+            padding: "0px",
             "& .item": {
                 padding: "8px 32px",
                 borderRadius: 16,
