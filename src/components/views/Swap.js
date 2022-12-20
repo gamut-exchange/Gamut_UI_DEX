@@ -703,10 +703,6 @@ export default function Swap() {
       chart.removeSeries(areaSeries);
       areaSeries = null;
     }
-    areaSeries = dark
-      ? chart.addAreaSeries({
-        lineWidth: 2,
-      })
     areaSeries = chart.addAreaSeries({
       topColor: "#0580f482",
       bottomColor: "#0580f42e",
