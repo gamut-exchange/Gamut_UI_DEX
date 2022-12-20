@@ -148,11 +148,9 @@ export default function RLiquidity() {
   };
 
   const handleSlider = async (event) => {
-    debugger;
     setLpPercentage(event.target.value);
     const val = numFormat(poolAmount * (event.target.value / 100));
     setValue(val);
-    console.log(val);
     await calculateOutput(totalLPTokens, val, weightA, tokenA, tokenB);
   };
 
