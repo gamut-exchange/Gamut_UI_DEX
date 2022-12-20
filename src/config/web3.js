@@ -577,8 +577,8 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
-    const limit1 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token1Addr, (token1Amount * (1 - slippage)).toString()) : "0";
-    const limit2 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token2Addr, (token2Amount * (1 - slippage)).toString()) : "0";
+    const limit1 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token1Addr, (token1Amount * (1 - 0.05 - slippage)).toString()) : "0";
+    const limit2 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token2Addr, (token2Amount * (1 - 0.05 - slippage)).toString()) : "0";
 
 
     let contract = new web3.eth.Contract(abi, contractAddr);
