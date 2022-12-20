@@ -587,6 +587,9 @@ export default function Liquidity() {
         );
         const poolData = await getPoolData(provider, poolAddress);
         calculateRatio(inToken, poolData, val1 / position, valueEth);
+        calculateImpact(inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+        outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+        poolData, val1 / position, valueEth);
       }
       if (isExist)
         checkApproved(inToken, outToken, val1 / position, valueEth);
@@ -614,6 +617,9 @@ export default function Liquidity() {
         );
         const poolData = await getPoolData(provider, poolAddress);
         calculateRatio(inToken, poolData, value, val2 / position);
+        calculateImpact(inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : inToken["address"],
+          outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
+          poolData, value, val2 / position);
       }
       if (isExist)
         checkApproved(inToken, outToken, value, val2 / position);
