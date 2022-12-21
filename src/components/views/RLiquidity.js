@@ -140,9 +140,9 @@ export default function RLiquidity() {
 
   const handleClose = () => setOpen(false);
 
-  const handleScale = async (event, newValue) => {
-    setScale(newValue * 1);
-    let weight1 = newValue / 100;
+  const handleScale = async (event) => {
+    setScale(event.target.value * 1);
+    let weight1 = event.target.value / 100;
     setWeightA(weight1);
     await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
   };
