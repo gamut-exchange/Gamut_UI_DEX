@@ -577,8 +577,8 @@ export const removePool = async (
         [totalAmount, tokenRatio]
     );
 
-    const limit1 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token1Addr, (token1Amount * (1 - 0.05 - slippage)).toString()) : "0";
-    const limit2 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token2Addr, (token2Amount * (1 - 0.05 - slippage)).toString()) : "0";
+    const limit1 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token1Addr, (token1Amount * (1 - 0.3 - slippage)).toString()) : "0";
+    const limit2 = (token1Amount > 0.00001 && token2Amount > 0.00001) ? await toWeiVal(provider, token2Addr, (token2Amount * (1 - 0.3 - slippage)).toString()) : "0";
 
 
     let contract = new web3.eth.Contract(abi, contractAddr);
@@ -624,8 +624,13 @@ const toWeiVal = async (provider, tokenAddr, val) => {
     let decimal = await contract.methods["decimals"]().call();
     decimal = Number(decimal);
     let value = Number((Math.floor(val * Math.pow(10, decimal)) / Math.pow(10, decimal)).toFixed(decimal));
-    let tval = web3.utils.toBN(toLongNum(value * (10 ** decimal))).toString();
-    return tval;
+    try {
+        let tval = web3.utils.toBN(toLongNum(value * (10 ** decimal)).toFixed(0)).toString();
+        return tval;
+    } catch (error) {
+        let tval = web3.utils.toBN(toLongNum(value * (10 ** decimal))).toString();
+        return tval;
+    }
 }
 
 export const fromWeiVal = (provider, val, dec) => {
