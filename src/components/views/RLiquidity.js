@@ -140,9 +140,9 @@ export default function RLiquidity() {
 
   const handleClose = () => setOpen(false);
 
-  const handleScale = async (event) => {
-    setScale(event.target.value * 1);
-    let weight1 = event.target.value / 100;
+  const handleScale = async (event, newValue) => {
+    setScale(newValue * 1);
+    let weight1 = newValue / 100;
     setWeightA(weight1);
     await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
   };
@@ -320,7 +320,8 @@ export default function RLiquidity() {
     if (!(Number(value) <= 0)) {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
-      let real_val = toLongNum(poolAmount*lpPercentage/100);
+      let real_val = Number((Math.floor(poolAmount * Math.pow(10, 6)) / Math.pow(10, 6)).toFixed(6));
+      real_val = toLongNum(real_val*lpPercentage/100);
       setRemoving(true);
       await removePool(
         account,
