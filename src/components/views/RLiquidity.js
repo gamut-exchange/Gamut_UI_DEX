@@ -148,11 +148,9 @@ export default function RLiquidity() {
   };
 
   const handleSlider = async (event) => {
-    debugger;
     setLpPercentage(event.target.value);
     const val = numFormat(poolAmount * (event.target.value / 100));
     setValue(val);
-    console.log(val);
     await calculateOutput(totalLPTokens, val, weightA, tokenA, tokenB);
   };
 
@@ -322,7 +320,8 @@ export default function RLiquidity() {
     if (!(Number(value) <= 0)) {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
-      let real_val = toLongNum(poolAmount*lpPercentage/100);
+      let real_val = Number((Math.floor(poolAmount * Math.pow(10, 6)) / Math.pow(10, 6)).toFixed(6));
+      real_val = toLongNum(real_val*lpPercentage/100);
       setRemoving(true);
       await removePool(
         account,
