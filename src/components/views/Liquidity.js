@@ -285,6 +285,7 @@ export default function Liquidity() {
             outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : outToken["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
+          setPoolAddress(poolAddr);
           const poolData = await getPoolData(
             provider,
             poolAddr
@@ -327,6 +328,7 @@ export default function Liquidity() {
             token["address"] === "0x0000000000000000000000000000000000000000" ? "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6" : token["address"],
             contractAddresses[selected_chain]["hedgeFactory"]
           );
+          setPoolAddress(poolAddr);
           const poolData = await getPoolData(provider, poolAddr);
           checkApproved(inToken, token, value, valueEth);
           setSearching(false);
