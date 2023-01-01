@@ -60,7 +60,7 @@ function SwapCmp() {
                 </Button>
               </Link>
 
-              <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
+              {/* <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
                   variant="contained"
@@ -75,7 +75,7 @@ function SwapCmp() {
                 >
                   Pool Factory
                 </Button>
-              </Link>
+              </Link> */}
 
 
             </Stack>
@@ -125,7 +125,7 @@ function SwapCmp() {
                 </Button>
               </Link>
 
-              <Link to="/create_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
+              {/* <Link to="/create_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
                 <Button
                   size={isMobile ? "small" : "large"}
                   variant="contained"
@@ -140,7 +140,7 @@ function SwapCmp() {
                 >
                   Pool Factory
                 </Button>
-              </Link>
+              </Link> */}
 
 
             </Stack>

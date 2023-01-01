@@ -847,7 +847,7 @@ export default function Swap() {
               >
                 ON-CHAIN
               </Button>
-              <Button
+              {/* <Button
                 size="large"
                 variant="contained"
                 sx={{
@@ -860,7 +860,7 @@ export default function Swap() {
                 }}
               >
                 CROSS CHAIN
-              </Button>
+              </Button> */}
             </Stack>
           </Item>
         </Grid>
