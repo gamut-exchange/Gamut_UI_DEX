@@ -815,8 +815,9 @@ export default function Swap() {
   }, [formattedPricesData]);
 
   useEffect(() => {
-    if (account && Number(inValue) !== 0)
+    if (account && Number(inValue) !== 0 && ((valueEth / (inValue * tokenPr)) - 1) > -1 )
       setPriceImpact(numFormat(((valueEth / (inValue * tokenPr + 0.000000001)) - 1) * 100));
+      
     else
       setPriceImpact(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
