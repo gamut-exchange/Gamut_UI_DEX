@@ -27,7 +27,7 @@ function Footer() {
         </Grid>
         <Grid item xs={12} md={4}>
           <Item style={{ backgroundColor: "transparent", color: "white" }} elevation={0}>
-            &copy; 2023 All rights reserved
+            &copy; 2023 Gamut | All Rights Reserved
           </Item>
         </Grid>
         <Grid item xs={12}  md={4}>
