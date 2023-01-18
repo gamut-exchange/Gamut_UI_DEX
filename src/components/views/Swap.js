@@ -25,6 +25,7 @@ import {
   ArrowForward,
 } from "@mui/icons-material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { createChart } from "lightweight-charts";
 import {
   getTokenBalance,
@@ -193,32 +194,6 @@ export default function Swap() {
       setApproval(true);
     }
   };
-
-  // const calcSlippage = async (inToken, poolData, input, output) => {
-  //   let balance_from;
-  //   let balance_to;
-  //   let weight_from;
-  //   let weight_to;
-
-  //   if (inToken["address"] === poolData.tokens[0]) {
-  //     balance_from = poolData.balances[0];
-  //     balance_to = poolData.balances[1];
-  //     weight_from = poolData.weights[0];
-  //     weight_to = poolData.weights[1];
-  //   } else {
-  //     balance_from = poolData.balances[1];
-  //     balance_to = poolData.balances[0];
-  //     weight_from = poolData.weights[1];
-  //     weight_to = poolData.weights[0];
-  //   }
-
-  //   let pricePool = balance_from / weight_from / (balance_to / weight_to);
-  //   let priceTrade = input / output;
-
-  //   let slip = (1 - pricePool / priceTrade) * 100;
-
-  //   return slip;
-  // };
 
   const selectToken = async (token, selected) => {
     handleClose();
@@ -831,10 +806,15 @@ export default function Swap() {
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
-        <Grid item xs={12} sm={12} md={6} lg={4} >
+        <Grid item xs={12} sm={12} md={6} lg={4}>
           <Item
             elevation={1}
-            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding: "0px 0px 8px 0px" }}
+            style={{
+              backgroundColor: "transparent",
+              color: darkFontColor,
+              boxShadow: "0px 0px 0px 0px",
+              padding: "0px 0px 8px 0px",
+            }}
           >
             <Stack spacing={2} direction="row" className="swap_bh">
               <Button
@@ -848,7 +828,7 @@ export default function Swap() {
               >
                 ON-CHAIN
               </Button>
-              {/* <Button
+              <Button
                 size="large"
                 variant="contained"
                 sx={{
@@ -856,20 +836,30 @@ export default function Swap() {
                   padding: 2,
                   fontWeight: "bold",
 
-                  backgroundColor:
-                    "#12122c"
+                  backgroundColor: "#12122c",
                 }}
               >
                 CROSS CHAIN
-              </Button> */}
+              </Button>
             </Stack>
           </Item>
         </Grid>
         <Grid item xs={12} md={6} lg={8}>
           {/* <Item>xs=4</Item> */}
         </Grid>
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
-          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          md={5}
+          sx={{ mt: 2 }}
+          className="home__mainC"
+        >
+          <Item
+            sx={{ pl: 3, pr: 3, pb: 2 }}
+            style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+            className="home__main"
+          >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Typography
                 variant="h5"
@@ -879,44 +869,149 @@ export default function Swap() {
               >
                 Trade On-Chain
               </Typography>
-              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+              {/* <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
                 <Settings />
-              </span>
+              </span> */}
             </div>
-            {
-              setting ? (
-                <div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
+            {/* {setting ? (
+              <div>
+                <div className="s" style={{ float: "left", width: "100%" }}>
+                  <span style={{ float: "left", color: grayColor }}>
+                    Max Slippage:
+                  </span>
+                  <span style={{ float: "right", color: grayColor }}>
+                    <span
+                      onClick={() => {
+                        setSlippage(0.1);
+                      }}
+                      style={{
+                        color: slippage === 0.1 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      0.1%
                     </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
-                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
-                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    <span
+                      onClick={() => {
+                        setSlippage(0.5);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: slippage === 0.5 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      0.5%
                     </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <div style={{ marginTop: "10px", marginBottom: "10px", float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Time Deadline:
+                    <span
+                      onClick={() => {
+                        setSlippage(1);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: slippage === 1 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      1%
                     </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setDeadline(30); }} style={{ color: deadline === 30 ? "lightblue" : "", cursor: "pointer" }}>30sec</span>
-                      <span onClick={() => { setDeadline(60); }} style={{ paddingLeft: "5px", color: deadline === 60 ? "lightblue" : "", cursor: "pointer" }}>1min</span>
-                      <span onClick={() => { setDeadline(120); }} style={{ paddingLeft: "5px", color: deadline === 120 ? "lightblue" : "", cursor: "pointer" }}>2min</span>
-                      <span onClick={() => { setDeadlineFlag(!deadlineFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
+                    <span
+                      onClick={() => {
+                        setSlippageFlag(!slippageFlag);
+                      }}
+                      style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    >
+                      custom
                     </span>
-                    {deadlineFlag && <Slider size="small" value={deadline} aria-label="Default" min={10} max={900} step={2} valueLabelDisplay="auto" onChange={(e) => setDeadline(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <br />
+                  </span>
+                  {slippageFlag && (
+                    <Slider
+                      size="small"
+                      value={slippage}
+                      aria-label="Default"
+                      min={0.1}
+                      max={10}
+                      step={0.1}
+                      valueLabelDisplay="auto"
+                      getAriaValueText={valueLabelFormat}
+                      valueLabelFormat={valueLabelFormat}
+                      onChange={(e) => setSlippage(Number(e.target.value))}
+                    />
+                  )}
                 </div>
-              )
-                :
-                null
-            }
+                <div
+                  style={{
+                    marginTop: "10px",
+                    marginBottom: "10px",
+                    float: "left",
+                    width: "100%",
+                  }}
+                >
+                  <span style={{ float: "left", color: grayColor }}>
+                    Time Deadline:
+                  </span>
+                  <span style={{ float: "right", color: grayColor }}>
+                    <span
+                      onClick={() => {
+                        setDeadline(30);
+                      }}
+                      style={{
+                        color: deadline === 30 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      30sec
+                    </span>
+                    <span
+                      onClick={() => {
+                        setDeadline(60);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: deadline === 60 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      1min
+                    </span>
+                    <span
+                      onClick={() => {
+                        setDeadline(120);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: deadline === 120 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      2min
+                    </span>
+                    <span
+                      onClick={() => {
+                        setDeadlineFlag(!deadlineFlag);
+                      }}
+                      style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    >
+                      custom
+                    </span>
+                  </span>
+                  {deadlineFlag && (
+                    <Slider
+                      size="small"
+                      value={deadline}
+                      aria-label="Default"
+                      min={10}
+                      max={900}
+                      step={2}
+                      valueLabelDisplay="auto"
+                      onChange={(e) => setDeadline(Number(e.target.value))}
+                    />
+                  )}
+                </div>
+                <br />
+                <br />
+              </div>
+            ) : null} */}
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -930,15 +1025,24 @@ export default function Swap() {
                   display: "block",
                   float: "left",
                   textAlign: "left",
-                  width: "100%"
+                  width: "100%",
                 }}
+                className="py-2"
               >
                 From
               </span>
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(0)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
+                  style={{
+                    width: "30%",
+                    float: "left",
+                    border: "0px",
+                    padding: "9px 8px",
+                    fontSize: "13px",
+                    backgroundColor: "#07071c",
+                    minHeight: 49,
+                  }}
                   startIcon={
                     <img
                       src={inToken["logoURL"]}
@@ -948,17 +1052,21 @@ export default function Swap() {
                   }
                 >
                   {inToken["symbol"]}
+                  <KeyboardArrowDownIcon />
                 </Button>
                 <BootstrapInput
                   type="number"
                   value={inValue}
-                  inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
+                  inputProps={{
+                    min: 0,
+                    max: Number(inBal.toString().replaceAll(",", "")),
+                  }}
                   onChange={handleValue}
                   onKeyUp={handleValue}
                   readOnly={!isExist || !account}
                   style={{
                     color: "#FFFFFF",
-                    width: "60%",
+                    width: "70%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -966,15 +1074,41 @@ export default function Swap() {
                 />
               </div>
               <div style={{ float: "left", width: "100%" }}>
-                <span style={{ float: "left", color: grayColor }}>
+                <span
+                  style={{ float: "left", color: grayColor }}
+                  className="pt-2"
+                >
                   Balance: {numFormat(inBal.toString().replaceAll(",", ""))}
                 </span>
 
-                <p style={{ float: "right", color: grayColor }}>
-                  <span style={{ cursor: "pointer" }} onClick={() => setInLimit(4)}>25%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(2)}>50%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1)}>100%</span>
+                <p
+                  style={{ float: "right", color: grayColor }}
+                  className="pt-2"
+                >
+                  <span
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setInLimit(4)}
+                  >
+                    25%
+                  </span>
+                  <span
+                    style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    onClick={() => setInLimit(2)}
+                  >
+                    50%
+                  </span>
+                  <span
+                    style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    onClick={() => setInLimit(1.3333)}
+                  >
+                    75%
+                  </span>
+                  <span
+                    style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    onClick={() => setInLimit(1)}
+                  >
+                    100%
+                  </span>
                 </p>
               </div>
             </FormControl>
@@ -997,13 +1131,22 @@ export default function Swap() {
                   display: "block",
                   textAlign: "left",
                 }}
+                className="py-2"
               >
                 To
               </span>
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
                   onClick={() => handleMopen(1)}
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
+                  style={{
+                    width: "30%",
+                    float: "left",
+                    border: "0px",
+                    padding: "9px 8px",
+                    fontSize: "13px",
+                    backgroundColor: "#07071c",
+                    minHeight: 49,
+                  }}
                   startIcon={
                     <img
                       src={outToken["logoURL"]}
@@ -1013,6 +1156,7 @@ export default function Swap() {
                   }
                 >
                   {outToken["symbol"]}
+                  <KeyboardArrowDownIcon />
                 </Button>
                 <BootstrapInput
                   type="number"
@@ -1020,66 +1164,310 @@ export default function Swap() {
                   readOnly={true}
                   style={{
                     color: "#FFFFFF",
-                    width: "60%",
-                    float: "left",
+                    width: "70%",
+                    float: "right",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
                   }}
                 />
               </div>
-              <div style={{ float: "left", width: "100%" }}>
-                <span style={{ float: "left", color: grayColor }}>
+              <div
+                style={{ float: "left", width: "100%" }}
+                className="flex justify-between"
+              >
+                <span
+                  style={{ float: "left", color: grayColor }}
+                  className="pt-2"
+                >
                   Balance: {numFormat(outBal.toString().replaceAll(",", ""))}
                 </span>
               </div>
               <br />
             </FormControl>
+            {/* Form End <----------------------- */}
             <div className="mt-10">
               {middleToken && middleToken.length === 2 && (
-                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
-                  {middleTokenSymbol[1]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
+                <p
+                  className="text-light-primary"
+                  style={{ color: "white", fontWeight: "bold" }}
+                >
+                  {inToken.symbol}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
+                  {middleTokenSymbol[0]}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
+                  {middleTokenSymbol[1]}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
+                  {outToken.symbol}
                 </p>
               )}
               {middleToken && middleToken.length === 1 && (
-                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {middleTokenSymbol[0]} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} />{" "}
+                <p
+                  className="text-light-primary"
+                  style={{ color: "white", fontWeight: "bold" }}
+                >
+                  {inToken.symbol}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
+                  {middleTokenSymbol[0]}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
                   {outToken.symbol}
                 </p>
               )}
               {!middleToken && (
-                <p className="text-light-primary" style={{ color: "white", fontWeight: "bold" }}>
-                  {inToken.symbol} <ArrowForward style={{ fontSize: "17px", marginTop: "-1px" }} /> {outToken.symbol}
+                <p
+                  className="text-light-primary"
+                  style={{ color: "white", fontWeight: "bold" }}
+                >
+                  {inToken.symbol}{" "}
+                  <ArrowForward
+                    style={{ fontSize: "17px", marginTop: "-1px" }}
+                  />{" "}
+                  {outToken.symbol}
                 </p>
               )}
             </div>
-            {account && isExist && !finding &&
-              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <button onClick={() => setPriceDirection(!priceDirection)}>{priceDirection ? "1 " + inToken["symbol"] + " = " + tokenPr + " " + outToken["symbol"] : "1" + outToken["symbol"] + " = " + numFormat(1 / tokenPr) + " " + inToken["symbol"]}</button>
-              </div>
-            }
-            {account && finding &&
-              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
-                <InfoOutlinedIcon
+            {/* Balance Calculator */}
+            <div className="flex justify-between items-center my-2">
+              {account && isExist && !finding && (
+                <div
                   style={{
-                    fontSize: "18px",
+                    color: "white",
+                    display: "block",
+                    textAlign: "left",
                   }}
-                />{" "}
-                <button>{"1 " + inToken["symbol"] + " = ..." + outToken["symbol"]}</button>
+                >
+                  <button onClick={() => setPriceDirection(!priceDirection)}>
+                    {priceDirection
+                      ? "1 " +
+                        inToken["symbol"] +
+                        " = " +
+                        tokenPr +
+                        " " +
+                        outToken["symbol"]
+                      : "1" +
+                        outToken["symbol"] +
+                        " = " +
+                        numFormat(1 / tokenPr) +
+                        " " +
+                        inToken["symbol"]}
+                  </button>
+                </div>
+              )}
+              {account && finding && (
+                <div
+                  style={{
+                    color: "white",
+                    display: "block",
+                    textAlign: "left",
+                  }}
+                >
+                  <InfoOutlinedIcon
+                    style={{
+                      fontSize: "18px",
+                    }}
+                  />{" "}
+                  <button>
+                    {"1 " + inToken["symbol"] + " = ..." + outToken["symbol"]}
+                  </button>
+                </div>
+              )}
+              {/* Setting Icon */}
+              <span
+                onClick={() => setSetting(!setting)}
+                style={{
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                <Settings fontSize="small" />
+              </span>
+            </div>
+            {/* Setting Data */}
+            {setting ? (
+              <div className="mb-4">
+                <div className="s" style={{ float: "left", width: "100%" }}>
+                  <div className="flex justify-between mt-4">
+                    <span style={{ color: grayColor }}>Max Slippage:</span>
+                    <span style={{ color: grayColor }}>
+                      <span
+                        onClick={() => {
+                          setSlippage(0.1);
+                        }}
+                        style={{
+                          color: slippage === 0.1 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        0.1%
+                      </span>
+                      <span
+                        onClick={() => {
+                          setSlippage(0.5);
+                        }}
+                        style={{
+                          paddingLeft: "5px",
+                          color: slippage === 0.5 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        0.5%
+                      </span>
+                      <span
+                        onClick={() => {
+                          setSlippage(1);
+                        }}
+                        style={{
+                          paddingLeft: "5px",
+                          color: slippage === 1 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        1%
+                      </span>
+                    </span>
+                    <span
+                      onClick={() => {
+                        setSlippageFlag(!slippageFlag);
+                      }}
+                      style={{
+                        paddingLeft: "6px",
+                        cursor: "pointer",
+                        color: grayColor,
+                      }}
+                    >
+                      Custom
+                    </span>
+                  </div>
+
+                  {slippageFlag && (
+                    <Slider
+                      size="small"
+                      value={slippage}
+                      aria-label="Default"
+                      min={0.1}
+                      max={10}
+                      step={0.1}
+                      valueLabelDisplay="auto"
+                      getAriaValueText={valueLabelFormat}
+                      valueLabelFormat={valueLabelFormat}
+                      onChange={(e) => setSlippage(Number(e.target.value))}
+                    />
+                  )}
+                </div>
+                <div
+                  style={{
+                    marginTop: "10px",
+                    marginBottom: "10px",
+                    float: "left",
+                    width: "100%",
+                  }}
+                >
+                  <div className="flex justify-between">
+                    <span style={{ float: "left", color: grayColor }}>
+                      Time Deadline:
+                    </span>
+                    <span style={{ float: "right", color: grayColor }}>
+                      <span
+                        onClick={() => {
+                          setDeadline(30);
+                        }}
+                        style={{
+                          color: deadline === 30 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        30sec
+                      </span>
+                      <span
+                        onClick={() => {
+                          setDeadline(60);
+                        }}
+                        style={{
+                          paddingLeft: "5px",
+                          color: deadline === 60 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        1min
+                      </span>
+                      <span
+                        onClick={() => {
+                          setDeadline(120);
+                        }}
+                        style={{
+                          paddingLeft: "5px",
+                          color: deadline === 120 ? "lightblue" : "",
+                          cursor: "pointer",
+                        }}
+                      >
+                        2min
+                      </span>
+                    </span>
+                    <span
+                      onClick={() => {
+                        setDeadlineFlag(!deadlineFlag);
+                      }}
+                      style={{
+                        paddingLeft: "6px",
+                        cursor: "pointer",
+                        color: grayColor,
+                      }}
+                    >
+                      Custom
+                    </span>
+                  </div>
+
+                  {deadlineFlag && (
+                    <Slider
+                      size="small"
+                      value={deadline}
+                      aria-label="Default"
+                      min={10}
+                      max={900}
+                      step={2}
+                      valueLabelDisplay="auto"
+                      onChange={(e) => setDeadline(Number(e.target.value))}
+                    />
+                  )}
+                </div>
+                <br />
+                <br />
               </div>
-            }
-            {(account && !finding && !isExist) &&
-              <div style={{ color: "white", display: "block", textAlign: "left", margin: "10px 0px", float: "left", width: "100%" }}>
+            ) : null}
+            <hr className="border-1 border-gray-600 py-4" />
+            {/* Price Impact and Other Setting */}
+            {account && !finding && !isExist && (
+              <div
+                style={{
+                  color: "white",
+                  display: "block",
+                  textAlign: "left",
+                  margin: "10px 0px",
+                  float: "left",
+                  width: "100%",
+                }}
+              >
                 <span style={{ color: "red" }}>No exchange rate available</span>
               </div>
-            }
+            )}
             <div style={{ textAlign: "left" }}>
               <div>
                 <span style={{ textAlign: "start", color: "white" }}>
                   Price Impact:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+                  <span style={{ textAlign: "right", color: "white" }}>
+                    {priceImpact}%
+                  </span>
                 </div>
               </div>
               <div style={{ marginTop: "5px" }}>
@@ -1087,157 +1475,214 @@ export default function Swap() {
                   Minimum Output after Slippage:
                 </span>
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>{numFormat(valueEth * (1 - slippage * 0.01))}</span>
+                  <span style={{ textAlign: "right", color: "white" }}>
+                    {numFormat(valueEth * (1 - slippage * 0.01))}
+                  </span>
                 </div>
               </div>
               <div>
-                {account &&
+                {account && (
                   <>
-                    {isExist && !finding &&
+                    {isExist && !finding && (
                       <>
-                        {(limitedout || Number(inValue) === 0) ? (
+                        {limitedout || Number(inValue) === 0 ? (
                           <Button
                             size="large"
                             variant="contained"
-                            sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                            sx={{
+                              width: "100%",
+                              padding: 2,
+                              fontWeight: "bold",
+                              mt: 2,
+                            }}
                             className="btn-disabled font-bold"
                             disabled={true}
                             style={{
                               textAlign: "center",
                               background:
                                 "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
-                              color: "#ddd"
+                              color: "#ddd",
                             }}
                           >
-                            {Number(inBal) <= 0 ? "Insufficient Balance" : "Input the token amount"}
+                            {Number(inBal) <= 0
+                              ? "Insufficient Balance"
+                              : "Input the token amount"}
+                          </Button>
+                        ) : approval ? (
+                          <Button
+                            size="large"
+                            variant="contained"
+                            sx={{
+                              width: "100%",
+                              padding: 2,
+                              fontWeight: "bold",
+                              mt: 2,
+                            }}
+                            onClick={executeSwap}
+                            style={{
+                              background: swapping
+                                ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)"
+                                : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                              color: swapping ? "#ddd" : "#fff",
+                              textAlign: "center",
+                            }}
+                            className={
+                              swapping
+                                ? "btn-disabled font-bold w-full dark:text-black flex-1"
+                                : "btn-primary font-bold w-full dark:text-black flex-1"
+                            }
+                            disabled={swapping}
+                          >
+                            {swapping ? "Swap in progress" : "Swap"}
                           </Button>
                         ) : (
-                          approval ? (
-                            <Button
-                              size="large"
-                              variant="contained"
-                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                              onClick={executeSwap}
-                              style={{
-                                background: swapping ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                                color: swapping ? "#ddd" : "#fff",
-                                textAlign: "center",
-                              }}
-                              className={
-                                swapping
-                                  ? "btn-disabled font-bold w-full dark:text-black flex-1"
-                                  : "btn-primary font-bold w-full dark:text-black flex-1"
-                              }
-                              disabled={swapping}
-                            >
-                              {swapping ? "Swap in progress" : "Swap Now"}
-                            </Button>
-                          ) : (
-                            <>
-                              <div className="flex">
-                                <Button
-                                  size="large"
-                                  variant="contained"
-                                  sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                                  onClick={() =>
-                                    approveTk(Number(inValue))
-                                  }
-                                  style={{
-                                    background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                                    color: (limitedout || unlocking) ? "#ddd" : "#fff",
-                                    textAlign: "center",
-                                    marginRight: "8px"
-                                  }}
-                                  className={
-                                    approval
-                                      ? "btn-primary flex-1"
-                                      : ((limitedout || unlocking) ? "flex-1" : "flex-1")
-                                  }
-                                  disabled={limitedout || unlocking}
-                                >
-                                  {unlocking ? "Unlocking..." : "Unlock " + numFormat(inValue - approvedVal) + " " + inToken["value"]}
-                                </Button>
-                                <Button
-                                  size="large"
-                                  variant="contained"
-                                  sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
-                                  onClick={() => approveTk(9999999999)}
-                                  style={{
-                                    background: (limitedout || unlocking) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                                    color: (limitedout || unlocking) ? "#ddd" : "#fff",
-                                    textAlign: "center",
-                                    marginLeft: "8px"
-                                  }}
-                                  className={
-                                    approval
-                                      ? "flex-1"
-                                      : ((limitedout || unlocking) ? "flex-1" : "flex-1")
-                                  }
-                                  disabled={limitedout || unlocking}
-                                >
-                                  {unlocking ? "Unlocking..." : "Infinite Unlock"}
-                                </Button>
-                              </div>
-                              <div className="text-red-700 flex items-center pt-1.5">
-                                <p className="text-small" style={{ color: "#b91c1c" }}>
-                                  To proceed swapping, please unlock{" "}
-                                  {inToken["value"].toUpperCase()} first.
-                                </p>
-                              </div>
-                            </>
-                          )
-                        )
-                        }
+                          <>
+                            <div className="flex">
+                              <Button
+                                size="large"
+                                variant="contained"
+                                sx={{
+                                  width: "100%",
+                                  padding: 2,
+                                  fontWeight: "bold",
+                                  mt: 2,
+                                }}
+                                onClick={() => approveTk(Number(inValue))}
+                                style={{
+                                  background:
+                                    limitedout || unlocking
+                                      ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)"
+                                      : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                  color:
+                                    limitedout || unlocking ? "#ddd" : "#fff",
+                                  textAlign: "center",
+                                  marginRight: "8px",
+                                }}
+                                className={
+                                  approval
+                                    ? "btn-primary flex-1"
+                                    : limitedout || unlocking
+                                    ? "flex-1"
+                                    : "flex-1"
+                                }
+                                disabled={limitedout || unlocking}
+                              >
+                                {unlocking
+                                  ? "Unlocking..."
+                                  : "Unlock " +
+                                    numFormat(inValue - approvedVal) +
+                                    " " +
+                                    inToken["value"]}
+                              </Button>
+                              <Button
+                                size="large"
+                                variant="contained"
+                                sx={{
+                                  width: "100%",
+                                  padding: 2,
+                                  fontWeight: "bold",
+                                  mt: 2,
+                                }}
+                                onClick={() => approveTk(9999999999)}
+                                style={{
+                                  background:
+                                    limitedout || unlocking
+                                      ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)"
+                                      : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                  color:
+                                    limitedout || unlocking ? "#ddd" : "#fff",
+                                  textAlign: "center",
+                                  marginLeft: "8px",
+                                }}
+                                className={
+                                  approval
+                                    ? "flex-1"
+                                    : limitedout || unlocking
+                                    ? "flex-1"
+                                    : "flex-1"
+                                }
+                                disabled={limitedout || unlocking}
+                              >
+                                {unlocking ? "Unlocking..." : "Infinite Unlock"}
+                              </Button>
+                            </div>
+                            <div className="text-red-700 flex items-center pt-1.5">
+                              <p
+                                className="text-small"
+                                style={{ color: "#b91c1c" }}
+                              >
+                                To proceed swapping, please unlock{" "}
+                                {inToken["value"].toUpperCase()} first.
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </>
-                    }
-                    {!isExist && !finding &&
+                    )}
+                    {!isExist && !finding && (
                       <Button
                         size="large"
                         variant="contained"
-                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        sx={{
+                          width: "100%",
+                          padding: 2,
+                          fontWeight: "bold",
+                          mt: 2,
+                        }}
                         className="btn-disabled font-bold"
                         disabled={true}
                         style={{
                           textAlign: "center",
                           background:
                             "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
-                          color: "#ddd"
+                          color: "#ddd",
                         }}
                       >
                         No router
                       </Button>
-                    }
-                    {finding &&
+                    )}
+                    {finding && (
                       <Button
                         size="large"
                         variant="contained"
-                        sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                        sx={{
+                          width: "100%",
+                          padding: 2,
+                          fontWeight: "bold",
+                          mt: 2,
+                        }}
                         className="btn-disabled font-bold"
                         disabled={true}
                         style={{
                           textAlign: "center",
                           background:
                             "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
-                          color: "#ddd"
+                          color: "#ddd",
                         }}
                       >
                         Finding Router...
                       </Button>
-                    }
+                    )}
                   </>
-                }
+                )}
                 {!account && (
                   <Button
                     size={isMobile ? "small" : "large"}
                     variant="contained"
-                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    sx={{
+                      width: "100%",
+                      padding: 2,
+                      fontWeight: "bold",
+                      mt: 2,
+                    }}
                     onClick={clickConWallet}
                     style={{
-                      background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      background:
+                        "linear-gradient(to right bottom, #13a8ff, #0074f0)",
                       color: "#fff",
                       textAlign: "center",
                       marginRight: "8px",
-                      maxHeight: 57
+                      maxHeight: 57,
                     }}
                     className="btn-primary font-bold w-full dark:text-black flex-1"
                   >
@@ -1248,38 +1693,80 @@ export default function Swap() {
             </div>
           </Item>
         </Grid>
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
-            {!isExist && !finding &&
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          md={7}
+          sx={{ mt: 2 }}
+          className="chart__main"
+        >
+          <Item
+            sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }}
+            style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+            className="chart"
+          >
+            {!isExist && !finding && (
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No price chart available!</p>
+                <p
+                  style={{ color: "white", fontSize: "18px", paddingTop: 160 }}
+                >
+                  No price chart available!
+                </p>
               </div>
-            }
+            )}
 
-            {finding &&
+            {finding && (
               <div style={{ minHeight: "374px", textAlign: "center" }}>
                 <CircularProgress style={{ marginTop: "155px" }} />
               </div>
-            }
+            )}
 
-            {(isExist && !finding && noChartData) &&
+            {isExist && !finding && noChartData && (
               <div style={{ minHeight: "374px", textAlign: "center" }}>
-                <p style={{ color: "white", fontSize: "18px", paddingTop: 160 }}>No chart data available</p>
+                <p
+                  style={{ color: "white", fontSize: "18px", paddingTop: 160 }}
+                >
+                  No chart data available
+                </p>
               </div>
-            }
-            <div style={{ display: (noChartData || !isExist || finding) ? "none" : "block" }}>
-              <p style={{ color: "white", fontSize: "15px", fontWeight: "bold", float: "left" }}>{inToken["symbol"]} / {outToken["symbol"]}</p>
+            )}
+            <div
+              style={{
+                display: noChartData || !isExist || finding ? "none" : "block",
+              }}
+            >
+              <p
+                style={{
+                  color: "white",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  float: "left",
+                }}
+              >
+                {inToken["symbol"]} / {outToken["symbol"]}
+              </p>
               <div ref={chartRef} className="w-full" />
             </div>
             {/* <div ref={switchRef} /> */}
           </Item>
-          {account &&
-            <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
-              <span style={{ textAlign: "start", color: "white" }}>History:</span>
+          {account && (
+            <Item
+              sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }}
+              style={{
+                backgroundColor: "#12122c",
+                textAlign: "left",
+                borderRadius: "10px",
+              }}
+              className="history"
+            >
+              <span style={{ textAlign: "start", color: "white" }}>
+                History:
+              </span>
               <hr></hr>
               <History type="swap" data={transactionsData} />
             </Item>
-          }
+          )}
         </Grid>
         <Modal
           open={mopen}
@@ -1288,7 +1775,12 @@ export default function Swap() {
           aria-describedby="modal-modal-description"
         >
           <StyledModal className="bg-modal">
-            <h3 className="model-title mb-6 text-wight" style={{ color: "#fff" }}>Select Token</h3>
+            <h3
+              className="model-title mb-6 text-wight"
+              style={{ color: "#fff" }}
+            >
+              Select Token
+            </h3>
             <TextField
               autoFocus={true}
               value={query}
@@ -1303,7 +1795,10 @@ export default function Swap() {
               }}
             />
             <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
+            <ul
+              className="flex flex-col gap-y-2"
+              style={{ overflowY: "scroll" }}
+            >
               {filterData.map((item) => {
                 const { address, logoURL, symbol } = item;
                 return (

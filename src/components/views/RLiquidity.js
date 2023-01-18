@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
-import History from './History';
+import History from "./History";
 import {
   Paper,
   Grid,
@@ -13,14 +13,16 @@ import {
   InputBase,
   useMediaQuery,
   Typography,
-  TextField
+  TextField,
 } from "@mui/material";
-import {
-  Settings,
-} from "@mui/icons-material";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { Settings } from "@mui/icons-material";
 import tw from "twin.macro";
 import SwapCmp from "./SwapCmp";
-import { useWeightsData, useExitTransactionsData } from "../../config/chartData";
+import {
+  useWeightsData,
+  useExitTransactionsData,
+} from "../../config/chartData";
 import {
   getPoolData,
   getPoolBalance,
@@ -28,18 +30,11 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
-  toLongNum
+  toLongNum,
 } from "../../config/web3";
 import { poolList, uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
-import {
-  LineChart,
-  Line,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { createChart } from "lightweight-charts";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -79,7 +74,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
       borderRadius: 4,
       borderColor: "#80bdff",
       boxShadow: "0 0 0 0.2rem rgba(0,123,255,.25)",
-      color: "white"
+      color: "white",
     },
   },
   icon: {
@@ -116,6 +111,10 @@ export default function RLiquidity() {
   const exitTransactionsData = useExitTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
 
+  const [noChartData, setNoChartData] = useState(false);
+  const chartOneRef = useRef();
+  const chartTwoRef = useRef();
+
   const StyledModal = tw.div`
     flex
     flex-col
@@ -131,7 +130,7 @@ export default function RLiquidity() {
 
   const clickConWallet = () => {
     document.getElementById("connect_wallet_btn").click();
-  }
+  };
 
   const handleOpen = () => {
     setQuery("");
@@ -150,15 +149,24 @@ export default function RLiquidity() {
   const handleSlider = async (event) => {
     setLpPercentage(event.target.value);
     setValue(poolAmount * (event.target.value / 100));
-    await calculateOutput(totalLPTokens, poolAmount * (event.target.value / 100), weightA, tokenA, tokenB);
+    await calculateOutput(
+      totalLPTokens,
+      poolAmount * (event.target.value / 100),
+      weightA,
+      tokenA,
+      tokenB
+    );
   };
 
-  const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
+  const calculateOutput = async (
+    totalLkTk,
+    inValue,
+    weight1,
+    token1,
+    token2
+  ) => {
     const provider = await connector.getProvider();
-    const poolData = await getPoolData(
-      provider,
-      selectedItem["address"]
-    );
+    const poolData = await getPoolData(provider, selectedItem["address"]);
 
     let removeingPercentage = inValue / (Number(totalLkTk) + 0.0000000001);
     let standardOutA = removeingPercentage * poolData.balances[0];
@@ -169,20 +177,32 @@ export default function RLiquidity() {
     let outB = 0;
     if (reqWeightB < Number(poolData.weights[1])) {
       outB = (standardOutB / poolData.weights[1]) * reqWeightB;
-      let extraA = await
-        calculateSwap(poolData.tokens[1], poolData, numFormat((standardOutB - outB) / 10 ** poolData.decimals[1])) *
+      let extraA =
+        (await calculateSwap(
+          poolData.tokens[1],
+          poolData,
+          numFormat((standardOutB - outB) / 10 ** poolData.decimals[1])
+        )) *
         10 ** poolData.decimals[0];
       outA = standardOutA + extraA;
     } else {
       outA = (standardOutA / poolData.weights[0]) * reqWeightA;
-      let extraB = await
-        calculateSwap(poolData.tokens[0], poolData, numFormat((standardOutA - outA) / 10 ** poolData.decimals[0])) *
+      let extraB =
+        (await calculateSwap(
+          poolData.tokens[0],
+          poolData,
+          numFormat((standardOutA - outA) / 10 ** poolData.decimals[0])
+        )) *
         10 ** poolData.decimals[1];
       outB = standardOutB + extraB;
     }
 
-    const vaueA = Math.floor(outA).toLocaleString("fullwide", { useGrouping: false });
-    const vaueB = Math.floor(outB).toLocaleString("fullwide", { useGrouping: false });
+    const vaueA = Math.floor(outA).toLocaleString("fullwide", {
+      useGrouping: false,
+    });
+    const vaueB = Math.floor(outB).toLocaleString("fullwide", {
+      useGrouping: false,
+    });
     const amount1 = fromWeiVal(provider, vaueA, poolData.decimals[0]);
     const amount2 = fromWeiVal(provider, vaueB, poolData.decimals[1]);
     setOutTokenA(amount1);
@@ -221,27 +241,47 @@ export default function RLiquidity() {
       amount2 = inVal;
     }
 
-    let price = (balance_to / 10 ** decimal_to) / weight_to / ((balance_from / 10 ** decimal_from) / weight_from);
+    let price =
+      balance_to /
+      10 ** decimal_to /
+      weight_to /
+      (balance_from / 10 ** decimal_from / weight_from);
     let remain_amount = 0;
     if (amount1 > amount2 * price) {
-      remain_amount = (amount1 - amount2 * price) / (price);
+      remain_amount = (amount1 - amount2 * price) / price;
       let amountOut = await calculateSwap(
-        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token2.address : token1.address,
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase()
+          ? token2.address
+          : token1.address,
         poolData,
         remain_amount
       );
-      setPriceImpact(numFormat((amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100));
+      setPriceImpact(
+        numFormat(
+          (amountOut / (remain_amount * price + 0.000000000000001) - 1) * 100
+        )
+      );
     } else {
-      remain_amount = (amount2 * price - amount1);
+      remain_amount = amount2 * price - amount1;
       let amountOut = await calculateSwap(
-        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase() ? token1.address : token2.address,
+        token1.address.toLowerCase() === poolData.tokens[0].toLowerCase()
+          ? token1.address
+          : token2.address,
         poolData,
         remain_amount
       );
 
-      setPriceImpact(numFormat((amountOut / (remain_amount / (price + 0.000000000000000001) + 0.0000000000000001) - 1) * 100));
+      setPriceImpact(
+        numFormat(
+          (amountOut /
+            (remain_amount / (price + 0.000000000000000001) +
+              0.0000000000000001) -
+            1) *
+            100
+        )
+      );
     }
-  }
+  };
 
   const filterLP = (e) => {
     let search_qr = e.target.value;
@@ -261,25 +301,22 @@ export default function RLiquidity() {
 
   const getStatusData = async () => {
     const result1 = uniList[selected_chain].filter((item) => {
-      return item.symbol === selectedItem['symbols'][0];
+      return item.symbol === selectedItem["symbols"][0];
     });
 
     setTokenA(result1[0]);
 
     const result2 = uniList[selected_chain].filter((item) => {
-      return item.symbol === selectedItem['symbols'][1];
+      return item.symbol === selectedItem["symbols"][1];
     });
 
     setTokenB(result2[0]);
     if (account) {
       const provider = await connector.getProvider();
-      const poolData = await getPoolData(
-        provider,
-        selectedItem["address"]
-      );
+      const poolData = await getPoolData(provider, selectedItem["address"]);
       const weight1 = fromWeiVal(provider, poolData["weights"][0], "18");
       setWeightA(weight1);
-      setScale((weight1 * 100));
+      setScale(weight1 * 100);
 
       // const result1 = uniList[selected_chain].filter((item) => {
       //   return item.address.toLowerCase() === poolData["tokens"][0].toLowerCase();
@@ -305,9 +342,15 @@ export default function RLiquidity() {
         selectedItem["address"]
       );
       setTotalLPTokens(totalLPAmount);
-      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1, result1[0], result2[0]);
+      await calculateOutput(
+        totalLPAmount,
+        (amount * lpPercentage) / 100,
+        weight1,
+        result1[0],
+        result2[0]
+      );
     }
-  }
+  };
 
   const selectToken = async (item) => {
     handleClose();
@@ -318,8 +361,10 @@ export default function RLiquidity() {
     if (!(Number(value) <= 0)) {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
-      let real_val = Number((Math.floor(poolAmount * Math.pow(10, 9)) / Math.pow(10, 9)).toFixed(9));
-      real_val = toLongNum(real_val*lpPercentage/100);
+      let real_val = Number(
+        (Math.floor(poolAmount * Math.pow(10, 9)) / Math.pow(10, 9)).toFixed(9)
+      );
+      real_val = toLongNum((real_val * lpPercentage) / 100);
       setRemoving(true);
       await removePool(
         account,
@@ -339,19 +384,15 @@ export default function RLiquidity() {
   };
 
   const numFormat = (val) => {
-    if (Math.abs(val) > 1)
-      return Number(val).toFixed(2) * 1;
-    else if (Math.abs(val) > 0.001)
-      return Number(val).toFixed(4) * 1;
-    else if (Math.abs(val) > 0.00001)
-      return Number(val).toFixed(6) * 1;
-    else
-      return toLongNum(Number(val).toFixed(8));
-  }
+    if (Math.abs(val) > 1) return Number(val).toFixed(2) * 1;
+    else if (Math.abs(val) > 0.001) return Number(val).toFixed(4) * 1;
+    else if (Math.abs(val) > 0.00001) return Number(val).toFixed(6) * 1;
+    else return toLongNum(Number(val).toFixed(8));
+  };
 
   const valueLabelFormat = (value) => {
     return value + "%";
-  }
+  };
 
   const CustomTooltip0 = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -456,9 +497,12 @@ export default function RLiquidity() {
 
   const transactionsData = useMemo(() => {
     if (account) {
-      if (exitTransactionsData.exits && exitTransactionsData.exits.length !== 0) {
+      if (
+        exitTransactionsData.exits &&
+        exitTransactionsData.exits.length !== 0
+      ) {
         let result = [];
-        result = exitTransactionsData.exits.map(item => {
+        result = exitTransactionsData.exits.map((item) => {
           return item;
         });
         return result;
@@ -471,34 +515,30 @@ export default function RLiquidity() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exitTransactionsData]);
 
-
   useEffect(() => {
     getStatusData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedItem])
+  }, [selectedItem]);
 
   useEffect(() => {
     const result1 = uniList[selected_chain].filter((item) => {
-      return item.symbol === selectedItem['symbols'][0];
+      return item.symbol === selectedItem["symbols"][0];
     });
 
     setTokenA(result1[0]);
 
     const result2 = uniList[selected_chain].filter((item) => {
-      return item.symbol === selectedItem['symbols'][1];
+      return item.symbol === selectedItem["symbols"][1];
     });
 
     setTokenB(result2[0]);
     if (account) {
       const getInfo = async () => {
         const provider = await connector.getProvider();
-        const pData = await getPoolData(
-          provider,
-          selectedItem["address"]
-        );
+        const pData = await getPoolData(provider, selectedItem["address"]);
         const weight1 = fromWeiVal(provider, pData["weights"][1], "18");
         setWeightA(weight1);
-        setScale((weight1 * 100));
+        setScale(weight1 * 100);
 
         // const result1 = uniList[selected_chain].filter((item) => {
         //   return item.address.toLowerCase() === pData["tokens"][0].toLowerCase();
@@ -517,10 +557,7 @@ export default function RLiquidity() {
           provider,
           selectedItem["address"]
         );
-        let amount2 = await getPoolSupply(
-          provider,
-          selectedItem["address"]
-        );
+        let amount2 = await getPoolSupply(provider, selectedItem["address"]);
         setPoolAmount(amount);
         amount = numFormat(amount);
         setTotalLPTokens(amount2);
@@ -548,6 +585,165 @@ export default function RLiquidity() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain, account]);
 
+  const formattedWeightsDataOne = useMemo(() => {
+    if (weightData && weightData.weights) {
+      return weightData.weights.map((item, index) => {
+        var tempArr = {};
+        tempArr["time"] = Number(item.timestamp);
+        tempArr["value"] = Number(Number(item.weight0).toFixed(2));
+        return tempArr;
+      });
+    } else {
+      return [];
+    }
+  }, [weightData]);
+
+  const formattedWeightsDataTwo = useMemo(() => {
+    if (weightData && weightData.weights) {
+      return weightData.weights.map((item, index) => {
+        var tempArr = {};
+        tempArr["time"] = Number(item.timestamp);
+        tempArr["value"] = Number(Number(item.weight0).toFixed(2));
+        return tempArr;
+      });
+    } else {
+      return [];
+    }
+  }, [weightData]);
+
+  // Chart ===================================================>
+
+  var chartOne;
+  var chartTwo;
+  var areaSeriesOne = null;
+  var areaSeriesTwo = null;
+
+  console.log("Format Weight Data One:", formattedWeightsDataOne);
+  console.log("Format Weight Data One:", formattedWeightsDataTwo);
+
+  function syncToIntervalOne() {
+    areaSeriesOne = chartOne.addAreaSeries({
+      topColor: "#0580f482",
+      bottomColor: "#0580f42e",
+      lineColor: "#0580f4",
+      lineWidth: 2,
+    });
+    areaSeriesOne.applyOptions({
+      priceFormat: {
+        type: "price",
+        precision: 6,
+        minMove: 0.000001,
+      },
+    });
+    areaSeriesOne.setData(formattedWeightsDataOne);
+  }
+
+  function syncToIntervalTwo() {
+    areaSeriesTwo = chartTwo.addAreaSeries({
+      topColor: "#0580f482",
+      bottomColor: "#0580f42e",
+      lineColor: "#0580f4",
+      lineWidth: 2,
+    });
+    areaSeriesTwo.applyOptions({
+      priceFormat: {
+        type: "price",
+        precision: 6,
+        minMove: 0.000001,
+      },
+    });
+    areaSeriesTwo.setData(formattedWeightsDataTwo);
+  }
+
+  const loadChart = () => {
+    console.log(chartOneRef.current);
+    if (chartOneRef.current !== null && chartOneRef.current !== null) {
+      if (chartOneRef.current.children[0]) {
+        chartOneRef.current.removeChild(chartOneRef.current.children[0]);
+      }
+      if (chartTwoRef.current.children[0]) {
+        chartTwoRef.current.removeChild(chartTwoRef.current.children[0]);
+      }
+    } else return;
+
+    chartOne = createChart(chartOneRef.current, {
+      height: 250,
+      layout: {
+        backgroundColor: "#12122c",
+        textColor: "#d1d4dc",
+      },
+      grid: {
+        vertLines: {
+          visible: false,
+        },
+        horzLines: {
+          color: "rgba(42, 46, 57, 0.5)",
+        },
+      },
+      priceFormat: {
+        type: "price",
+        precision: 5,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      crosshair: {
+        horzLine: {
+          visible: false,
+        },
+      },
+    });
+
+    chartTwo = createChart(chartTwoRef.current, {
+      height: 250,
+      layout: {
+        backgroundColor: "#12122c",
+        textColor: "#d1d4dc",
+      },
+      grid: {
+        vertLines: {
+          visible: false,
+        },
+        horzLines: {
+          color: "rgba(42, 46, 57, 0.5)",
+        },
+      },
+      priceFormat: {
+        type: "price",
+        precision: 5,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderVisible: false,
+      },
+      crosshair: {
+        horzLine: {
+          visible: false,
+        },
+      },
+    });
+    syncToIntervalOne();
+    syncToIntervalTwo();
+  };
+
+  useEffect(() => {
+    if (formattedWeightsData && formattedWeightsData.length !== 0) {
+      setNoChartData(false);
+      loadChart();
+    } else setNoChartData(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formattedWeightsData]);
+  // Chart ===================================================<
+
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
@@ -557,8 +753,19 @@ export default function RLiquidity() {
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
         <SwapCmp />
-        <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
-          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          md={5}
+          sx={{ mt: 2 }}
+          className="home__mainC"
+        >
+          <Item
+            sx={{ pl: 3, pr: 3, pb: 2 }}
+            style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+            className="home__main"
+          >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <Typography
                 variant="h5"
@@ -568,30 +775,10 @@ export default function RLiquidity() {
               >
                 Remove Liquidity
               </Typography>
-              <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
+              {/* <span onClick={() => setSetting(!setting)} style={{ color: "white", float: "right", cursor: "pointer", marginTop: "15px" }}>
                 <Settings />
-              </span>
+              </span> */}
             </div>
-            {
-              setting ?
-                <div>
-                  <div className="s" style={{ float: "left", width: "100%" }}>
-                    <span style={{ float: "left", color: grayColor }}>
-                      Max Slippage:
-                    </span>
-                    <span style={{ float: "right", color: grayColor }}>
-                      <span onClick={() => { setSlippage(0.1); }} style={{ color: slippage === 0.1 ? "lightblue" : "", cursor: "pointer" }}>0.1%</span>
-                      <span onClick={() => { setSlippage(0.5); }} style={{ paddingLeft: "5px", color: slippage === 0.5 ? "lightblue" : "", cursor: "pointer" }}>0.5%</span>
-                      <span onClick={() => { setSlippage(1); }} style={{ paddingLeft: "5px", color: slippage === 1 ? "lightblue" : "", cursor: "pointer" }}>1%</span>
-                      <span onClick={() => { setSlippageFlag(!slippageFlag); }} style={{ paddingLeft: "5px", cursor: "pointer" }}>custom</span>
-                    </span>
-                    {slippageFlag && <Slider size="small" value={slippage} aria-label="Default" min={0.1} max={10} step={0.1} valueLabelDisplay="auto" getAriaValueText={valueLabelFormat} valueLabelFormat={valueLabelFormat} onChange={(e) => setSlippage(Number(e.target.value))} />}
-                  </div>
-                  <br />
-                  <br />
-                </div>
-                : null
-            }
             <FormControl
               sx={{ m: 0 }}
               style={{ alignItems: "flex-start", display: "inline" }}
@@ -600,7 +787,15 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                 <Button
-                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "9px" : "10px" }}
+                  style={{
+                    width: "40%",
+                    float: "left",
+                    border: "0px",
+                    padding: "9px 8px",
+                    backgroundColor: "#07071c",
+                    minHeight: "48px",
+                    fontSize: isMobile ? "9px" : "10px",
+                  }}
                   startIcon={
                     <div style={{ float: "left" }}>
                       <img
@@ -620,8 +815,8 @@ export default function RLiquidity() {
                   onClick={handleOpen}
                   className="w-36 sm:w-48"
                 >
-                  {selectedItem["symbols"][0]} -{" "}
-                  {selectedItem["symbols"][1]} LP
+                  {selectedItem["symbols"][0]} - {selectedItem["symbols"][1]} LP
+                  <KeyboardArrowDownIcon />
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -630,7 +825,7 @@ export default function RLiquidity() {
                   min={0}
                   style={{
                     color: "#FFFFFF",
-                    width: "50%",
+                    width: "60%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -649,7 +844,9 @@ export default function RLiquidity() {
             </FormControl>
             {/* </FormControl> */}
             <div style={{ width: "100%" }}>
-              <span style={{ float: "left", color: grayColor, paddingTop: "7px" }}>
+              <span
+                style={{ float: "left", color: grayColor, paddingTop: "7px" }}
+              >
                 Percentage to remove:
               </span>
               <Slider
@@ -658,7 +855,8 @@ export default function RLiquidity() {
                 step={0.01}
                 aria-label="Small"
                 valueLabelDisplay="auto"
-                onChange={handleSlider} />
+                onChange={handleSlider}
+              />
             </div>
             {/* Drop down 2 Start  */}
             <FormControl
@@ -668,17 +866,23 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
                 <Button
-                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                  style={{
+                    width: "30%",
+                    float: "left",
+                    border: "0px",
+                    padding: "9px 8px",
+                    fontSize: "13px",
+                    backgroundColor: "#07071c",
+                    color: "white",
+                    minHeight: 49,
+                  }}
                   startIcon={
-                    <img
-                      src={tokenB.logoURL}
-                      alt=""
-                      style={{ height: 30 }}
-                    />
+                    <img src={tokenB.logoURL} alt="" style={{ height: 30 }} />
                   }
                   disabled={true}
                 >
                   {tokenB.symbol}
+                  <KeyboardArrowDownIcon />
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -686,7 +890,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenB)}
                   style={{
                     color: "#FFFFFF",
-                    width: "50%",
+                    width: "70%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -706,17 +910,23 @@ export default function RLiquidity() {
             >
               <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
                 <Button
-                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                  style={{
+                    width: "30%",
+                    float: "left",
+                    border: "0px",
+                    padding: "9px 8px",
+                    fontSize: "13px",
+                    backgroundColor: "#07071c",
+                    color: "white",
+                    minHeight: 49,
+                  }}
                   startIcon={
-                    <img
-                      src={tokenA.logoURL}
-                      alt=""
-                      style={{ height: 30 }}
-                    />
+                    <img src={tokenA.logoURL} alt="" style={{ height: 30 }} />
                   }
                   disabled={true}
                 >
                   {tokenA.symbol}
+                  <KeyboardArrowDownIcon />
                 </Button>
                 <BootstrapInput
                   id="demo-customized-textbox"
@@ -724,7 +934,7 @@ export default function RLiquidity() {
                   value={numFormat(outTokenA)}
                   style={{
                     color: "#FFFFFF",
-                    width: "50%",
+                    width: "70%",
                     float: "left",
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
@@ -736,9 +946,99 @@ export default function RLiquidity() {
             </FormControl>
             <br />
             <br />
-            <div style={{ color: "white", display: "block", textAlign: "left", marginTop: "9px", marginBottom: "12px" }}>
-              <span>Ratio {numFormat(scale)}% {tokenB.symbol} - {numFormat(100 - scale)}% {tokenA.symbol}</span>
+            <div className="flex justify-between mt-4">
+              {" "}
+              <div
+                style={{
+                  color: "white",
+                  display: "block",
+                  textAlign: "left",
+                  marginBottom: "12px",
+                }}
+              >
+                <span>
+                  Ratio {numFormat(scale)}% {tokenB.symbol} -{" "}
+                  {numFormat(100 - scale)}% {tokenA.symbol}
+                </span>
+              </div>
+              <span
+                onClick={() => setSetting(!setting)}
+                style={{ color: "white", float: "right", cursor: "pointer" }}
+              >
+                <Settings />
+              </span>
             </div>
+            {setting ? (
+              <div>
+                <div className="s" style={{ float: "left", width: "100%" }}>
+                  <span style={{ float: "left", color: grayColor }}>
+                    Max Slippage:
+                  </span>
+                  <span style={{ float: "right", color: grayColor }}>
+                    <span
+                      onClick={() => {
+                        setSlippage(0.1);
+                      }}
+                      style={{
+                        color: slippage === 0.1 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      0.1%
+                    </span>
+                    <span
+                      onClick={() => {
+                        setSlippage(0.5);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: slippage === 0.5 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      0.5%
+                    </span>
+                    <span
+                      onClick={() => {
+                        setSlippage(1);
+                      }}
+                      style={{
+                        paddingLeft: "5px",
+                        color: slippage === 1 ? "lightblue" : "",
+                        cursor: "pointer",
+                      }}
+                    >
+                      1%
+                    </span>
+                    <span
+                      onClick={() => {
+                        setSlippageFlag(!slippageFlag);
+                      }}
+                      style={{ paddingLeft: "5px", cursor: "pointer" }}
+                    >
+                      custom
+                    </span>
+                  </span>
+                  {slippageFlag && (
+                    <Slider
+                      size="small"
+                      value={slippage}
+                      aria-label="Default"
+                      min={0.1}
+                      max={10}
+                      step={0.1}
+                      valueLabelDisplay="auto"
+                      getAriaValueText={valueLabelFormat}
+                      valueLabelFormat={valueLabelFormat}
+                      onChange={(e) => setSlippage(Number(e.target.value))}
+                    />
+                  )}
+                </div>
+                <br />
+                <br />
+              </div>
+            ) : null}
+
             <div className="mt-2">
               <div className="s" sx={{ width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
@@ -760,7 +1060,9 @@ export default function RLiquidity() {
                 Price Impact:
               </span>
               <div style={{ float: "right", display: "inline" }}>
-                <span style={{ textAlign: "right", color: "white" }}>{priceImpact}%</span>
+                <span style={{ textAlign: "right", color: "white" }}>
+                  {priceImpact}%
+                </span>
               </div>
             </div>
             <div style={{ textAlign: "left" }}>
@@ -787,57 +1089,87 @@ export default function RLiquidity() {
                 </div>
               </div> */}
               <div className="">
-                {account &&
+                {account && (
                   <Button
                     size={isMobile ? "small" : "large"}
                     variant="contained"
-                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    sx={{
+                      width: "100%",
+                      padding: 2,
+                      fontWeight: "bold",
+                      mt: 2,
+                    }}
                     onClick={executeRemovePool}
                     style={{
-                      background: (Number(value) === 0 || removing) ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                      color: (Number(value) === 0 || removing) ? "#ddd" : "#fff",
+                      background:
+                        Number(value) === 0 || removing
+                          ? "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)"
+                          : "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      color: Number(value) === 0 || removing ? "#ddd" : "#fff",
                     }}
                     disabled={Number(value) === 0 || removing}
                   >
-                    {Number(numFormat(poolAmount)) === 0 ? "No Liquidity Found" :
-                      (Number(value) === 0
-                        ? "Define your Liquidity Input"
-                        : (removing ? "Removing Liquidity" : "Confirm")
-                      )
-                    }
+                    {Number(numFormat(poolAmount)) === 0
+                      ? "No Liquidity Found"
+                      : Number(value) === 0
+                      ? "Define your Liquidity Input"
+                      : removing
+                      ? "Removing Liquidity"
+                      : "Confirm"}
                   </Button>
-                }
-                {!account &&
+                )}
+                {!account && (
                   <Button
                     size={isMobile ? "small" : "large"}
                     variant="contained"
-                    sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                    sx={{
+                      width: "100%",
+                      padding: 2,
+                      fontWeight: "bold",
+                      mt: 2,
+                    }}
                     onClick={clickConWallet}
                     style={{
-                      background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                      background:
+                        "linear-gradient(to right bottom, #13a8ff, #0074f0)",
                       color: "#fff",
                       textAlign: "center",
                       marginRight: "8px",
-                      maxHeight: 57
+                      maxHeight: 57,
                     }}
                     className="btn-primary font-bold w-full dark:text-black flex-1"
                   >
                     {"Connect to Wallet"}
                   </Button>
-                }
+                )}
               </div>
             </div>
           </Item>
         </Grid>
-        <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }} className="chart__main">
-          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="chart">
+        <Grid
+          item
+          xs={12}
+          sm={12}
+          md={7}
+          sx={{ mt: 2 }}
+          className="chart__main"
+        >
+          <Item
+            sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }}
+            style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+            className="chart"
+          >
             <div className="flex-1 w-full mb-4">
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-2" style={{ fontSize: 18, color: "white" }}>
+                <h3
+                  className="model-title mb-2"
+                  style={{ fontSize: 18, color: "white" }}
+                >
                   <b>{formattedWeightsData[0]["token0"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              <div ref={chartOneRef} className="w-full" />
+              {/* <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={isMobile ? 400 : 500}
                   height={200}
@@ -851,7 +1183,6 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip0 />} />
                   <Line
@@ -862,13 +1193,17 @@ export default function RLiquidity() {
                     strokeWidth={2}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer> */}
               {formattedWeightsData[0] && (
-                <h3 className="model-title mb-2 mt-4" style={{ fontSize: 18, color: "white" }}>
+                <h3
+                  className="model-title mb-2 mt-4"
+                  style={{ fontSize: 18, color: "white" }}
+                >
                   <b>{formattedWeightsData[0]["token1"]}</b> weight
                 </h3>
               )}
-              <ResponsiveContainer width="95%" height={250}>
+              <div ref={chartTwoRef} className="w-full" />
+              {/* <ResponsiveContainer width="95%" height={250}>
                 <LineChart
                   width={isMobile ? 400 : 500}
                   height={200}
@@ -882,7 +1217,6 @@ export default function RLiquidity() {
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* <XAxis dataKey="name" /> */}
                   <YAxis ticks={[0, 0.2, 0.4, 0.6, 0.8, 1]} />
                   <Tooltip content={<CustomTooltip1 />} />
                   <Line
@@ -892,25 +1226,33 @@ export default function RLiquidity() {
                     fill="#82ca9d"
                     strokeWidth={2}
                   />
-                  {/* <Brush height={25} /> */}
                 </LineChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer> */}
             </div>
           </Item>
-          {account &&
-            <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
-              <span style={{ textAlign: "start", color: "white" }}>History:</span>
+          {account && (
+            <Item
+              sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }}
+              style={{
+                backgroundColor: "#12122c",
+                textAlign: "left",
+                borderRadius: "10px",
+              }}
+              className="history"
+            >
+              <span style={{ textAlign: "start", color: "white" }}>
+                History:
+              </span>
               <hr></hr>
               <History type="exit" data={transactionsData} />
             </Item>
-          }
+          )}
         </Grid>
-        <Modal
-          open={open}
-          onClose={handleClose}
-        >
+        <Modal open={open} onClose={handleClose}>
           <StyledModal className="bg-modal">
-            <h3 className="model-title mb-6" style={{ color: "#fff" }}>Remove Liquidity</h3>
+            <h3 className="model-title mb-6" style={{ color: "#fff" }}>
+              Remove Liquidity
+            </h3>
             <TextField
               autoFocus={true}
               value={query}
@@ -925,7 +1267,10 @@ export default function RLiquidity() {
               }}
             />
             <hr className="my-6" />
-            <ul className="flex flex-col gap-y-6" style={{ overflowY: "scroll" }}>
+            <ul
+              className="flex flex-col gap-y-6"
+              style={{ overflowY: "scroll" }}
+            >
               {filterData.map((item, index) => {
                 return (
                   <li
@@ -942,7 +1287,7 @@ export default function RLiquidity() {
                         alt=""
                       />
                     </div>
-                    <p className="text-light-primary text-lg" >
+                    <p className="text-light-primary text-lg">
                       {item["symbols"][0]} - {item["symbols"][1]} LP Token
                     </p>
                   </li>
