@@ -181,7 +181,7 @@ export default function PDashboard() {
           item
           xs={12}
           sm={12}
-          md={5}
+          md={6}
           sx={{ mt: 2 }}
           className="home__mainC"
         >
@@ -316,8 +316,10 @@ export default function PDashboard() {
                             </th>
                             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                               <h3 className="text-left font-medium">
-                                {/* {utils.formatEther(pool?.totalSupply)} */}
-                                {pool?.totalSupply}
+                                {/* {utils.formatEther(pool?.totalSupply)} */}$
+                                {pool?.totalSupply
+                                  ?.toString()
+                                  .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")}
                               </h3>
                             </td>
                             {/* <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
@@ -346,7 +348,7 @@ export default function PDashboard() {
           item
           xs={12}
           sm={12}
-          md={7}
+          md={6}
           sx={{ mt: 2 }}
           className="chart__main"
         >

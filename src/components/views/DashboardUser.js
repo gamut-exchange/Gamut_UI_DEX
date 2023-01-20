@@ -7,6 +7,7 @@ import "./Navigation.css";
 import { Grid, Paper } from "@mui/material";
 import DashboardCmp from "./DashboardCmp";
 import { getERC20, getERC20Transactions } from "./../../services/MolarisAPI";
+import { getKavaERC20, getKavaTx } from "./../../services/KavaAPI";
 import { poolList, contractAddresses } from "../../config/constants";
 import { getWalletTVL, getHoldingInLP } from "../../config/web3";
 
@@ -29,15 +30,24 @@ export default function UDashboard() {
   const [walletTVL, setWalletTVL] = useState(0);
 
   const fetchUserData = () => {
-    // Get User ERC20
-    getERC20(account).then((responce) => {
-      console.log("Get ERC20 Responce:", responce);
+    // Get User ERC20 - Goerli
+    // getERC20(account).then((responce) => {
+    //   console.log("Get ERC20 Responce:", responce);
+    //   setUserERC20(responce);
+    // });
+    // Get User Transactions  - Goerli
+    // getERC20Transactions(account).then((responce) => {
+    //   // console.log("Get ERC20 Tx Data:", responce);
+    //   setUserERC20Transactions(responce?.result);
+    // });
+    // Get Kava Token
+    getKavaERC20(account).then((responce) => {
+      console.log("Kava Responce:", responce);
       setUserERC20(responce);
     });
-    // Get User Transactions
-    getERC20Transactions(account).then((responce) => {
-      console.log("Get ERC20 Tx Data:", responce);
-      setUserERC20Transactions(responce?.result);
+    getKavaTx(account).then((responce) => {
+      console.log("Kava TX:", responce);
+      setUserERC20Transactions(responce);
     });
   };
 
@@ -93,13 +103,6 @@ export default function UDashboard() {
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
             className="home__main"
           >
-            {/* <div
-              style={{ display: "flex", justifyContent: "space-between" }}
-              className="text-white"
-            >
-              <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg h-64">
-              </div>
-            </div> */}
             {/* Table Starts */}
             <div className="block w-full overflow-x-auto">
               <table className="items-center w-full border-collapse text-gray-200">
@@ -122,7 +125,7 @@ export default function UDashboard() {
                     {pools?.data?.map((pool, poolIndex) => {
                       return (
                         <tr key={poolIndex + "list"}>
-                          {console.log(poolIndex, "#", pool)}
+                          {/* {console.log(poolIndex, "#", pool)} */}
                           <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                             {poolIndex + 1}
                           </td>
@@ -189,7 +192,7 @@ export default function UDashboard() {
             User Tokens
           </h3>
           <Item
-            sx={{ pl: 3, pr: 3, pb: 2 }}
+            sx={{ pl: 1, pr: 1, pb: 1 }}
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
             className="home__main"
           >
@@ -228,7 +231,9 @@ export default function UDashboard() {
                           {token?.name}
                         </th>
                         <td className="px-6 py-4">
-                          {token?.token_address.slice(0, 6)}
+                          {token?.contractAddress?.slice(0, 6) +
+                            "..." +
+                            token?.contractAddress?.slice(38, -1)}
                         </td>
                         <td className="px-6 py-4 text-left">
                           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
@@ -278,7 +283,7 @@ export default function UDashboard() {
                         Block
                       </th>
                       <th scope="col" className="px-6 py-3">
-                        Age________
+                        TimeStamp
                       </th>
                       <th scope="col" className="px-6 py-3">
                         From
@@ -294,7 +299,7 @@ export default function UDashboard() {
                   <tbody>
                     {userERC20Transactions?.map((token, index) => (
                       <tr
-                        key={token?.block_number + index}
+                        key={token?.blockHash + index} // blockNumber
                         className={`bg-transparent text-white ${
                           index % 2 !== 0 ? " bg-gray-800" : "bg-transparent"
                         } border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:hover:bg-blue-200`}
@@ -303,16 +308,14 @@ export default function UDashboard() {
                           scope="row"
                           className="px-6 py-4 font-medium whitespace-nowrap dark:text-white"
                         >
-                          {token?.transaction_hash.slice(0, 6) +
+                          {token?.blockHash.slice(0, 6) +
                             "..." +
-                            token?.transaction_hash.slice(60, -1)}
+                            token?.blockHash.slice(60, -1)}
                         </th>
-                        <td className="px-6 py-4">{token?.block_number}</td>
-                        <td className="px-6 py-4">
-                          {token?.block_timestamp?.split("T")[0]}
-                        </td>
-                        <td className="px-6 py-4">{token?.from_address}</td>
-                        <td className="px-6 py-4">{token?.to_address}</td>
+                        <td className="px-6 py-4">{token?.blockNumber}</td>
+                        <td className="px-6 py-4">{token?.timeStamp}</td>
+                        <td className="px-6 py-4">{token?.from}</td>
+                        <td className="px-6 py-4">{token?.to}</td>
                         <td className="px-6 py-4 text-left">
                           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                           <span className="font-medium text-blue-600 dark:text-blue-500 hover:underline">

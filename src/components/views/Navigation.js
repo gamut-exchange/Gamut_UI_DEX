@@ -43,7 +43,7 @@ function Navigation() {
           margin: 0,
         }}
       >
-        <Toolbar style={{ padding: "0px", marginLeft: "10px" }}>
+        <Toolbar style={{ padding: "0px" }}>
           <Box
             sx={{
               display: { xs: "none", sm: "none", md: "block", lg: "block" },
@@ -52,7 +52,7 @@ function Navigation() {
           >
             <Link to="/" style={{ textDecoration: "none" }}>
               <button
-                className={`text-22 uppercase font-semibold border-blue-400 py-4 px-10 ${
+                className={`text-xl leading-8 uppercase font-semibold border-blue-400 py-4 px-10 ${
                   active === "home"
                     ? "border-b-2 text-blue-400"
                     : "border-0 text-white"
@@ -64,7 +64,7 @@ function Navigation() {
             </Link>
             <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
               <button
-                className={`text-22 uppercase font-semibold border-blue-400 py-4 px-5 ${
+                className={`text-xl leading-8 uppercase font-semibold border-blue-400 py-4 px-5 ${
                   active === "liquidity"
                     ? "border-b-2 text-blue-400"
                     : "border-0 text-white"
@@ -76,7 +76,7 @@ function Navigation() {
             </Link>
             <Link to="/platform_dashboard" style={{ textDecoration: "none" }}>
               <button
-                className={`text-22 uppercase font-semibold border-blue-400 py-4 px-5 ${
+                className={`text-xl leading-8 uppercase font-semibold border-blue-400 py-4 px-5 ${
                   active === "platform_dashboard"
                     ? "border-b-2 text-blue-400"
                     : "border-0 text-white"

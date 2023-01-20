@@ -90,7 +90,7 @@ function DashboardCmp() {
             className="swap_b"
           >
             <Stack
-              spacing={2}
+              // spacing={2}
               className="swap_b"
               style={{ flexDirection: isMobile ? "column" : "row" }}
             >
