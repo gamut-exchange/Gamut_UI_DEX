@@ -67,164 +67,269 @@ export const getAllPools = async (provider, account, contractAddr) => {
   let web3 = new Web3(provider);
   const factoryABI = hedgeFactoryABI[0];
   const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
-  //   console.log("Factory Contract:", factoryContract);
+  // console.log("Factory Contract:", factoryContract);
   const pAbi = poolABI[0];
   const poolContract = new web3.eth.Contract(pAbi);
+
   let pLength = await factoryContract.methods["allPoolsLength"]().call();
   //   console.log("Pool Length:", pLength);
   let pools = [];
   for (let i = 0; i < pLength; i++) {
     let poolAddress = await factoryContract.methods["allPools"](i).call();
     poolContract.options.address = poolAddress;
+    console.log(poolAddress);
+    // --------
     // let totalSupply = await poolContract.methods["totalSupply"]().call();
+    // console.log("Pool No.", i, "TS:", totalSupply, ":", poolContract);
+    // --------
+    console.log("Pool #", i, ":", poolContract);
     let poolTokenAndBalance = await poolContract.methods[
       "getPoolTokensAndBalances"
     ]().call();
+    let weight = await poolContract.methods["getWeights"]().call();
+    let decimals = await poolContract.methods["decimals"]().call();
+    let supply = await poolContract.methods["totalSupply"]().call();
+    let userlp = ethers.utils.formatEther(
+      await poolContract.methods["balanceOf"](account).call()
+    );
+    console.log(
+      "contraaaaaaaaaaaaaaaaccccccccccccccct",
+      weight,
+      decimals,
+      "sdfddf",
+      poolTokenAndBalance,
+      "sdfjknfgkjfd",
+      supply,
+      "ussssssssserrrrrrrr",
+      userlp
+    );
+
+    // let smbl = await poolContract.methods["name"]().call();
+    // let _smbl = await poolContract.methods["_owner"]().call();
+    // console.log("Pool T&B:", poolTokenAndBalance, "SBML:", smbl, "O:", _smbl);
     // Using Defi Lamma - Fetch Pools both Tokens and Balance / Then multiply each token price with their total Volumn
-    let _tokensPrice = []; // Cheeck if chain is kawa or bsc
-    if (
-      poolTokenAndBalance?.tokens[0] ===
-      "0x332730a4F6E03D9C55829435f10360E13cfA41Ff"
-    ) {
-      _tokensPrice = await axios
-        .get(
-          `https://coins.llama.fi/prices/current/bsc:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-        )
-        .then((response) => {
-          // Return Price in $
-          // console.log(
-          //   "To Wei:",
-          //   parseInt(
-          //     utils.parseUnits(
-          //       utils.formatEther(poolTokenAndBalance?.balances[0]),
-          //       response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //         ?.decimals
-          //     )?._hex,
-          //     16
-          //   )
-          // );
-          // console.log(
-          //   "Value:",
-          //   parseInt(
-          //     // utils.formatEther(
-          //     utils.parseUnits(
-          //       poolTokenAndBalance?.balances[0],
-          //       response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //         ?.decimals
-          //     )
-          //     // )
-          //   ) *
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //       ?.price +
-          //     utils.formatEther(poolTokenAndBalance?.balances[1]) *
-          //       response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-          //         ?.price
-          // );
-          // return (
-          //   parseInt(
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //       ?.decimals === 8
-          //       ? utils.formatEther(
-          //           utils.parseUnits(poolTokenAndBalance?.balances[0], 8)
-          //         )
-          //       : utils.formatEther(poolTokenAndBalance?.balances[0])
-          //   ) *
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //       ?.price +
-          //   parseInt(
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-          //       ?.decimals === 8
-          //       ? utils.formatEther(poolTokenAndBalance?.balances[1] * 10 ** 10)
-          //       : utils.formatEther(poolTokenAndBalance?.balances[1])
-          //   ) *
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-          //       ?.price
-          // );
-          return (
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-                ?.price +
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-                ?.price
-          );
-          // return [
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
-          // ];
-        });
-    } else if (
-      poolTokenAndBalance?.tokens[1] ===
-      "0x332730a4F6E03D9C55829435f10360E13cfA41Ff"
-    ) {
-      _tokensPrice = await axios
-        .get(
-          `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},bsc:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-        )
-        .then((response) => {
-          // Return Price in $
-          // return (
-          //   parseInt(
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //       ?.decimals === 8
-          //       ? utils.formatEther(poolTokenAndBalance?.balances[0] * 10 ** 10)
-          //       : utils.formatEther(poolTokenAndBalance?.balances[0])
-          //   ) *
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-          //       ?.price +
-          //   parseInt(
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-          //       ?.decimals === 8
-          //       ? utils.formatEther(poolTokenAndBalance?.balances[1] * 10 ** 10)
-          //       : utils.formatEther(poolTokenAndBalance?.balances[1])
-          //   ) *
-          //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-          //       ?.price
-          // );
-          return (
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-                ?.price +
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-                ?.price
-          );
-          // return [
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
-          // ];
-        });
-    } else {
-      _tokensPrice = await axios
-        .get(
-          `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-        )
-        .then((response) => {
-          // Return Price in $
-          return (
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[0]]
-                ?.price +
-            parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
-              response?.data?.coins[Object.keys(response?.data?.coins)[1]]
-                ?.price
-          );
-          // return [
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
-          //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
-          // ];
-        });
-    }
+    // let _tokensPrice = []; // Cheeck if chain is kawa or bsc
+
+    await axios
+      .get(
+        `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+      )
+      .then((response) => {
+        console.log(
+          "apiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price
+        );
+        let a =
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+            (ethers.utils.formatEther(weight[0]) * 100)) /
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+            (ethers.utils.formatEther(weight[1]) * 100));
+        let b =
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+            (ethers.utils.formatEther(weight[1]) * 100)) /
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+            (ethers.utils.formatEther(weight[0]) * 100));
+
+        console.log("sbnmdf nmsdfmdsn ", a, "jksfdkjsdfkjdsfn", b);
+        if (
+          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
+            0.9 &&
+          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
+            1.1
+        ) {
+          let lp =
+            (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
+              poolTokenAndBalance?.balances[0] / 10 ** 18) /
+            (supply / 10 ** 18);
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(2),
+          });
+          console.log("heyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", lp * userlp);
+        } else if (
+          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
+            0.9 &&
+          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
+            1.1
+        ) {
+          let lp =
+            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+              poolTokenAndBalance?.balances[1] / 10 ** 18) /
+            supply;
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(2),
+          });
+          console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", lp * userlp);
+        } else {
+          let lp =
+            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+              poolTokenAndBalance?.balances[1] / 10 ** 18) /
+            supply;
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(2),
+          });
+          console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", lp * userlp);
+        }
+
+        // pools.push({
+        //   address: poolAddress,
+        //   totalSupply: _tokensPrice.toFixed(2),
+        // });
+        // return (
+        //   parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
+        //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+        //       ?.price +
+        //   parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
+        //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+        //       ?.price
+        // );
+      });
+    // if (
+    //   poolTokenAndBalance?.tokens[0] ===
+    //   "0x332730a4F6E03D9C55829435f10360E13cfA41Ff"
+    // ) {
+    //   _tokensPrice = await axios
+    //     .get(
+    //       `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+    //     )
+    //     .then((response) => {
+    //       console.log("apiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", response);
+    //       // Return Price in $
+    //       // console.log(
+    //       //   "To Wei:",
+    //       //   parseInt(
+    //       //     utils.parseUnits(
+    //       //       utils.formatEther(poolTokenAndBalance?.balances[0]),
+    //       //       response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //         ?.decimals
+    //       //     )?._hex,
+    //       //     16
+    //       //   )
+    //       // );
+    //       // console.log(
+    //       //   "Value:",
+    //       //   parseInt(
+    //       //     // utils.formatEther(
+    //       //     utils.parseUnits(
+    //       //       poolTokenAndBalance?.balances[0],
+    //       //       response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //         ?.decimals
+    //       //     )
+    //       //     // )
+    //       //   ) *
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //       ?.price +
+    //       //     utils.formatEther(poolTokenAndBalance?.balances[1]) *
+    //       //       response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //       //         ?.price
+    //       // );
+    //       // return (
+    //       //   parseInt(
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //       ?.decimals === 8
+    //       //       ? utils.formatEther(
+    //       //           utils.parseUnits(poolTokenAndBalance?.balances[0], 8)
+    //       //         )
+    //       //       : utils.formatEther(poolTokenAndBalance?.balances[0])
+    //       //   ) *
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //       ?.price +
+    //       //   parseInt(
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //       //       ?.decimals === 8
+    //       //       ? utils.formatEther(poolTokenAndBalance?.balances[1] * 10 ** 10)
+    //       //       : utils.formatEther(poolTokenAndBalance?.balances[1])
+    //       //   ) *
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //       //       ?.price
+    //       // );
+    //       return (
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //             ?.price +
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //             ?.price
+    //       );
+    //       // return [
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
+    //       // ];
+    //     });
+    // } else if (
+    //   poolTokenAndBalance?.tokens[1] ===
+    //   "0x332730a4F6E03D9C55829435f10360E13cfA41Ff"
+    // ) {
+    //   _tokensPrice = await axios
+    //     .get(
+    //       `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},bsc:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+    //     )
+    //     .then((response) => {
+    //       // Return Price in $
+    //       // return (
+    //       //   parseInt(
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //       ?.decimals === 8
+    //       //       ? utils.formatEther(poolTokenAndBalance?.balances[0] * 10 ** 10)
+    //       //       : utils.formatEther(poolTokenAndBalance?.balances[0])
+    //       //   ) *
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //       //       ?.price +
+    //       //   parseInt(
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //       //       ?.decimals === 8
+    //       //       ? utils.formatEther(poolTokenAndBalance?.balances[1] * 10 ** 10)
+    //       //       : utils.formatEther(poolTokenAndBalance?.balances[1])
+    //       //   ) *
+    //       //     response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //       //       ?.price
+    //       // );
+    //       return (
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //             ?.price +
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //             ?.price
+    //       );
+    //       // return [
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
+    //       // ];
+    //     });
+    // } else {
+    //   _tokensPrice = await axios
+    //     .get(
+    //       `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+    //     )
+    //     .then((response) => {
+    //       // Return Price in $
+    //       return (
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[0])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[0]]
+    //             ?.price +
+    //         parseInt(utils.formatEther(poolTokenAndBalance?.balances[1])) *
+    //           response?.data?.coins[Object.keys(response?.data?.coins)[1]]
+    //             ?.price
+    //       );
+    //       // return [
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price,
+    //       //   response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price,
+    //       // ];
+    //     });
+    // }
 
     // console.log("Pool #", i, "Tokens Prices:", _tokensPrice);
     // // console.log("Pool #", i, "Contract:", poolContract);
-    console.log("Pool #", i, "Token & Balance:", poolTokenAndBalance);
+    // console.log("Pool #", i, "Token & Balance:", poolTokenAndBalance);
     // console.log("Price:");
-    pools.push({ address: poolAddress, totalSupply: _tokensPrice.toFixed(2) });
+    // pools.push({ address: poolAddress, totalSupply: _tokensPrice.toFixed(2) });
   }
   return pools;
 };
-// User Holding in All Pools
+// User Holding in All Pools ----------------------------------------------------------------------
 export const getHoldingInLP = async (provider, account, contractAddr) => {
   let web3 = new Web3(provider);
   const factoryABI = hedgeFactoryABI[0];
@@ -238,10 +343,37 @@ export const getHoldingInLP = async (provider, account, contractAddr) => {
   for (let i = 0; i < pLength; i++) {
     let poolAddress = await factoryContract.methods["allPools"](i).call();
     poolContract.options.address = poolAddress;
+    //-------
+    let totalSupply = await poolContract.methods["totalSupply"]().call();
+    let circulatingPrice = await axios.get(
+      "https://api.kava.io/vesting/circulatingsupplyswp"
+    );
+    console.log(
+      "P#",
+      i,
+      "TS:",
+      totalSupply,
+      "circulatingPrice:",
+      circulatingPrice?.data
+    );
+    // console.log(
+    //   "Pool No.",
+    //   i,
+    //   "TS:",
+    //   parseFloat(utils.formatEther(totalSupply)),
+    //   ":",
+    //   poolContract
+    // );
+    //=====
     tvlBalance = parseInt(
       await poolContract.methods["balanceOf"](account).call()
     );
-    LPHolding.push({ address: poolAddress, balance: tvlBalance });
+    LPHolding.push({
+      address: poolAddress,
+      balance:
+        (1 * 14916850) /
+        parseFloat(utils.formatEther(circulatingPrice?.data.toString())),
+    }); // place tvlBalance
   }
   return LPHolding;
 };

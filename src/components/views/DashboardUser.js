@@ -6,7 +6,7 @@ import { styled } from "@mui/material/styles";
 import "./Navigation.css";
 import { Grid, Paper } from "@mui/material";
 import DashboardCmp from "./DashboardCmp";
-import { getERC20, getERC20Transactions } from "./../../services/MolarisAPI";
+// import { getERC20, getERC20Transactions } from "./../../services/MolarisAPI";
 import { getKavaERC20, getKavaTx } from "./../../services/KavaAPI";
 import { poolList, contractAddresses } from "../../config/constants";
 import { getWalletTVL, getHoldingInLP } from "../../config/web3";
@@ -300,9 +300,17 @@ export default function UDashboard() {
                     {userERC20Transactions?.map((token, index) => (
                       <tr
                         key={token?.blockHash + index} // blockNumber
+                        onClick={() =>
+                          window.open(
+                            "https://explorer.kava.io/tx/" +
+                              token?.hash +
+                              "/internal-transactions",
+                            "_blank"
+                          )
+                        }
                         className={`bg-transparent text-white ${
                           index % 2 !== 0 ? " bg-gray-800" : "bg-transparent"
-                        } border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:hover:bg-blue-200`}
+                        } border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:hover:bg-blue-200 cursor-pointer`}
                       >
                         <th
                           scope="row"

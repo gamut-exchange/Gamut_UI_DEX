@@ -58,7 +58,8 @@ export default function PDashboard() {
       });
     });
   };
-
+  console.log("poolsss", pools);
+  console.log("poolsssData", poolsData);
   useEffect(() => {
     fetchTVLData();
     if (account === undefined) return;
@@ -317,9 +318,7 @@ export default function PDashboard() {
                             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                               <h3 className="text-left font-medium">
                                 {/* {utils.formatEther(pool?.totalSupply)} */}$
-                                {pool?.totalSupply
-                                  ?.toString()
-                                  .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")}
+                                {pool?.totalSupply?.toString()}
                               </h3>
                             </td>
                             {/* <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
