@@ -5,6 +5,7 @@ import hedgeFactoryABI from "../assets/abi/hedgeFactory";
 import poolABI from "../assets/abi/pool";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
+import { chainIds } from "./constants";
 
 // web3 integration part
 export const getTokenBalance = async (provider, tokenAddr, account) => {
@@ -906,3 +907,20 @@ export const getPairs = (arr) => {
         });
     });
 };
+
+export const getERC20TokenData = async (address, provider, selected_chain, tokenList) => {
+    const index = tokenList.findIndex(each => each.address === Web3.utils.toChecksumAddress(address));
+    if (index !== -1) return tokenList.slice(index, index + 1);
+    const abi = erc20ABI[0];
+    let web3 = new Web3(provider);
+    const contract = new web3.eth.Contract(abi, address);
+    try {
+        const result = await Promise.all([contract.methods.name().call(), contract.methods.symbol().call(), contract.methods.decimals().call()]);
+        let name = result[0];
+        let symbol = result[1];
+        let decimals = result[2];
+        return [{value: symbol.toLowerCase(), chainId: chainIds[selected_chain], address: Web3.utils.toChecksumAddress(address), symbol, name, decimals, logoURL: "/icons/unknown.svg", tags: ["Token"], custom: true, added: false}]
+    } catch(e) {
+        return []
+    }
+}

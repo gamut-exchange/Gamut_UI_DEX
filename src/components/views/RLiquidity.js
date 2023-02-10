@@ -30,7 +30,7 @@ import {
   calculateSwap,
   toLongNum
 } from "../../config/web3";
-import { poolList, uniList } from "../../config/constants";
+import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
   LineChart,
@@ -90,6 +90,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 export default function RLiquidity() {
   const grayColor = "#6d6d7d";
   const selected_chain = useSelector((state) => state.selectedChain);
+  const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
   const [setting, setSetting] = useState(false);
   const [open, setOpen] = useState(false);

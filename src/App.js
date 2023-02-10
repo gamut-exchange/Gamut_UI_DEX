@@ -7,9 +7,23 @@ import CLiquidity from './components/views/CLiquidity';
 import Liquidity from './components/views/Liquidity';
 import RLiquidity from './components/views/RLiquidity';
 import {HashRouter, Route, Routes } from "react-router-dom";
-
+import { useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { TOKEN_LIST } from './redux/constants';
+import { tokenListLink } from './config/constants';
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    fetch(tokenListLink).then(response => response.json()).then(data => {
+      dispatch({
+        type: TOKEN_LIST,
+        payload: data,
+      });
+    })
+  }, [dispatch])
+
   return (
     <div className='Dark__Theme' style={{minHeight:"100vh", padding:"4px"}}>
       <HashRouter>

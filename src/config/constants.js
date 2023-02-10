@@ -1,3 +1,5 @@
+export const handleValueTime = 500 // 0.5s
+
 export const contractAddresses = {
 	'kava': {
 		'router': '0x923A7273480e73439b73b065d096c58034968504',
@@ -5,15 +7,25 @@ export const contractAddresses = {
 	}
 }
 
-export const uniList = {
+export const defaultTokenList = {
 	'kava': [
-		{ value: "wbtc", chainId: 2222, address: "0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b", symbol: "WBTC", name: "Wrapped BTC", decimals: 8, logoURL: "/icons/wbtc.svg", tags: ["Coin"] },
-		{ value: "dai", chainId: 2222, address: "0x765277EebeCA2e31912C9946eAe1021199B39C61", symbol: "DAI", name: "DAI Coin", decimals: 18, logoURL: "/icons/dai.svg", tags: ["stablecoin"] },
-		{ value: "busd", chainId: 2222, address: "0x332730a4F6E03D9C55829435f10360E13cfA41Ff", symbol: "BUSD", name: "BUSD Coin", decimals: 18, logoURL: "/icons/busd.svg", tags: ["stablecoin"] },
-		{ value: "wkava", chainId: 2222, address: "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b", symbol: "WKAVA", name: "Wrapped KAVA", decimals: 18, logoURL: "/icons/wkava.svg", tags: ["Coin"] },
-		{ value: "kava", chainId: 2222, address: "0x0000000000000000000000000000000000000000", symbol: "KAVA", name: "KAVA Coin", decimals: 18, logoURL: "/icons/kava.svg", tags: ["Coin"] }
+		{ value: "kava", chainId: 2222, address: "0x0000000000000000000000000000000000000000", symbol: "KAVA", name: "KAVA Coin", decimals: 18, logoURL: "https://assets-cdn.trustwallet.com/blockchains/kava/info/logo.png", tags: ["Coin"] },
+		{ value: "busd", chainId: 2222, address: "0x332730a4F6E03D9C55829435f10360E13cfA41Ff", symbol: "BUSD", name: "BUSD Coin", decimals: 18, logoURL: "https://cryptologos.cc/logos/binance-usd-busd-logo.png", tags: ["stablecoin"] },
+		{ value: "wkava", chainId: 2222, address: "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b", symbol: "WKAVA", name: "Wrapped KAVA", decimals: 18, logoURL: "https://assets-cdn.trustwallet.com/blockchains/kava/info/logo.png", tags: ["Coin"] },
 	]
 }
+
+export const defaultProvider = {
+	'kava': 'https://evm.kava.io'
+}
+
+export const chainIds = {
+	'kava': 2222
+}
+
+export const userSettings = "Gamut_settings";
+export const customList = "customList";
+export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmZqkRDp6PoMbtAPdzY6eAg1FirGhcC4xbMiSn7VENkoqS";
 
 export const poolList = {
 	'kava': [

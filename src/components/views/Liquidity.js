@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
-import tw from "twin.macro";
 import {
   Paper,
   Grid,
@@ -10,10 +9,8 @@ import {
   Button,
   FormControl,
   Slider,
-  Modal,
   Typography,
   InputBase,
-  TextField,
   CircularProgress
 } from "@mui/material";
 import {
@@ -31,10 +28,10 @@ import {
   approveToken,
   calculateSwap,
 } from "../../config/web3";
-import { uniList } from "../../config/constants";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import History from './History';
+import TokenList from "./TokenList";
 import {
   LineChart,
   Line,
@@ -96,13 +93,13 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 export default function Liquidity() {
   const grayColor = "#6d6d7d";
   const selected_chain = useSelector((state) => state.selectedChain);
+  const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
 
   const [setting, setSetting] = useState(false);
   const [isExist, setIsExist] = useState(false);
   const [ratio, setRatio] = useState(50);
   const [mopen, setMopen] = useState(false);
-  const [query, setQuery] = useState("");
   const [selected, setSelected] = React.useState(0);
   const [poolAddress, setPoolAddress] = useState("");
   const [inToken, setInToken] = useState(uniList[selected_chain][0]);
@@ -113,7 +110,6 @@ export default function Liquidity() {
   const [outBal, setOutBal] = useState(0);
   // const [sliderValue, setSliderValue] = useState(50);
   const [approval, setApproval] = useState(false);
-  const [filterData, setFilterData] = useState(uniList[selected_chain]);
   const [limitedout, setLimitedout] = useState(false);
   const [approval1, setApproval1] = useState(false);
   const [approval2, setApproval2] = useState(false);
@@ -133,18 +129,6 @@ export default function Liquidity() {
   const weightData = useWeightsData(poolAddress.toLowerCase());
   const joinTransactionsData = useJoinTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
-
-  const StyledModal = tw.div`
-    flex
-    flex-col
-    relative
-    m-auto
-    top-1/4
-    p-6
-    min-h-min
-    transform -translate-x-1/2 -translate-y-1/2
-    sm:w-1/3 w-11/12
-  `;
 
   const handleMopen = (val) => {
     setSelected(val);
@@ -247,19 +231,6 @@ export default function Liquidity() {
       poolData, value, e_val);
   }
 
-  const filterToken = (e) => {
-    let search_qr = e.target.value;
-    setQuery(search_qr);
-    if (search_qr.length !== 0) {
-      const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
-      });
-      setFilterData(filterDT);
-    } else {
-      setFilterData(uniList[selected_chain]);
-    }
-  };
-
   const selectToken = async (token, selected) => {
     handleClose();
     var bal = 0;
@@ -276,7 +247,6 @@ export default function Liquidity() {
         let tempData = uniList[selected_chain].filter((item) => {
           return item["address"] !== token["address"];
         });
-        setFilterData(tempData);
         try {
           setSearching(true);
           const poolAddr = await getPoolAddress(
@@ -317,7 +287,6 @@ export default function Liquidity() {
           return item["address"] !== token["address"];
         });
 
-        setFilterData(tempData);
         setOutToken(token);
 
         try {
@@ -748,7 +717,6 @@ export default function Liquidity() {
   };
 
   const numFormat = (val) => {
-    console.log(val);
     if (Math.abs(val) > 1)
       return Number(val).toFixed(2) * 1;
     else if (Math.abs(val) > 0.001)
@@ -764,7 +732,6 @@ export default function Liquidity() {
   }
 
   useEffect(() => {
-    setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
     if (account) {
@@ -1225,48 +1192,7 @@ export default function Liquidity() {
             </Item>
           }
         </Grid>
-        <Modal
-          open={mopen}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <StyledModal className="bg-modal">
-            <h3 className="model-title mb-6 text-wight" style={{ color: "#fff" }}>Select Token</h3>
-            <TextField
-              autoFocus={true}
-              value={query}
-              onChange={filterToken}
-              label="Search"
-              inputProps={{
-                type: "search",
-                style: { color: "#ddd" },
-              }}
-              InputLabelProps={{
-                style: { color: "#ddd" },
-              }}
-            />
-            <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
-              {filterData.map((item) => {
-                const { address, logoURL, symbol } = item;
-                return (
-                  <li
-                    key={address}
-                    className="flex gap-x-1 thelist"
-                    style={{ cursor: "pointer", padding: "5px" }}
-                    onClick={() => selectToken(item, selected)}
-                  >
-                    <div className="relative flex">
-                      <img src={logoURL} alt="" />
-                    </div>
-                    <p className="text-light-primary text-lg">{symbol}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          </StyledModal>
-        </Modal>
+        <TokenList mopen={mopen} handleClose={handleClose} selectToken={selectToken} uniList={uniList} selected_chain={selected_chain} selected={selected} />
       </Grid>
     </div>
   );

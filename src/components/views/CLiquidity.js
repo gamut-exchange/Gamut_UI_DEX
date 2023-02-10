@@ -32,7 +32,6 @@ import {
   initAddPool
 } from "../../config/web3";
 import SwapCmp from "./SwapCmp";
-import { uniList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -84,6 +83,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 export default function CLiquidity() {
   const grayColor = "#6d6d7d";
   const selected_chain = useSelector((state) => state.selectedChain);
+  const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
 
   const [mopen, setMopen] = useState(false);

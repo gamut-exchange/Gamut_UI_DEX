@@ -1,16 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
-import tw from "twin.macro";
 import { styled } from "@mui/material/styles";
 import History from "./History";
+import TokenList from "./TokenList";
 import './Navigation.css'
 import {
   Grid,
   Paper,
   useMediaQuery,
-  Modal,
-  TextField,
   Button,
   FormControl,
   Typography,
@@ -41,8 +39,7 @@ import {
 } from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
 import { useSwapTransactionsData } from "../../config/chartData";
-import { uniList } from "../../config/constants";
-import { poolList } from "../../config/constants";
+import { defaultProvider, poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -94,6 +91,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 
 export default function Swap() {
   const selected_chain = useSelector((state) => state.selectedChain);
+  const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
   const dispatch = useDispatch();
   const darkFontColor = "#FFFFFF";
@@ -102,7 +100,6 @@ export default function Swap() {
   const [mopen, setMopen] = useState(false);
   const [inValue, setInValue] = useState(0);
   const [selected, setSelected] = React.useState(0);
-  const [query, setQuery] = useState("");
   const [valueEth, setValueEth] = useState(0);
   const [poolAddress, setPoolAddress] = useState([]);
   const [inToken, setInToken] = useState(uniList[selected_chain][0]);
@@ -112,7 +109,6 @@ export default function Swap() {
   // const [fee, setFee] = useState(0);
   const [approval, setApproval] = useState(false);
   const [approvedVal, setApprovedVal] = useState(0);
-  const [filterData, setFilterData] = useState(uniList[selected_chain]);
   const [limitedout, setLimitedout] = useState(false);
   const [swapFee, setSwapFee] = useState(0);
   const [middleToken, setMiddleToken] = useState(null);
@@ -133,20 +129,8 @@ export default function Swap() {
   const pricesData = useTokenPricesData(poolAddress);
   const swapTransactionData = useSwapTransactionsData(account);
   const chartRef = useRef();
-  const dark = false;
+  // const dark = false;
   const isMobile = useMediaQuery("(max-width:600px)");
-
-  const StyledModal = tw.div`
-    flex
-    flex-col
-    relative
-    m-auto
-    top-1/4
-    p-6
-    min-h-min
-    transform -translate-x-1/2 -translate-y-1/2
-    sm:w-1/3 w-11/12
-  `;
 
   const handleMopen = (val) => {
     setSelected(val);
@@ -162,19 +146,6 @@ export default function Swap() {
     // setFee(event.target.value * swapFee);
     if (account && isExist)
       checkApproved(inToken, e_val);
-  };
-
-  const filterToken = (e) => {
-    let search_qr = e.target.value;
-    setQuery(search_qr);
-    if (search_qr.length !== 0) {
-      const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
-      });
-      setFilterData(filterDT);
-    } else {
-      setFilterData(uniList[selected_chain]);
-    }
   };
 
   const checkApproved = async (token, val) => {
@@ -271,7 +242,7 @@ export default function Swap() {
   const findMiddleToken = async () => {
     if (inToken['address'].toLowerCase() !== outToken['address'].toLowerCase()) {
       setFinding(true);
-      const provider = await connector.getProvider();
+      const provider = account ? await connector.getProvider() : defaultProvider[selected_chain];
       let inVal = (Number(inValue) === 0) ? 1 : inValue;
       let suitableRouter = [];
       if (inToken['address'] === "0x0000000000000000000000000000000000000000") {
@@ -396,9 +367,9 @@ export default function Swap() {
   };
 
   const getStatusData = async (value) => {
-    if (account && inToken !== outToken) {
+    if (inToken !== outToken) {
       let inLimBal = inBal.toString().replaceAll(",", "");
-      const provider = await connector.getProvider();
+      const provider = account ? await connector.getProvider() : defaultProvider[selected_chain];
       const midToken = await findMiddleToken();
       let canToken1 = { ...inToken };
       let canToken2 = { ...outToken };
@@ -535,21 +506,21 @@ export default function Swap() {
           setIsExist(false);
         }
       }
-    } else if (inToken !== outToken) {
-      for (var i = 0; i < poolList[selected_chain].length; i++) {
-        if (
-          (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
-            poolList[selected_chain][i]["symbols"][1] === outToken["symbol"]) ||
-          (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
-            poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
-        ) {
-          setIsExist(true);
-          setPoolAddress([
-            poolList[selected_chain][i]["address"].toLowerCase(),
-          ]);
-          break;
-        }
-      }
+    // } else if (inToken !== outToken) {
+    //   for (var i = 0; i < poolList[selected_chain].length; i++) {
+    //     if (
+    //       (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
+    //         poolList[selected_chain][i]["symbols"][1] === outToken["symbol"]) ||
+    //       (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
+    //         poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
+    //     ) {
+    //       setIsExist(true);
+    //       setPoolAddress([
+    //         poolList[selected_chain][i]["address"].toLowerCase(),
+    //       ]);
+    //       break;
+    //     }
+    //   }
     } else {
       setIsExist(false);
       setPoolAddress([]);
@@ -787,6 +758,8 @@ export default function Swap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, ""]);
 
+  // let handleValueTimer;
+
   useEffect(() => {
     getStatusData(inValue);
     const intervalId = setInterval(() => {
@@ -797,7 +770,6 @@ export default function Swap() {
   }, [inToken, outToken, inValue]);
 
   useEffect(() => {
-    setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -815,11 +787,11 @@ export default function Swap() {
   }, [formattedPricesData]);
 
   useEffect(() => {
-    if (account && Number(inValue) !== 0 && ((valueEth / (inValue * tokenPr)) - 1) > -1 )
+    if (account && Number(inValue) !== 0 && ((valueEth / (inValue * tokenPr)) - 1) > -1) {
       setPriceImpact(numFormat(((valueEth / (inValue * tokenPr + 0.000000001)) - 1) * 100));
-      
-    else
+    } else {
       setPriceImpact(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valueEth, inValue, tokenPr]);
 
@@ -941,7 +913,7 @@ export default function Swap() {
                   style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", minHeight: 49 }}
                   startIcon={
                     <img
-                      src={inToken["logoURL"]}
+                      src={inToken ? inToken["logoURL"] : ""}
                       alt=""
                       style={{ height: 30 }}
                     />
@@ -955,7 +927,7 @@ export default function Swap() {
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   onChange={handleValue}
                   onKeyUp={handleValue}
-                  readOnly={!isExist || !account}
+                  readOnly={!isExist}
                   style={{
                     color: "#FFFFFF",
                     width: "60%",
@@ -1281,48 +1253,7 @@ export default function Swap() {
             </Item>
           }
         </Grid>
-        <Modal
-          open={mopen}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <StyledModal className="bg-modal">
-            <h3 className="model-title mb-6 text-wight" style={{ color: "#fff" }}>Select Token</h3>
-            <TextField
-              autoFocus={true}
-              value={query}
-              onChange={filterToken}
-              label="Search"
-              inputProps={{
-                type: "search",
-                style: { color: "#ddd" },
-              }}
-              InputLabelProps={{
-                style: { color: "#ddd" },
-              }}
-            />
-            <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
-              {filterData.map((item) => {
-                const { address, logoURL, symbol } = item;
-                return (
-                  <li
-                    key={address}
-                    className="flex gap-x-1 thelist"
-                    style={{ cursor: "pointer", padding: "5px" }}
-                    onClick={() => selectToken(item, selected)}
-                  >
-                    <div className="relative flex">
-                      <img src={logoURL} alt="" />
-                    </div>
-                    <p className="text-light-primary text-lg">{symbol}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          </StyledModal>
-        </Modal>
+        <TokenList mopen={mopen} handleClose={handleClose} selectToken={selectToken} uniList={uniList} selected_chain={selected_chain} selected={selected} />
       </Grid>
     </div>
   );
