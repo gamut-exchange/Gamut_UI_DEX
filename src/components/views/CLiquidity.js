@@ -2,13 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
-import tw from "twin.macro";
 import {
   Paper,
   Grid,
   useMediaQuery,
-  Modal,
-  TextField,
   Button,
   FormControl,
   InputBase,
@@ -33,6 +30,7 @@ import {
 } from "../../config/web3";
 import SwapCmp from "./SwapCmp";
 import { contractAddresses } from "../../config/constants";
+import TokenList from "./TokenList";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -87,7 +85,6 @@ export default function CLiquidity() {
   const { account, connector } = useWeb3React();
 
   const [mopen, setMopen] = useState(false);
-  const [query, setQuery] = useState("");
   const [selected, setSelected] = React.useState(0);
   const [inToken, setInToken] = useState(uniList[selected_chain][0]);
   const [outToken, setOutToken] = useState(uniList[selected_chain][1]);
@@ -95,7 +92,6 @@ export default function CLiquidity() {
   const [outVal, setOutVal] = useState(0);
   const [inBal, setInBal] = useState(0);
   const [outBal, setOutBal] = useState(0);
-  const [filterData, setFilterData] = useState(uniList[selected_chain]);
   const [pairStatus, setPairStatus] = useState(0);
   const [weight, setWeight] = useState(50);
   const [limitedOut, setLimitedout] = useState(false);
@@ -103,18 +99,6 @@ export default function CLiquidity() {
 
   const dispatch = useDispatch();
   const isMobile = useMediaQuery("(max-width:600px)");
-
-  const StyledModal = tw.div`
-    flex
-    flex-col
-    relative
-    m-auto
-    top-1/4
-    p-6
-    min-h-min
-    transform -translate-x-1/2 -translate-y-1/2
-    sm:w-1/3 w-11/12
-  `;
 
   const handleMopen = (val) => {
     setSelected(val);
@@ -125,19 +109,6 @@ export default function CLiquidity() {
 
   const handleSlider = (event, newValue) => {
     setWeight(newValue);
-  };
-
-  const filterToken = (e) => {
-    let search_qr = e.target.value;
-    setQuery(search_qr);
-    if (search_qr.length !== 0) {
-      const filterDT = uniList[selected_chain].filter((item) => {
-        return item["symbol"].toLowerCase().indexOf(search_qr) !== -1;
-      });
-      setFilterData(filterDT);
-    } else {
-      setFilterData(uniList[selected_chain]);
-    }
   };
 
   const selectToken = async (token, selected) => {
@@ -311,7 +282,6 @@ export default function CLiquidity() {
   };
 
   useEffect(() => {
-    setFilterData(uniList[selected_chain]);
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -613,7 +583,7 @@ export default function CLiquidity() {
           </Item>
         </Grid>
         <Grid item xs={12} sm={12} md={7} sx={{ mt: 2 }}>
-          <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
+          {/* <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
             <div style={{ textAlign: "center" }}>
               <h2 style={{ fontSize: 22 }}>Pool Creation Guide </h2>
               <ol>
@@ -628,7 +598,7 @@ export default function CLiquidity() {
               <br />
               <br />
             </div>
-          </Item>
+          </Item> */}
           {(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) && <Item sx={{ pt: 3, pl: 3, pr: 3, pb: 2, mb: 4 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", color: "white" }} className="chart">
             <Stepper activeStep={pairStatus - 2} alternativeLabel>
               <Step>
@@ -646,48 +616,7 @@ export default function CLiquidity() {
             </Stepper>
           </Item>}
         </Grid >
-        <Modal
-          open={mopen}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <StyledModal className="bg-modal">
-            <h3 className="model-title mb-6 text-wight" style={{ color: "#fff" }}>Select Token</h3>
-            <TextField
-              autoFocus={true}
-              value={query}
-              onChange={filterToken}
-              label="Search"
-              inputProps={{
-                type: "search",
-                style: { color: "#ddd" },
-              }}
-              inputLabelProps={{
-                style: { color: "#ddd" },
-              }}
-            />
-            <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
-              {filterData.map((item) => {
-                const { address, logoURL, symbol } = item;
-                return (
-                  <li
-                    key={address}
-                    className="flex gap-x-1 thelist"
-                    style={{ cursor: "pointer", padding: "5px" }}
-                    onClick={() => selectToken(item, selected)}
-                  >
-                    <div className="relative flex">
-                      <img src={logoURL} alt="" />
-                    </div>
-                    <p className="text-light-primary text-lg">{symbol}</p>
-                  </li>
-                );
-              })}
-            </ul>
-          </StyledModal>
-        </Modal>
+        <TokenList mopen={mopen} handleClose={handleClose} selectToken={selectToken} uniList={uniList} selected_chain={selected_chain} selected={selected} />
       </Grid >
     </div >
   );

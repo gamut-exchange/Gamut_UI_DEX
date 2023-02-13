@@ -286,7 +286,7 @@ const ConnectWallet = ({
                     <Button
                         variant="contained"
                         className="btn-primary w-full"
-                        style={{ borderRadius: "0px", minHeight: 44, fontSize: 15, color:"white", backgroundColor:"#0074f0", borderRadius:"4px" }}
+                        style={{ minHeight: 44, fontSize: 15, color:"white", backgroundColor:"#0074f0", borderRadius:"4px" }}
                         onClick={handleChainChange}
                     >
                         Connect to {chain.toUpperCase()}

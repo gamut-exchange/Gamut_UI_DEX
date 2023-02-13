@@ -244,9 +244,9 @@ export default function Liquidity() {
       bal = await getTokenBalance(provider, token["address"], account);
       if (selected === 0) {
         setInBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
         try {
           setSearching(true);
           const poolAddr = await getPoolAddress(
@@ -283,9 +283,9 @@ export default function Liquidity() {
         }
       } else if (selected === 1) {
         setOutBal(bal);
-        let tempData = uniList[selected_chain].filter((item) => {
-          return item["address"] !== token["address"];
-        });
+        // let tempData = uniList[selected_chain].filter((item) => {
+        //   return item["address"] !== token["address"];
+        // });
 
         setOutToken(token);
 
