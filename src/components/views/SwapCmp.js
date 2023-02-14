@@ -43,22 +43,6 @@ function SwapCmp() {
                   Add Liquidity
                 </Button>
               </Link>
-              <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
-                <Button
-                  size="large"
-                  variant="contained"
-                  sx={{
-                    width:200,
-                    padding: 2,
-                    fontWeight: "bold",
-                    background:
-                      location.pathname === "/create_liquidity" ? activeSwapColor : "#12122c",
-                  }}
-                  onClick={() => setActiveSwapColor("/create_liquidity")}
-                >
-                  Create Liquidity
-                </Button>
-              </Link>
               <Link to="/remove_liquidity" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
@@ -73,6 +57,22 @@ function SwapCmp() {
                   onClick={() => setActiveSwapColor("/remove_liquidity")}
                 >
                   REMOVE LIQUIDITY
+                </Button>
+              </Link>
+              <Link to="/create_liquidity" style={{ textDecoration: "none" }}>
+                <Button
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    width:200,
+                    padding: 2,
+                    fontWeight: "bold",
+                    background:
+                      location.pathname === "/create_liquidity" ? activeSwapColor : "#12122c",
+                  }}
+                  onClick={() => setActiveSwapColor("/create_liquidity")}
+                >
+                  Create Liquidity
                 </Button>
               </Link>
 
