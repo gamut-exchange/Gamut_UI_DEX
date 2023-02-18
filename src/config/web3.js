@@ -506,6 +506,7 @@ export const initAddPool = async (
         token2_wei_val = web3.utils.toWei(amountB.toString());
     else
         token2_wei_val = await toWeiVal(provider, token2Addr, amountB);
+    debugger;
     const initialBalances = [token2_wei_val, token1_wei_val];
     const JOIN_KIND_INIT = "0";
 
@@ -522,6 +523,13 @@ export const initAddPool = async (
                 initialBalances,
                 initUserData,
             ]).send({ from: account, value: (token1Addr === "0x0000000000000000000000000000000000000000") ? token1_wei_val : token2_wei_val });
+        else {
+            await contract.methods["joinPool"](account, [
+                [token2Addr, token1Addr],
+                initialBalances,
+                initUserData,
+            ]).send({ from: account });
+        }
         alert(`Successfully created!`, "success");
     } catch (e) {
         console.log(e.message);

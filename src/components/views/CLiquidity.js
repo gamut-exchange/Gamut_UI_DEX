@@ -264,10 +264,12 @@ export default function CLiquidity() {
         const poolData = await getPoolData(provider, poolAddr);
         if (poolData.tokens[0].toLowerCase() === inToken["address"].toLowerCase()
           ||
-          (inToken["address"] === "0x0000000000000000000000000000000000000000" && poolData.tokens[0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()))
-          await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
-        else
+          (inToken["address"] === "0x0000000000000000000000000000000000000000" && poolData.tokens[0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
+            await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
+          }
+        else {
           await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
+        }
         setCreating(false);
         checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
