@@ -25,13 +25,14 @@ export const chainIds = {
 
 export const userSettings = "Gamut_settings";
 export const customList = "customList";
-export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmZqkRDp6PoMbtAPdzY6eAg1FirGhcC4xbMiSn7VENkoqS";
+export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmSxSrj95qFFr4JhUshYBa17wLR7XeXETE47xjEd8TcSU4";
 
 export const poolList = {
 	'kava': [
 		{ value: "other", address: "0x6BE57618C8832Ad25cCeAdF2745d5C92De7ab7b2", symbols: ["BUSD", "WKAVA"], logoURLs: ["/icons/busd.svg", "/icons/wkava.svg"] },
 		{ value: "other", address: "0xbd3d481e308A6f2fA6714bA3dc33e68Ab3915557", symbols: ["DAI", "WBTC"], logoURLs: ["/icons/dai.svg", "/icons/wbtc.svg"] },
 		{ value: "other", address: "0x9D102cE615ab35CEdDDa899bE47A8DA5Dc139460", symbols: ["BUSD", "DAI"], logoURLs: ["/icons/busd.svg", "/icons/dai.svg"] },
-		{ value: "other", address: "0x1e34dd2F920630e6AF04519221ed9004608A6c52", symbols: ["DAI", "WKAVA"], logoURLs: ["/icons/dai.svg", "/icons/wkava.svg"] }
+		{ value: "other", address: "0x1e34dd2F920630e6AF04519221ed9004608A6c52", symbols: ["DAI", "WKAVA"], logoURLs: ["/icons/dai.svg", "/icons/wkava.svg"] },
+		{ value: "other", address: "0xBd87cD1512763EEFC14B3717ff42538022E95C95", symbols: ["USDT", "ETH"], logoURLs: ["/icons/usdt.svg", "/icons/eth.svg"] },
 	]
 }

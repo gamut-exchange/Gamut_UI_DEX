@@ -145,7 +145,7 @@ export default function TokenList({mopen, handleClose, selectToken, uniList, sel
                         onClick={() => clickToken(item, selected)}
                         >
                             <div className="flex items-center">
-                                <img src={logoURL} alt="" width={32} />
+                                <img src={logoURL} alt="" className="h-[32px] w-[32px]" />
                                 <p className="text-light-primary text-lg ml-2">{symbol}</p>
                             </div>
                             {
@@ -163,7 +163,7 @@ export default function TokenList({mopen, handleClose, selectToken, uniList, sel
                         style={{ cursor: "pointer", padding: "5px" }}
                         onClick={() => clickToken(item, selected)}
                         >
-                            <img src={logoURL} alt="" width={32} />
+                            <img src={logoURL} alt="" className="h-[32px] w-[32px]" />
                             <p className="text-light-primary text-lg ml-2">{symbol}</p>
                         </li>
                     );
