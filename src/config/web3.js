@@ -11,6 +11,12 @@ import { chainIds } from "./constants";
 export const getTokenBalance = async (provider, tokenAddr, account) => {
     const abi = erc20ABI[0];
     let web3 = new Web3(provider);
+    // let factoryContract = new web3.eth.Contract(hedgeFactoryABI[0], "0xbD4C56E952c238389AEE995E1ed504cA646D199B")
+    // const length = await factoryContract.methods.allPoolsLength().call()
+    // console.log("pool length: ", length)
+    // for (let i = 0; i < length; i++) {
+    //     console.log(await factoryContract.methods.allPools(i).call())
+    // }
     if (tokenAddr === "0x0000000000000000000000000000000000000000") {
         const coinbal = await web3.eth.getBalance(account);
         let result = Number(coinbal / 10 ** 18);

@@ -926,7 +926,7 @@ export default function RLiquidity() {
               }}
             />
             <hr className="my-6" />
-            <ul className="flex flex-col gap-y-6" style={{ overflowY: "scroll" }}>
+            <ul className="flex flex-col gap-y-6 max-h-[250px]" style={{ overflowY: "scroll" }}>
               {filterData.map((item, index) => {
                 return (
                   <li
@@ -936,9 +936,9 @@ export default function RLiquidity() {
                     onClick={() => selectToken(item)}
                   >
                     <div className="relative flex">
-                      <img src={item["logoURLs"][0]} alt="" />
+                      <img src={item["logoURLs"][0]} alt="" className="w-[32px]" />
                       <img
-                        className="z-10 relative right-2"
+                        className="z-10 relative right-2 w-[32px]"
                         src={item["logoURLs"][1]}
                         alt=""
                       />
