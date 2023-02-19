@@ -133,7 +133,7 @@ export default function TokenList({mopen, handleClose, selectToken, uniList, sel
                 }}
             />
             <hr className="my-6" />
-            <ul className="flex flex-col gap-y-2" style={{ overflowY: "scroll" }}>
+            <ul className="flex flex-col gap-y-2 max-h-[250px]" style={{ overflowY: "scroll" }}>
                 {filterData.map((item, index) => {
                 const { address, logoURL, symbol } = item;
                 if (item.custom) {
