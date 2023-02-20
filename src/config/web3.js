@@ -51,8 +51,7 @@ export const getPoolData = async (provider, poolAddress) => {
     const abi = poolABI[0];
     const tokenAbi = erc20ABI[0];
     let web3 = new Web3(provider);
-    let contract = new web3.eth.Contract(abi);
-    contract.options.address = poolAddress;
+    let contract = new web3.eth.Contract(abi, poolAddress);
     let result1 = await contract.methods["getPoolTokensAndBalances"]().call();
     let result2 = await contract.methods["getWeights"]().call();
     let tokenContract1 = new web3.eth.Contract(tokenAbi, result1["tokens"][0]);
@@ -936,5 +935,47 @@ export const getERC20TokenData = async (address, provider, selected_chain, token
         return [{value: symbol.toLowerCase(), chainId: chainIds[selected_chain], address: Web3.utils.toChecksumAddress(address), symbol, name, decimals, logoURL: "/icons/unknown.svg", tags: ["Token"], custom: true, added: false}]
     } catch(e) {
         return []
+    }
+}
+
+export const getPoolList = async (provider, poolAddress, tokenList, selected_chain, poolList) => {
+    const index = poolList.findIndex(each => each.address === Web3.utils.toChecksumAddress(poolAddress));
+    if (index !== -1) return poolList.slice(index, index + 1);
+    const abi = poolABI[0];
+    const tokenAbi = erc20ABI[0];
+    let web3 = new Web3(provider);
+    let contract = new web3.eth.Contract(abi, poolAddress);
+    try {
+        let result = await contract.methods.getPoolTokensAndBalances().call();
+        const token0 = result.tokens[0];
+        const token1 = result.tokens[1];
+        let symbol0, symbol1, logo0, logo1;
+        for(let token of tokenList[selected_chain]) {
+            if (token.address.toLowerCase() === token0.toLowerCase()) {
+                symbol0 = token.symbol;
+                logo0 = token.logoURL;
+            }
+            if (token.address.toLowerCase() === token1.toLowerCase()) {
+                symbol1 = token.symbol;
+                logo1 = token.logoURL;
+            }
+            if (symbol0 && symbol1) break;
+        }
+        if (!symbol0) {
+            let tokenContract = new web3.eth.Contract(tokenAbi, token0);
+            symbol0 = await tokenContract.methods.symbol();
+            logo0 = "/icons/unknown.svg";
+        }
+        if (!symbol1) {
+            let tokenContract = new web3.eth.Contract(tokenAbi, token1);
+            symbol1 = await tokenContract.methods.symbol();
+            logo1 = "/icons/unknown.svg";
+        }
+        return [
+            {value: "other", address: Web3.utils.toChecksumAddress(poolAddress), symbols: [symbol0, symbol1], logoURLs: [logo0, logo1], custom: true, added: false}
+        ]
+    }
+    catch (e) {
+        return [];
     }
 }

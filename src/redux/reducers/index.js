@@ -1,7 +1,7 @@
 import { combineReducers } from "redux";
 import config from "./config";
-import { STATISTICS, CHANGE_WALLET, SELECT_CHAIN, TOKEN_LIST, ADD_TOKEN, REMOVE_TOKEN } from "../constants";
-import { customList, defaultTokenList, userSettings } from "../../config/constants";
+import { STATISTICS, CHANGE_WALLET, SELECT_CHAIN, TOKEN_LIST, ADD_TOKEN, REMOVE_TOKEN, REMOVE_POOL, ADD_POOL } from "../constants";
+import { customList, defaultTokenList, userSettings, poolList as defaultPoolList, customPoolList } from "../../config/constants";
 
 export function statistics(state = {}, action) {
     switch (action.type) {
@@ -83,6 +83,41 @@ function removeToken(list, data, chain) {
     return {...list};
 }
 
+function addPool(list, data, chain) {
+    const index = list[chain].findIndex(each => each.address.toLowerCase() === data.address.toLowerCase());
+    if (index === -1) {
+        list[chain].push(data);
+        return list;
+    }
+    return {...list};
+}
+
+function removePool(list, data, chain) {
+    const index = list[chain].findIndex(each => each.address.toLowerCase() === data.address.toLowerCase());
+    if (index !== -1) {
+        list[chain].splice(index, 1);
+        return list;
+    }
+    return {...list};
+}
+
+function mergePoolList() {
+    const poolList = {...defaultPoolList};
+    const _userSettings = JSON.parse(localStorage.getItem(userSettings));
+    if (_userSettings && _userSettings[customPoolList]) {
+        const keys3 = Object.keys(_userSettings[customPoolList]);
+        keys3.map(each3 => {
+            _userSettings[customPoolList][each3].map(each33 => {
+                const index = poolList[each3].findIndex(each31 => each33.address.toLowerCase() === each31.address.toLowerCase());
+                if (index === -1) poolList[each3].push(each33);
+                return true;
+            })
+            return true;
+        })
+    }
+    return poolList;
+}
+
 export function tokenList(state = defaultTokenList, action) {
     switch (action.type) {
         case TOKEN_LIST:
@@ -96,11 +131,23 @@ export function tokenList(state = defaultTokenList, action) {
     }
 }
 
+export function poolList(state = mergePoolList(), action) {
+    switch (action.type) {
+        case ADD_POOL:
+            return addPool(state, action.payload, action.chain);
+        case REMOVE_POOL:
+            return removePool(state, action.payload, action.chain);
+        default:
+            return state;
+    }
+}
+
 const rootReducer = combineReducers({
     config,
     statistics,
     walletAddress,
     selectedChain,
-    tokenList
+    tokenList,
+    poolList
 });
 export default rootReducer;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
@@ -28,9 +28,10 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
-  toLongNum
+  toLongNum,
+  getPoolList
 } from "../../config/web3";
-import { poolList } from "../../config/constants";
+import { customPoolList, defaultProvider, userSettings } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
 import {
   LineChart,
@@ -40,6 +41,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import Web3 from "web3";
+import { ADD_POOL, REMOVE_POOL } from "../../redux/constants";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -91,6 +94,7 @@ export default function RLiquidity() {
   const grayColor = "#6d6d7d";
   const selected_chain = useSelector((state) => state.selectedChain);
   const uniList = useSelector((state) => state.tokenList);
+  const poolList = useSelector((state) => state.poolList);
   const { account, connector } = useWeb3React();
   const [setting, setSetting] = useState(false);
   const [open, setOpen] = useState(false);
@@ -116,6 +120,7 @@ export default function RLiquidity() {
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
   const exitTransactionsData = useExitTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
+  const provider = defaultProvider[selected_chain];
 
   const StyledModal = tw.div`
     flex
@@ -155,7 +160,6 @@ export default function RLiquidity() {
   };
 
   const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
-    const provider = await connector.getProvider();
     const poolData = await getPoolData(
       provider,
       selectedItem["address"]
@@ -244,21 +248,30 @@ export default function RLiquidity() {
     }
   }
 
-  const filterLP = (e) => {
-    let search_qr = e.target.value;
-    setQuery(search_qr);
-    if (search_qr.length !== 0) {
+  const filterLP = useCallback(async (e) => {
+    if (Web3.utils.isAddress(query)) {
+      const _filterData = await getPoolList(provider, query, uniList, selected_chain, poolList[selected_chain]);
+      setFilterData(_filterData);
+    } else if (query.length !== 0) {
       const filterDT = poolList[selected_chain].filter((item) => {
         return (
-          item["symbols"][0].toLowerCase().indexOf(search_qr) !== -1 ||
-          item["symbols"][1].toLowerCase().indexOf(search_qr) !== -1
+          item["symbols"][0].toLowerCase().indexOf(query) !== -1 ||
+          item["symbols"][1].toLowerCase().indexOf(query) !== -1
         );
       });
       setFilterData(filterDT);
     } else {
       setFilterData(poolList[[selected_chain]]);
     }
-  };
+  }, [query, poolList, provider, selected_chain, uniList]);
+
+  const changeQuery = async (e) => {
+    let search_qr = e.target.value.trim();
+    setQuery(search_qr);
+  }
+  useEffect(() => {
+    filterLP(query);
+  }, [query, filterLP])
 
   const getStatusData = async () => {
     const result1 = uniList[selected_chain].filter((item) => {
@@ -311,6 +324,7 @@ export default function RLiquidity() {
   }
 
   const selectToken = async (item) => {
+    setQuery("");
     handleClose();
     setSelectedItem(item);
   };
@@ -320,7 +334,7 @@ export default function RLiquidity() {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
       let real_val = Number((Math.floor(poolAmount * Math.pow(10, 9)) / Math.pow(10, 9)).toFixed(9));
-      real_val = toLongNum(real_val*lpPercentage/100);
+      real_val = toLongNum(real_val * lpPercentage / 100);
       setRemoving(true);
       await removePool(
         account,
@@ -544,10 +558,65 @@ export default function RLiquidity() {
   }, [account]);
 
   useEffect(() => {
-    setFilterData(poolList[[selected_chain]]);
+    setFilterData(poolList[selected_chain]);
     selectToken(poolList[selected_chain][0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain, account]);
+
+  const addPool = (e, index) => {
+    e.stopPropagation();
+    filterData[index].added = true;
+    addToCustomList(filterData[index]);
+    setFilterData([...filterData]);
+  }
+
+  const deletePool = (e, index) => {
+    e.stopPropagation();
+    filterData[index].added = false;
+    removeFromCustomList(filterData[index]);
+    setFilterData([...filterData]);
+  }
+
+  const addToCustomList = (data) => {
+    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
+    if (!_userSetting) {
+      _userSetting = {};
+    }
+    if (!_userSetting[customPoolList]) {
+      _userSetting[customPoolList] = {};
+      _userSetting[customPoolList][selected_chain] = [];
+    }
+    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
+    if (index !== -1) return;
+    _userSetting[customPoolList][selected_chain].push(data);
+    localStorage.setItem(userSettings, JSON.stringify(_userSetting));
+    dispatch({
+      type: ADD_POOL,
+      payload: data,
+      chain: selected_chain
+    });
+  }
+
+  const removeFromCustomList = (data) => {
+    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
+    if (!_userSetting) {
+      _userSetting = {};
+    }
+    if (!_userSetting[customPoolList]) {
+      _userSetting[customPoolList] = {};
+      _userSetting[customPoolList][selected_chain] = [];
+    }
+    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
+    if (index !== -1) {
+      _userSetting[customPoolList][selected_chain].splice(index, 1);
+      localStorage.setItem(userSettings, JSON.stringify(_userSetting));
+    }
+    dispatch({
+      type: REMOVE_POOL,
+      payload: data,
+      chain: selected_chain
+    });
+  }
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -915,7 +984,7 @@ export default function RLiquidity() {
             <TextField
               autoFocus={true}
               value={query}
-              onChange={filterLP}
+              onChange={changeQuery}
               label="Search"
               inputProps={{
                 type: "search",
@@ -928,26 +997,56 @@ export default function RLiquidity() {
             <hr className="my-6" />
             <ul className="flex flex-col gap-y-6 max-h-[250px]" style={{ overflowY: "scroll" }}>
               {filterData.map((item, index) => {
-                return (
-                  <li
-                    key={item["address"] + index}
-                    className="flex gap-x-1"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => selectToken(item)}
-                  >
-                    <div className="relative flex">
-                      <img src={item["logoURLs"][0]} alt="" className="w-[32px]" />
-                      <img
-                        className="z-10 relative right-2 w-[32px]"
-                        src={item["logoURLs"][1]}
-                        alt=""
-                      />
-                    </div>
-                    <p className="text-light-primary text-lg" >
-                      {item["symbols"][0]} - {item["symbols"][1]} LP Token
-                    </p>
-                  </li>
-                );
+                if (item.custom) {
+                  return (
+                    <li
+                      key={item["address"] + index}
+                      className="flex justify-between items-center gap-x-1 thelist p-[5px]"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => selectToken(item)}
+                    >
+                      <div className="relative flex gap-x-1">
+                        <div className="relative flex">
+                          <img src={item["logoURLs"][0]} alt="" className="w-[32px] h-[32px]" />
+                          <img
+                            className="z-10 relative right-2 w-[32px] h-[32px]"
+                            src={item["logoURLs"][1]}
+                            alt=""
+                          />
+                        </div>
+                        <p className="text-light-primary text-lg" >
+                          {item["symbols"][0]} - {item["symbols"][1]} LP Token
+                        </p>
+                      </div>
+                      {
+                        item.added
+                          ? <button className="text-light-primary text-md mr-2" onClick={(e) => deletePool(e, index)}>delete</button>
+                          : <button className="text-light-primary text-md mr-2" onClick={(e) => addPool(e, index)}>add</button>
+                      }
+                    </li>
+                  );
+                } else {
+                  return (
+                    <li
+                      key={item["address"] + index}
+                      className="flex gap-x-1"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => selectToken(item)}
+                    >
+                      <div className="relative flex">
+                        <img src={item["logoURLs"][0]} alt="" className="w-[32px] h-[32px]" />
+                        <img
+                          className="z-10 relative right-2 w-[32px] h-[32px]"
+                          src={item["logoURLs"][1]}
+                          alt=""
+                        />
+                      </div>
+                      <p className="text-light-primary text-lg" >
+                        {item["symbols"][0]} - {item["symbols"][1]} LP Token
+                      </p>
+                    </li>
+                  );
+                }
               })}
             </ul>
           </StyledModal>

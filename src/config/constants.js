@@ -25,6 +25,7 @@ export const chainIds = {
 
 export const userSettings = "Gamut_settings";
 export const customList = "customList";
+export const customPoolList = "customPoolList";
 export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmSxSrj95qFFr4JhUshYBa17wLR7XeXETE47xjEd8TcSU4";
 
 export const poolList = {

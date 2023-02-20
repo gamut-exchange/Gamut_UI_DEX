@@ -72,6 +72,8 @@ export default function TokenList({mopen, handleClose, selectToken, uniList, sel
         let _userSetting = JSON.parse(localStorage.getItem(userSettings));
         if (!_userSetting) {
             _userSetting = {};
+        }
+        if (!_userSetting[customList]) {
             _userSetting[customList] = {};
             _userSetting[customList][selected_chain] = [];
         }
@@ -90,6 +92,8 @@ export default function TokenList({mopen, handleClose, selectToken, uniList, sel
         let _userSetting = JSON.parse(localStorage.getItem(userSettings));
         if (!_userSetting) {
             _userSetting = {};
+        }
+        if (!_userSetting[customList]) {
             _userSetting[customList] = {};
             _userSetting[customList][selected_chain] = [];
         }
