@@ -76,7 +76,7 @@ export const EXIT_TRANSACTIONS = gql`
 
 export const POOL_WEIGHTS = gql`
   query poolWeights($address: Bytes!) {
-    weightBalanceDatas(last:100, orderBy: timestamp, orderDirection: asc, where: { pool: $address }, subgraphError: allow) {
+    weightBalanceDatas(first:100, orderBy: timestamp, orderDirection: desc, where: { pool: $address }, subgraphError: allow) {
       id
       timestamp
       weight0
@@ -94,7 +94,7 @@ export const POOL_WEIGHTS = gql`
 export const POOL_PRICES = (poolString) => {
   return gql`
   query poolTokenPrices {
-    poolTokensPrices(last:300, orderBy: timestamp, orderDirection: asc, where: { pool_in: ${poolString} }, subgraphError: allow) {
+    poolTokensPrices(first:300, orderBy: timestamp, orderDirection: desc, where: { pool_in: ${poolString} }, subgraphError: allow) {
       id
       timestamp
       token0Price
