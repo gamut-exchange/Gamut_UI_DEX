@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client'
 
 export const kavaClient = new ApolloClient({
-  uri: 'http://65.109.205.22:8000/subgraphs/name/gamut-subgraph-kava',
+  uri: 'http://65.109.205.22:8000/subgraphs/name/gamut-subgraph-kava/graphql',
   cache: new InMemoryCache({
     typePolicies: {
       Token: {
