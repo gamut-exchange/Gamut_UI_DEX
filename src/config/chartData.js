@@ -243,6 +243,7 @@ export function useTokenPricesData(addresses) {
       return undefined
     }
   }, [data])
+  console.log(formattedData)
   return {
     loading: loading,
     error: Boolean(error),

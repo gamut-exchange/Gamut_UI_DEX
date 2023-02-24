@@ -1,7 +1,19 @@
-import { ApolloClient, InMemoryCache } from '@apollo/client'
+import { ApolloClient, InMemoryCache, HttpLink, Hawk, credentials } from '@apollo/client'
+
+const customFetch = (uri, options) => {
+  const { header } = Hawk.client.header(
+    "http://65.109.205.22:8000/subgraphs/name/gamut-subgraph-kava",
+    "POST",
+    { credentials: credentials, ext: "some-app-data" }
+  );
+  options.headers.Authorization = header;
+  return fetch(uri, options);
+};
+
+const link = new HttpLink({ fetch: customFetch });
 
 export const kavaClient = new ApolloClient({
-  uri: 'http://65.109.205.22:8000/subgraphs/name/gamut-subgraph-kava/graphql',
+  link: link,
   cache: new InMemoryCache({
     typePolicies: {
       Token: {
