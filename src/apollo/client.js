@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client'
 
-const link = new HttpLink({ uri:"http://subraph.gamut.exchange/" });
+const link = new HttpLink({ uri:"https://subgraph.gamut.exchange/" });
 
 export const kavaClient = new ApolloClient({
   link: link,
