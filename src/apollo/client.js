@@ -1,9 +1,7 @@
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client'
-
-const link = new HttpLink({ uri:"https://subgraph.gamut.exchange/" });
+import { ApolloClient, InMemoryCache } from '@apollo/client'
 
 export const kavaClient = new ApolloClient({
-  link: link,
+  uri: 'https://subgraph3.gamut.exchange:8000/subgraphs/name/gamut-subgraph-kava/graphql',
   cache: new InMemoryCache({
     typePolicies: {
       Token: {
