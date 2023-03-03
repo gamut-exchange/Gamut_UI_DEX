@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 // ** Web3 React
 import {
@@ -12,20 +12,29 @@ import {
     UserRejectedRequestError as UserRejectedRequestErrorWalletConnect,
 } from "@web3-react/walletconnect-connector";
 import { UserRejectedRequestError as UserRejectedRequestErrorFrame } from "@web3-react/frame-connector";
+
+// Import ethers and bech32
+import { ethers } from 'ethers';
+import bech32 from 'bech32';
+
 // ** Import Material-Ui Components
-import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import Alert from "@mui/lab/Alert";
-import Dialog from "@mui/material/Dialog";
-import Button from "@mui/material/Button";
-import ListItem from "@mui/material/ListItem";
-import Typography from "@mui/material/Typography";
-import DialogTitle from "@mui/material/DialogTitle";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import TextField from "@mui/material/TextField";
-import CircularProgress from "@mui/material/CircularProgress";
+
+import {
+    Box,
+    List,
+    Alert,
+    Dialog,
+    Button,
+    ListItem,
+    Typography,
+    DialogTitle,
+    ButtonGroup,
+    ListItemText,
+    ListItemIcon,
+    TextField,
+    CircularProgress,
+    useMediaQuery,
+} from "@mui/material"
 
 // ** Import Material Icons
 import FileCopyOutlinedIcon from "@mui/icons-material/FileCopyOutlined";
@@ -54,6 +63,10 @@ const ConnectWallet = ({
     const classes = useStyles.base();
     const dispatch = useDispatch();
 
+    const isMobile = useMediaQuery("(max-width:600px)");
+
+    const [kavaAddr, setKavaAddr] = useState("");
+
     const triedEager = useEagerConnect();
     const {
         activate,
@@ -75,6 +88,8 @@ const ConnectWallet = ({
             payload: account,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
+        let kavaAdr = ethToKavaAddress(account);
+        setKavaAddr(kavaAdr);
     }, [account]);
     // ** Actions
     const copyAddress = () => {
@@ -132,6 +147,30 @@ const ConnectWallet = ({
     const handleChainChange = async () => {
         setIsOpen(false);
         await changeChain(chain);
+    };
+
+    const kavaToEthAddress = (kavaAddress) => {
+        try {
+          return ethers.utils.getAddress(
+            ethers.utils.hexlify(bech32.fromWords(bech32.decode(kavaAddress).words))
+          );
+        } catch (err) {
+          return '';
+        }
+    };
+
+    const ethToKavaAddress = (ethereumAddress) => {
+        try {
+          return bech32.encode(
+            'kava',
+            bech32.toWords(
+              ethers.utils.arrayify(ethers.utils.getAddress(ethereumAddress))
+            )
+          );
+        } catch (err) {
+          return '';
+        };
+
     };
 
     useEffect(() => {
@@ -198,45 +237,61 @@ const ConnectWallet = ({
                                 </Typography>
                             </Button>
                         )}
-                        <TextField
-                            inputProps={{
-                                readOnly: true,
-                                style: { color: "#4b6998", border: "1px solid gray" },
-                            }}
-                            value={
-                                account
-                                    ? `${account.substring(0, 16)} ... ${account.substring(
-                                        account.length - 4
-                                    )}`
-                                    : "Connect Wallet"
-                            }
-                        />
-                        <ButtonGroup
-                            className="buttonGroup"
-                            color="primary"
-                            aria-label="outlined primary button group"
-                        >
+                        <div className="flex flex-col">
+                            {account && <p style={{color:"#4b98bb", marginTop:"6px"}}>KAVA EVM Address</p>}
+                            <TextField
+                                inputProps={{
+                                    readOnly: true,
+                                    style: { color: "#4b98bb", border: "1px solid gray", fontFamily:"monospace" },
+                                }}
+                                value={
+                                    account
+                                        ? (isMobile?`${account.toLowerCase().substring(0, 12)} ... ${account.toLowerCase().substring(account.length-12)}`:`${account.toLowerCase().substring(0, 16)} ... ${account.toLowerCase().substring(account.length-15)}`)
+                                        : "Connect Wallet"
+                                }
+                            />
                             <CopyToClipboard text={account} onCopy={() => copyAddress()}>
-                                <Button
-                                    onClick={() => copyAddress()}
-                                    startIcon={<FileCopyOutlinedIcon />}
-                                >
-                                    <Typography variant="caption">Copy</Typography>
-                                </Button>
+                                <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"148px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
                             </CopyToClipboard>
-                            <Button
-                                onClick={() => viewBlockUrl(account)}
-                                startIcon={<OpenInNewOutlinedIcon />}
+                            {account && <p style={{color:"#4b98bb", marginTop:"6px", whiteSpace:"nowrap" }}>KAVA Address(deposit KAVA from central exchanges)</p>}
+                            <TextField
+                                inputProps={{
+                                    readOnly: true,
+                                    style: { color: "#4b98bb", border: "1px solid gray", fontFamily:"monospace" },
+                                }}
+                                value={
+                                    account
+                                        ? (isMobile?`${kavaAddr.substring(0, 12)} ... ${kavaAddr.substring(kavaAddr.length-12)}`:`${kavaAddr.substring(0, 16)} ... ${kavaAddr.substring(kavaAddr.length-15)}`)
+                                        : "Connect Wallet"
+                                }
+                            />
+                            <CopyToClipboard text={kavaAddr} onCopy={() => copyAddress()}>
+                                <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"215px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                            </CopyToClipboard>
+                        </div>
+                        <div style={{width:"flex", display:"contents"}}>
+                            <ButtonGroup
+                                className="buttonGroup"
+                                color="primary"
+                                style={{paddingLeft:"0px", paddingRight:"0px"}}
+                                aria-label="outlined primary button group"
                             >
-                                <Typography variant="caption">View</Typography>
-                            </Button>
-                            <Button
-                                onClick={() => onDeactiveWallet()}
-                                startIcon={<ExitToAppOutlinedIcon />}
-                            >
-                                <Typography variant="caption">Deactivate</Typography>
-                            </Button>
-                        </ButtonGroup>
+                                <Button
+                                    style={{width:"50%"}}
+                                    onClick={() => viewBlockUrl(account)}
+                                    startIcon={<OpenInNewOutlinedIcon />}
+                                >
+                                    <Typography variant="caption">View</Typography>
+                                </Button>
+                                <Button
+                                    style={{width:"50%"}}
+                                    onClick={() => onDeactiveWallet()}
+                                    startIcon={<ExitToAppOutlinedIcon />}
+                                >
+                                    <Typography variant="caption">Deactivate</Typography>
+                                </Button>
+                            </ButtonGroup>
+                        </div>
                     </Box>
                 ) : (
                     <button
