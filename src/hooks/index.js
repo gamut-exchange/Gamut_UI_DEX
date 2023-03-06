@@ -80,12 +80,17 @@ export function useInactiveListener(suppress = false) {
       if (connector === walletconnect && !active && !error && !suppress) {
         // Subscribe to accounts change
         walletconnect.on("accountsChanged", (accounts) => {
-          console.log(accounts);
+          activate(walletconnect);
         });
 
         // Subscribe to chainId change
         walletconnect.on("chainChanged", (chainId) => {
-          console.log(chainId);
+          activate(walletconnect);
+        });
+
+        // Subscribe to chainId change
+        walletconnect.on("networkChanged", (chainId) => {
+          activate(walletconnect);
         });
 
         // Subscribe to session disconnection
