@@ -238,7 +238,7 @@ const ConnectWallet = ({
                             </Button>
                         )}
                         <div className="flex flex-col">
-                            {account && <p style={{color:"#4b98bb", marginTop:"6px"}}>KAVA EVM Address</p>}
+                            {account && <p className="address-description" style={{color:"#4b98bb", marginTop:"6px"}}>KAVA EVM Address</p>}
                             <TextField
                                 inputProps={{
                                     readOnly: true,
@@ -250,10 +250,17 @@ const ConnectWallet = ({
                                         : "Connect Wallet"
                                 }
                             />
-                            <CopyToClipboard text={account} onCopy={() => copyAddress()}>
-                                <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"148px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
-                            </CopyToClipboard>
-                            {account && <p style={{color:"#4b98bb", marginTop:"6px", whiteSpace:"nowrap" }}>KAVA Address(deposit KAVA from central exchanges)</p>}
+                            {!isMobile && 
+                                <CopyToClipboard text={account} onCopy={() => copyAddress()}>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"148px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                </CopyToClipboard>
+                            }
+                            {isMobile && 
+                                <CopyToClipboard text={account} onCopy={() => copyAddress()}>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"143px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                </CopyToClipboard>
+                            }
+                            {account && <p className="address-description" style={{color:"#4b98bb", marginTop:"6px", whiteSpace:"nowrap" }}>KAVA Address(deposit KAVA from central exchanges)</p>}
                             <TextField
                                 inputProps={{
                                     readOnly: true,
@@ -265,9 +272,16 @@ const ConnectWallet = ({
                                         : "Connect Wallet"
                                 }
                             />
-                            <CopyToClipboard text={kavaAddr} onCopy={() => copyAddress()}>
-                                <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"215px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
-                            </CopyToClipboard>
+                            {!isMobile &&
+                                <CopyToClipboard text={kavaAddr} onCopy={() => copyAddress()}>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"215px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                </CopyToClipboard>
+                            }
+                            {isMobile &&
+                                <CopyToClipboard text={kavaAddr} onCopy={() => copyAddress()}>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"205px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                </CopyToClipboard>
+                            }
                         </div>
                         <div style={{width:"flex", display:"contents"}}>
                             <ButtonGroup

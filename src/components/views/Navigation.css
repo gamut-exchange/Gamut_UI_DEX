@@ -102,6 +102,8 @@
     margin: 0 auto;
 }
 
-
+.address-description {
+    font-size: 10px!important;
+}
 
 }
