@@ -257,7 +257,7 @@ const ConnectWallet = ({
                             }
                             {isMobile && 
                                 <CopyToClipboard text={account} onCopy={() => copyAddress()}>
-                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"143px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"relative", top:"141px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
                                 </CopyToClipboard>
                             }
                             {account && <p className="address-description" style={{color:"#4b98bb", marginTop:"6px", whiteSpace:"nowrap" }}>KAVA Address(deposit KAVA from central exchanges)</p>}
@@ -279,7 +279,7 @@ const ConnectWallet = ({
                             }
                             {isMobile &&
                                 <CopyToClipboard text={kavaAddr} onCopy={() => copyAddress()}>
-                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"205px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
+                                    <FileCopyOutlinedIcon style={{width:"20px", position:"absolute", top:"202px", right:"30px", cursor:"pointer"}} onClick={() => copyAddress()}/>
                                 </CopyToClipboard>
                             }
                         </div>
