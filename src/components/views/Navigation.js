@@ -19,7 +19,7 @@ function Navigation() {
     else if (location.pathname === "/contact")
       setActive('contact');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.pathname]);
 
   return (
     <Box
@@ -77,6 +77,17 @@ function Navigation() {
               >
                 {/* {item} */}
                 Liquidity
+              </Button>
+            </Link>
+            <Link to="/platform_dashboard" style={{ textDecoration: "none" }}>
+              <Button
+                // key={item}
+                sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
+                onClick={() => setActive("dashboard")}
+              >
+                {/* {item} */}
+                Dashboard
               </Button>
             </Link>
             {/* ))} */}

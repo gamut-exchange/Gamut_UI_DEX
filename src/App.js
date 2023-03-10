@@ -6,6 +6,8 @@ import Footer from './components/views/Footer';
 import CLiquidity from './components/views/CLiquidity';
 import Liquidity from './components/views/Liquidity';
 import RLiquidity from './components/views/RLiquidity';
+import PDashboard from './components/views/PlatformDashboard';
+import UDashboard from './components/views/UserDashboard';
 import {HashRouter, Route, Routes } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { useEffect } from 'react';
@@ -33,7 +35,9 @@ function App() {
         <Route path="/add_liquidity" element={<Liquidity />} />
         <Route path="/create_liquidity" element={<CLiquidity />} />
         <Route path="/remove_liquidity" element={<RLiquidity />} />
-     </Routes>
+        <Route path="/platform_dashboard" element={<PDashboard />} />
+        <Route path="/user_dashboard" element={<UDashboard />} />
+      </Routes>
       <Footer />
     </HashRouter>
     </div>

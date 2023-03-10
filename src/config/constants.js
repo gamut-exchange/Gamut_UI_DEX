@@ -30,12 +30,13 @@ export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmSxSrj95qFFr4Jh
 
 export const poolList = {
 	'kava': [
-		{ value: "other", address: "0x6BE57618C8832Ad25cCeAdF2745d5C92De7ab7b2", symbols: ["BUSD", "WKAVA"], logoURLs: ["/icons/busd.svg", "/icons/wkava.png"] },
-		{ value: "other", address: "0xbd3d481e308A6f2fA6714bA3dc33e68Ab3915557", symbols: ["DAI", "WBTC"], logoURLs: ["/icons/dai.svg", "/icons/wbtc.png"] },
-		{ value: "other", address: "0x9D102cE615ab35CEdDDa899bE47A8DA5Dc139460", symbols: ["BUSD", "DAI"], logoURLs: ["/icons/busd.svg", "/icons/dai.svg"] },
-		{ value: "other", address: "0x1e34dd2F920630e6AF04519221ed9004608A6c52", symbols: ["DAI", "WKAVA"], logoURLs: ["/icons/dai.svg", "/icons/wkava.png"] },
-		{ value: "other", address: "0xBd87cD1512763EEFC14B3717ff42538022E95C95", symbols: ["USDT", "ETH"], logoURLs: ["/icons/usdt.png", "/icons/eth.png"] },
-		{ value: "other", address: "0x9f065518185436FbDd72FD7ca7fd99CCAF3f061A", symbols: ["DAI", "USDC"], logoURLs: ["/icons/dai.svg", "/icons/usdc.svg"] },
-		{ value: "other", address: "0x02Bd2e7f107A15CE8b6414df67F4A7e662218Bc9", symbols: ["DAI", "USDT"], logoURLs: ["/icons/dai.svg", "/icons/usdt.png"] },
+		{ value: "other", address: "0x6be57618c8832ad25cceadf2745d5c92de7ab7b2", symbols: ["BUSD", "WKAVA"], logoURLs: ["/icons/busd.svg", "/icons/wkava.png"] },
+		{ value: "other", address: "0xbd3d481e308a6f2fa6714ba3dc33e68ab3915557", symbols: ["DAI", "WBTC"], logoURLs: ["/icons/dai.svg", "/icons/wbtc.png"] },
+		{ value: "other", address: "0x9d102ce615ab35ceddda899be47a8da5dc139460", symbols: ["BUSD", "DAI"], logoURLs: ["/icons/busd.svg", "/icons/dai.svg"] },
+		{ value: "other", address: "0x1e34dd2f920630e6af04519221ed9004608a6c52", symbols: ["DAI", "WKAVA"], logoURLs: ["/icons/dai.svg", "/icons/wkava.png"] },
+		{ value: "other", address: "0xbd87cd1512763eefc14b3717ff42538022e95c95", symbols: ["USDT", "ETH"], logoURLs: ["/icons/usdt.png", "/icons/eth.png"] },
+		{ value: "other", address: "0x9f065518185436fbdd72fd7ca7fd99ccaf3f061a", symbols: ["DAI", "USDC"], logoURLs: ["/icons/dai.svg", "/icons/usdc.svg"] },
+		{ value: "other", address: "0x02bd2e7f107a15ce8b6414df67f4a7e662218bc9", symbols: ["DAI", "USDT"], logoURLs: ["/icons/dai.svg", "/icons/usdt.svg"] },
+		{ value: "other", address: "0x545236b930e5f5f339934296a5d442014978706f", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.svg", "/icons/eth.svg"] },
 	]
 }

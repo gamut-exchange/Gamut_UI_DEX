@@ -6,17 +6,12 @@ import poolABI from "../assets/abi/pool";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
 import { chainIds } from "./constants";
+import axios from "axios";
 
 // web3 integration part
 export const getTokenBalance = async (provider, tokenAddr, account) => {
     const abi = erc20ABI[0];
     let web3 = new Web3(provider);
-    // let factoryContract = new web3.eth.Contract(hedgeFactoryABI[0], "0xbD4C56E952c238389AEE995E1ed504cA646D199B")
-    // const length = await factoryContract.methods.allPoolsLength().call()
-    // console.log("pool length: ", length)
-    // for (let i = 0; i < length; i++) {
-    //     console.log(await factoryContract.methods.allPools(i).call())
-    // }
     if (tokenAddr === "0x0000000000000000000000000000000000000000") {
         const coinbal = await web3.eth.getBalance(account);
         let result = Number(coinbal / 10 ** 18);
@@ -630,6 +625,170 @@ export const createPool = async (
 
 }
 
+// Get All Pools
+export const getAllPools = async (provider, account, contractAddr) => {
+  let web3 = new Web3(provider);
+  const factoryABI = hedgeFactoryABI[0];
+  const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
+  const pAbi = poolABI[0];
+  const poolContract = new web3.eth.Contract(pAbi);
+  let pLength = await factoryContract.methods["allPoolsLength"]().call();
+  let pools = [];
+  for (let i = 0; i < pLength; i++) {
+    let poolAddress = await factoryContract.methods["allPools"](i).call();
+    poolContract.options.address = poolAddress;
+    let poolTokenAndBalance = await poolContract.methods[
+      "getPoolTokensAndBalances"
+    ]().call();
+    let weight = await poolContract.methods["getWeights"]().call();
+    new Promise((resolve) => setTimeout(resolve, 1000));
+    // let decimals = await poolContract.methods["decimals"]().call();
+    let supply = await poolContract.methods["totalSupply"]().call();
+    new Promise((resolve) => setTimeout(resolve, 1000));
+    let userlp = ethers.utils.formatEther(supply.toString());
+    await axios
+      .get(
+        `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+      )
+      .then(async (response) => {
+        let a =
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+            (ethers.utils.formatEther(weight[0]) * 100)) /
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+            (ethers.utils.formatEther(weight[1]) * 100));
+        let b =
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+            (ethers.utils.formatEther(weight[1]) * 100)) /
+          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+            (ethers.utils.formatEther(weight[0]) * 100));
+        if (
+          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
+            0.9 &&
+          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
+            1.1
+        ) {
+          let lp =
+            (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
+              poolTokenAndBalance?.balances[0] / 10 ** 18) /
+            (supply / 10 ** 18);
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(4),
+          });
+        } else if (
+          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
+            0.9 &&
+          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
+            1.1
+        ) {
+          let lp =
+            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+              poolTokenAndBalance?.balances[1] / 10 ** 18) /
+            supply;
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(4),
+          });
+        } else {
+          let lp =
+            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+              poolTokenAndBalance?.balances[1] / 10 ** 18) /
+            supply;
+          pools.push({
+            address: poolAddress,
+            totalSupply: (lp * userlp).toFixed(4),
+          });
+        }
+      });
+  }
+  return pools;
+};
+
+// User Holding in All Pools ----------------------------------------------------------------------
+export const getHoldingInLP = async (provider, account, contractAddr, poolList) => {
+  let web3 = new Web3(provider);
+  const factoryABI = hedgeFactoryABI[0];
+  const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
+  const pAbi = poolABI[0];
+  let tvlBalance = 0;
+  let LPHolding = [];
+  for (let i = 0; i < poolList.length; i++) {
+    try {
+        let poolAddress = poolList[i].address;
+        let poolContract = new web3.eth.Contract(pAbi, poolAddress);
+        const poolTokenAndBalance = await poolContract.methods.getPoolTokensAndBalances().call();
+        const weight = await poolContract.methods["getWeights"]().call();
+        const supply = await poolContract.methods["totalSupply"]().call();
+        const lp_balance = await poolContract.methods["balanceOf"](account).call();
+        tvlBalance =
+          tvlBalance +
+          parseInt(lp_balance);
+        let userlp = ethers.utils.formatEther(lp_balance);
+        if(Number(userlp) !== 0) {
+            await axios
+              .get(
+                `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+              )
+              .then(async (response) => {
+
+                let a =
+                  (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+                    (ethers.utils.formatEther(weight[0]) * 100)) /
+                  (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+                    (ethers.utils.formatEther(weight[1]) * 100));
+                let b =
+                  (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+                    (ethers.utils.formatEther(weight[1]) * 100)) /
+                  (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+                    (ethers.utils.formatEther(weight[0]) * 100));
+                if (
+                  response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
+                    0.9 &&
+                  response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
+                    1.1
+                ) {
+                  let lp =
+                    (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
+                      poolTokenAndBalance?.balances[0] / 10 ** 18) /
+                    (supply / 10 ** 18);
+                  LPHolding.push({
+                    address: poolAddress.toLowerCase(),
+                    totalSupply: (lp * userlp).toFixed(4),
+                  });
+                } else if (
+                  response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
+                    0.9 &&
+                  response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
+                    1.1
+                ) {
+                  let lp =
+                    (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+                      poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                    supply;
+                  LPHolding.push({
+                    address: poolAddress,
+                    totalSupply: (lp * userlp).toFixed(4),
+                  });
+                } else {
+                  let lp =
+                    (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+                      poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                    supply;
+                  LPHolding.push({
+                    address: poolAddress,
+                    totalSupply: (lp * userlp).toFixed(4),
+                  });
+                }
+              });
+        }
+    } catch (e) {
+        console.log(e.message);
+        i--;
+    }
+  }
+  return [tvlBalance, LPHolding];
+};
+
 const toWeiVal = async (provider, tokenAddr, val) => {
     const abi = erc20ABI[0];
     const web3 = new Web3(provider);
@@ -645,7 +804,7 @@ const toWeiVal = async (provider, tokenAddr, val) => {
         let tval = web3.utils.toBN(toLongNum(value * (10 ** decimal))).toString();
         return tval;
     }
-}
+};
 
 export const fromWeiVal = (provider, val, dec) => {
     // let web3 = new Web3(provider);
@@ -689,7 +848,7 @@ export const allowedToWithdraw = async (account, provider, faucetAddr) => {
     let web3 = new Web3(provider);
 
     let contract = new web3.eth.Contract(abi, faucetAddr);
-    let allowed = contract.methods["allowedToWithdraw"](account).call();
+    let allowed = await contract.methods["allowedToWithdraw"](account).call();
     return allowed;
 };
 
