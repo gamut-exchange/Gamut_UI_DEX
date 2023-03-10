@@ -31,26 +31,23 @@ export default function PDashboard() {
 
   // https://defillama.com/docs/api
   const fetchTVLData = () => {
-    console.log("Gettting TVL Chart");
     axios
       .get("https://api.llama.fi/protocol/gamut-exchange", {
         headers: { accept: "*/*" },
       })
       .then((responce) => {
-        // console.log("Graph Data:", responce?.data);
         setTVLGraph(responce?.data);
       });
   };
 
   const handlePoolData = async () => {
     const provider = await connector.getProvider();
-    // console.log("Provider:", provider);
     getAllPools(
       provider,
       account,
-      contractAddresses[selected_chain]["hedgeFactory"]
+      contractAddresses[selected_chain]["hedgeFactory"],
+      poolList
     ).then((responce) => {
-      // console.log("abccccccccccc", responce);
       setPools({
         isLoad: true,
         data: responce.sort(function (a, b) {
@@ -59,8 +56,7 @@ export default function PDashboard() {
       });
     });
   };
-  console.log("poolsss", pools);
-  console.log("poolsssData", poolsData);
+
   useEffect(() => {
     fetchTVLData();
     if (account === undefined) return;
@@ -286,7 +282,7 @@ export default function PDashboard() {
                                 <img
                                   src={
                                     poolsData.filter(
-                                      (data) => data?.address === pool.address
+                                      (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
                                     )[0].logoURLs[0]
                                   }
                                   alt=""
@@ -296,7 +292,7 @@ export default function PDashboard() {
                                   className="z-10 relative right-2 h-5 w-5"
                                   src={
                                     poolsData.filter(
-                                      (data) => data?.address === pool?.address
+                                      (data) => data?.address.toLowerCase() === pool?.address.toLowerCase()
                                     )[0]?.logoURLs[1]
                                   }
                                   alt=""
@@ -304,13 +300,13 @@ export default function PDashboard() {
                                 <p>
                                   {
                                     poolsData.filter(
-                                      (data) => data?.address === pool?.address
+                                      (data) => data?.address.toLowerCase() === pool?.address.toLowerCase()
                                     )[0]?.symbols[0]
                                   }
                                   /{" "}
                                   {
                                     poolsData.filter(
-                                      (data) => data?.address === pool?.address
+                                      (data) => data?.address.toLowerCase() === pool?.address.toLowerCase()
                                     )[0]?.symbols[1]
                                   }
                                 </p>

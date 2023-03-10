@@ -642,7 +642,6 @@ export const getAllPools = async (provider, account, contractAddr) => {
     ]().call();
     let weight = await poolContract.methods["getWeights"]().call();
     new Promise((resolve) => setTimeout(resolve, 1000));
-    // let decimals = await poolContract.methods["decimals"]().call();
     let supply = await poolContract.methods["totalSupply"]().call();
     new Promise((resolve) => setTimeout(resolve, 1000));
     let userlp = ethers.utils.formatEther(supply.toString());
@@ -707,6 +706,7 @@ export const getAllPools = async (provider, account, contractAddr) => {
 // User Holding in All Pools ----------------------------------------------------------------------
 export const getHoldingInLP = async (provider, account, contractAddr, poolList) => {
   let web3 = new Web3(provider);
+  const tokenAbi = erc20ABI[0];
   const factoryABI = hedgeFactoryABI[0];
   const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
   const pAbi = poolABI[0];
@@ -718,6 +718,10 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
         let poolContract = new web3.eth.Contract(pAbi, poolAddress);
         const poolTokenAndBalance = await poolContract.methods.getPoolTokensAndBalances().call();
         const weight = await poolContract.methods["getWeights"]().call();
+        let tokenContract1 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][0]);
+        let tokenContract2 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][1]);
+        let decimal1 = await tokenContract1.methods["decimals"]().call();
+        let decimal2 = await tokenContract2.methods["decimals"]().call();
         const supply = await poolContract.methods["totalSupply"]().call();
         const lp_balance = await poolContract.methods["balanceOf"](account).call();
         tvlBalance =
@@ -748,8 +752,8 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                     1.1
                 ) {
                   let lp =
-                    (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
-                      poolTokenAndBalance?.balances[0] / 10 ** 18) /
+                    (b * (poolTokenAndBalance?.balances[1] / 10 ** decimal2) +
+                      poolTokenAndBalance?.balances[0] / 10 ** decimal1) /
                     (supply / 10 ** 18);
                   LPHolding.push({
                     address: poolAddress.toLowerCase(),
@@ -762,8 +766,8 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                     1.1
                 ) {
                   let lp =
-                    (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
-                      poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                    (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                      poolTokenAndBalance?.balances[1] / 10 ** decimal2) /
                     supply;
                   LPHolding.push({
                     address: poolAddress,
@@ -771,8 +775,8 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                   });
                 } else {
                   let lp =
-                    (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
-                      poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                    (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                      poolTokenAndBalance?.balances[1] / 10 ** decimal2) /
                     supply;
                   LPHolding.push({
                     address: poolAddress,
