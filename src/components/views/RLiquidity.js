@@ -900,7 +900,7 @@ export default function RLiquidity() {
                     }}
                     disabled={Number(value) === 0 || removing}
                   >
-                    {Number(numFormat(poolAmount)) === 0 ? "No Liquidity Found" :
+                    {Number(poolAmount) === 0 ? "No Liquidity Found" :
                       (Number(value) === 0
                         ? "Define your Liquidity Input"
                         : (removing ? "Removing Liquidity" : "Confirm")
