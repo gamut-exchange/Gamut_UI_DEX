@@ -56,9 +56,16 @@ function History(props) {
             >
               <div style={{ width: "100%" }}>
                 <div style={{ float: "left" }}>
-                  <span style={{ textAlign: "start", color: "white" }}>
-                    Swap {item.token0.symbol} | {item.token1.symbol}:
-                  </span>
+                  {item.amount0 > 0 &&
+                    <span style={{ textAlign: "start", color: "white" }}>
+                      Swap {item.token0.symbol} | {item.token1.symbol}:
+                    </span>
+                  }
+                  {item.amount1 > 0 &&
+                    <span style={{ textAlign: "start", color: "white" }}>
+                      Swap {item.token1.symbol} | {item.token0.symbol}:
+                    </span>
+                  }
                 </div>
                 <div style={{ float: "right", display: "inline" }}>
                   <span
@@ -80,9 +87,16 @@ function History(props) {
                 </span>
 
                 <div style={{ float: "right", display: "inline" }}>
+                {item.amount0 > 0 &&
                   <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
                     {numFormat(Math.abs(item.amount0))} {item.token0.symbol}
                   </span>
+                }
+                {item.amount1 > 0 &&
+                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
+                    {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
+                  </span>
+                }
                 </div>
               </div>
 
@@ -90,11 +104,17 @@ function History(props) {
                 <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
                   To:
                 </span>
-
                 <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
-                  </span>
+                  {item.amount0 < 0 &&
+                    <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
+                      {numFormat(Math.abs(item.amount0))} {item.token0.symbol}
+                    </span>
+                  }
+                  {item.amount1 < 0 &&
+                    <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
+                      {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
+                    </span>
+                  }
                 </div>
               </div>
               {/* 

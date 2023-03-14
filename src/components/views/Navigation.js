@@ -79,7 +79,7 @@ function Navigation() {
                 Liquidity
               </Button>
             </Link>
-            <Link to="/platform_dashboard" style={{ textDecoration: "none" }}>
+            <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
               <Button
                 // key={item}
                 sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}

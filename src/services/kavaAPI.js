@@ -33,7 +33,7 @@ export const getKavaTx = (address) => {
     params: {
       module: "account",
       action: "txlist",
-      offset: 15,
+      offset: 35,
       page: 1,
     },
     headers: {

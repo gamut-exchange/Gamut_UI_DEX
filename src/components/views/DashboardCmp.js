@@ -41,24 +41,7 @@ function DashboardCmp() {
             }}
           >
             <Stack spacing={2} direction="row">
-              <Link to="/platform_dashboard" style={{ textDecoration: "none" }}>
-                <Button
-                  size="large"
-                  variant="contained"
-                  sx={{
-                    width: 200,
-                    padding: 2,
-                    fontWeight: "bold",
-                    background:
-                      location.pathname === "/platform_dashboard"
-                        ? activeSwapColor
-                        : "#12122c",
-                  }}
-                  onClick={() => setActiveSwapColor("/platform_dashboard")}
-                >
-                  Platform Stats
-                </Button>
-              </Link>
+              
               <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
