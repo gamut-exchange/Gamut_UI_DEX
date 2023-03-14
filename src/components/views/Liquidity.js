@@ -1,3 +1,5 @@
+import Web3 from "web3";
+import { ethers } from "ethers";
 import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
@@ -17,7 +19,8 @@ import {
   AddCircleOutline,
   Settings,
 } from "@mui/icons-material";
-import { useWeightsData, useJoinTransactionsData } from "../../config/chartData";
+import { useWeightsData } from "../../config/chartData";
+import { getKavaTx } from "../../services/kavaAPI";
 import {
   getTokenBalance,
   getPoolAddress,
@@ -40,8 +43,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
 import SwapCmp from "./SwapCmp";
+import routerABI from "../../assets/abi/router";
+import abiDecoder from "../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -120,14 +124,12 @@ export default function Liquidity() {
   const [slippage, setSlippage] = useState(0.1);
   const [slippageFlag, setSlippageFlag] = useState(false);
   const [priceImpact, setPriceImpact] = useState(0);
-  // const [deadline, setDeadline] = useState(900);
-  // const [deadlineFlag, setDeadlineFlag] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
 
   const dispatch = useDispatch();
 
   const weightData = useWeightsData(poolAddress.toLowerCase());
-  const joinTransactionsData = useJoinTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleMopen = (val) => {
@@ -487,6 +489,9 @@ export default function Liquidity() {
           outToken["address"] === "0x0000000000000000000000000000000000000000"
         );
       setAdding(false);
+      await setTimeout(function() {
+        fetchUserData();
+      }, 10000);
       let n_inBal = await getTokenBalance(provider, inToken["address"], account);
       let n_outBal = await getTokenBalance(provider, outToken["address"], account);
       setInBal(n_inBal);
@@ -731,10 +736,56 @@ export default function Liquidity() {
     return value + "%";
   }
 
+  const fetchUserData = async () => {
+    abiDecoder.addABI(routerABI[0]);
+    getKavaTx(account, 150).then(async (response) => {
+      let filteredThx = response;
+      filteredThx.map((item) => {
+        item.raw_input = abiDecoder.decodeMethod(item.input);
+      });
+
+      filteredThx = await filteredThx.filter((item) => {
+        return (item.raw_input !== undefined && (item.raw_input.name === "joinPool"));
+      });
+
+      filteredThx.map(async (item) => {
+        let item_token1 = uniList[selected_chain].filter((unit) => {
+          return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
+        });
+        let item_token2 = uniList[selected_chain].filter((unit) => {
+          return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[1].toLowerCase();
+        });
+        if(item_token1 && item_token2) {
+          let userDT = [];
+          try {
+            userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256[]", "uint256"], item.raw_input.params[1].value.userData);
+            item.amount1 = numFormat((userDT[1][0]._hex).toString()/10**item_token1[0].decimals);
+            item.amount2 = numFormat((userDT[1][1]._hex).toString()/10**item_token2[0].decimals);
+          } catch (e) {
+            userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256", "uint256", "uint256"], item.raw_input.params[1].value.userData);
+            item.amount1 = numFormat((userDT[1]._hex).toString()/10**item_token1[0].decimals);
+            item.amount2 = numFormat((userDT[2]._hex).toString()/10**item_token2[0].decimals);
+          }
+          item.action_type = 1;
+          item.token1_symbol = item_token1[0].symbol;
+          item.token2_symbol = item_token2[0].symbol;
+        } else {
+          item.action_type = 1;
+          item.token1_symbol = "Unknown";
+          item.token2_symbol = "Unknown";
+          item.amount1 = 0;
+          item.amount2 = 0;
+        }
+      });
+      setUserERC20Transactions({isLoad: true, data: filteredThx})
+    });
+  };
+
   useEffect(() => {
     selectToken(uniList[selected_chain][0], 0);
     selectToken(uniList[selected_chain][1], 1);
     if (account) {
+      fetchUserData();
       if (inToken["address"].toLowerCase() !== outToken["address"].toLowerCase()) {
         getInitialInfo();
         const intervalId = setInterval(() => {
@@ -768,23 +819,6 @@ export default function Liquidity() {
       return [];
     }
   }, [weightData]);
-
-  const transactionsData = useMemo(() => {
-    if (account) {
-      if (joinTransactionsData.joins && joinTransactionsData.joins.length !== 0) {
-        let result = [];
-        result = joinTransactionsData.joins.map(item => {
-          return item;
-        });
-        return result;
-      } else {
-        return [];
-      }
-    } else {
-      return [];
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [joinTransactionsData]);
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -1188,7 +1222,7 @@ export default function Liquidity() {
             <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
               <span style={{ textAlign: "start", color: "white" }}>History:</span>
               <hr></hr>
-              <History type="join" data={transactionsData} />
+              <History data={userERC20Transactions} />
             </Item>
           }
         </Grid>

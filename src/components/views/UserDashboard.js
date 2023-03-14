@@ -70,7 +70,7 @@ export default function UDashboard() {
       });
       setUserERC20(filteredTokens);
     });
-    getKavaTx(account).then(async (response) => {
+    getKavaTx(account, 35).then(async (response) => {
       let filteredThx = response;
       await filteredThx.map((item) => {
         item.raw_input = abiDecoder.decodeMethod(item.input);
@@ -166,7 +166,6 @@ export default function UDashboard() {
             let userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256"], item.raw_input.params[1].value.userData);
             web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              console.log(decodedLogs[0].events[2].value[0]);
               item.amount1 = numFormat(decodedLogs[0].events[2].value[0]/10**item_token1[0].decimals);
               item.amount2 = numFormat(decodedLogs[0].events[2].value[1]/10**item_token2[0].decimals);
             });

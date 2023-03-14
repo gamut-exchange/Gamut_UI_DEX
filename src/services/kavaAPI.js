@@ -25,7 +25,7 @@ export const getKavaERC20 = (address) => {
   return data;
 };
 
-export const getKavaTx = (address) => {
+export const getKavaTx = (address, limit) => {
   // console.log("Addresswa:", address);
   const options = {
     method: "GET",
@@ -33,7 +33,7 @@ export const getKavaTx = (address) => {
     params: {
       module: "account",
       action: "txlist",
-      offset: 35,
+      offset: limit,
       page: 1,
     },
     headers: {

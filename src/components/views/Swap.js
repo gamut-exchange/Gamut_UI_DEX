@@ -1,3 +1,5 @@
+import Web3 from "web3";
+import { ethers } from "ethers";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
@@ -38,9 +40,11 @@ import {
   getMiddleToken
 } from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
-import { useSwapTransactionsData } from "../../config/chartData";
+import { getKavaTx } from "../../services/kavaAPI";
 import { defaultProvider, poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
+import routerABI from "../../assets/abi/router";
+import abiDecoder from "../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -125,9 +129,9 @@ export default function Swap() {
   const [priceDirection, setPriceDirection] = useState(true);
   const [finding, setFinding] = useState(false);
   const [priceImpact, setPriceImpact] = useState(0);
+  const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
 
   const pricesData = useTokenPricesData(poolAddress);
-  const swapTransactionData = useSwapTransactionsData(account);
   const chartRef = useRef();
   // const dark = false;
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -294,6 +298,9 @@ export default function Swap() {
           contractAddresses[selected_chain]["router"]
         );
       setSwapping(false);
+      await setTimeout(function() {
+        fetchUserData();
+      }, 10000);
       let inBal = await getTokenBalance(
         provider,
         inToken["address"],
@@ -648,23 +655,6 @@ export default function Swap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pricesData]);
 
-  const transactionsData = useMemo(() => {
-    if (account) {
-      if (swapTransactionData.swaps && swapTransactionData.swaps.length !== 0) {
-        let result = [];
-        result = swapTransactionData.swaps.map(item => {
-          return item;
-        });
-        return result;
-      } else {
-        return [];
-      }
-    } else {
-      return [];
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [swapTransactionData]);
-
   // Chart --->
   var chart;
   var areaSeries = null;
@@ -730,6 +720,73 @@ export default function Swap() {
     syncToInterval();
   };
 
+  const fetchUserData = async () => {
+    const provider = await connector.getProvider();
+    const web3 = new Web3(provider);
+    abiDecoder.addABI(routerABI[0]);
+    getKavaTx(account, 150).then(async (response) => {
+      let filteredThx = response;
+      filteredThx.map((item) => {
+        item.raw_input = abiDecoder.decodeMethod(item.input);
+      });
+
+      filteredThx = await filteredThx.filter((item) => {
+        return (item.raw_input !== undefined && (item.raw_input.name === "swap" || item.raw_input.name === "batchSwap"));
+      });
+
+      filteredThx.map(async (item) => {
+        if(item.raw_input.name === "swap") {
+          let item_token1 = uniList[selected_chain].filter((unit) => {
+            return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();
+          });
+          let item_token2 = uniList[selected_chain].filter((unit) => {
+            return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenOut.toLowerCase();
+          });
+          if (item_token1 && item_token2) {
+            item.action_type = 0;
+            item.token1_symbol = item_token1[0].symbol;
+            item.token2_symbol = item_token2[0].symbol;
+            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+              const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[0].events[3].value/10**item_token2[0].decimals);
+            });
+          } else {
+            item.action_type = 0;
+            item.token1_symbol = "Unknown";
+            item.token2_symbol = "Unknown";
+            item.amount1 = 0;
+            item.amount2 = 0;
+          }
+        } else if(item.raw_input.name === "batchSwap") {
+          let item_token1 = uniList[selected_chain].filter((unit) => {
+            return unit.address.toLowerCase() === item.raw_input.params[1].value[0].toLowerCase();
+          });
+          let item_token2 = uniList[selected_chain].filter((unit) => {
+            return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length-1].toLowerCase();
+          });
+          if (item_token1 && item_token2) {
+            item.action_type = 0;
+            item.token1_symbol = item_token1[0].symbol;
+            item.token2_symbol = item_token2[0].symbol;
+            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+              const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[decodedLogs.length-1].events[3].value/10**item_token2[0].decimals);
+            });
+          } else {
+            item.action_type = 0;
+            item.token1_symbol = "Unknown";
+            item.token2_symbol = "Unknown";
+            item.amount1 = 0;
+            item.amount2 = 0;
+          }
+        }
+      });
+      setUserERC20Transactions({isLoad: true, data: filteredThx})
+    });
+  };
+
   useEffect(() => {
     if (account) {
       const getInfo = async () => {
@@ -754,6 +811,7 @@ export default function Swap() {
         setSwapFee(swapFeePercent * 0.01);
       };
       getInfo();
+      fetchUserData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account, ""]);
@@ -1249,7 +1307,7 @@ export default function Swap() {
             <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
               <span style={{ textAlign: "start", color: "white" }}>History:</span>
               <hr></hr>
-              <History type="swap" data={transactionsData} />
+              <History data={userERC20Transactions} />
             </Item>
           }
         </Grid>

@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { AccordionDetails, AccordionSummary, Accordion } from '@mui/material'
+import { AccordionDetails, AccordionSummary, Accordion, Box, Skeleton } from '@mui/material'
 import React, { useState, useEffect } from 'react';
 import Pagination from '@mui/material/Pagination';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -9,7 +9,7 @@ function History(props) {
   const grayColor = "#6d6d7d";
   const darkFontColorSec = "#13a8ff";
   const [count, setCount] = useState(0);
-  const [displayData, setDisplayData] = useState(props.data.slice(0, 5));
+  const [displayData, setDisplayData] = useState(props.data.data.slice(0, 5));
 
   const numFormat = (val) => {
     if (Number(val) > 1)
@@ -28,7 +28,7 @@ function History(props) {
 
   const handleChange = (e) => {
     const c_page = Number(e.target.innerText);
-    setDisplayData(props.data.slice((c_page-1)*5, (c_page-1)*5+5))
+    setDisplayData(props.data.data.slice((c_page-1)*5, (c_page-1)*5+5))
   }
 
   useEffect(() => {
@@ -38,297 +38,111 @@ function History(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    let cnt = props.data.data.length / 5;
+    cnt = Number(cnt.toFixed(0));
+    setCount(cnt);
+    setDisplayData(props.data.data.slice(0, 5));
+  }, [props.data]);
+
   return (
     <>
-      {props.type === "swap" &&
-        displayData.map((item) => {
-          return <Accordion
-            key={item.id}
-            sx={{ minHeight: "20px" }}
-            style={{ backgroundColor: "#12122c", color: "white" }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
-              aria-controls="panel1bh-content"
-              id="panel1bh-header"
-              style={{ marginTop: "0px" }}
-              sx={{ m: 0, pb: 0, pr: 0, mt: 0, mb: 0, pt: 0, pl: 0 }}
-            >
-              <div style={{ width: "100%" }}>
-                <div style={{ float: "left" }}>
-                  {item.amount0 > 0 &&
-                    <span style={{ textAlign: "start", color: "white" }}>
-                      Swap {item.token0.symbol} | {item.token1.symbol}:
-                    </span>
-                  }
-                  {item.amount1 > 0 &&
-                    <span style={{ textAlign: "start", color: "white" }}>
-                      Swap {item.token1.symbol} | {item.token0.symbol}:
-                    </span>
-                  }
-                </div>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span
-                    style={{
-                      textAlign: "right",
-                      color: "white",
-                      float: "right"
-                    }}
-                  >
-                    {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(item.timestamp * 1000)}
-                  </span>
-                </div>
-              </div>
-            </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, pl: 0 }}>
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  From:
-                </span>
+      {props.data.isLoad &&
+        <>
+          {displayData.map((item) => {
+            return (<Accordion
+                      key={item.hash}
+                      sx={{ minHeight: "20px" }}
+                      style={{ backgroundColor: "#12122c", color: "white" }}
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
+                        aria-controls="panel1bh-content"
+                        id="panel1bh-header"
+                        style={{ marginTop: "0px" }}
+                        sx={{ m: 0, pb: 0, pr: 0, mt: 0, mb: 0, pt: 0, pl: 0 }}
+                      >
+                        <div style={{ width: "100%" }}>
+                          <div style={{ float: "left" }}>
+                            {item.action_type === 0 &&
+                              <span style={{ textAlign: "start", color: "white" }}>
+                                Swap {item.token1_symbol} | {item.token2_symbol}:
+                              </span>
+                            }
+                            {item.action_type === 1 &&
+                              <span style={{ textAlign: "start", color: "white" }}>
+                                Add {item.token1_symbol} | {item.token2_symbol}:
+                              </span>
+                            }
+                            {item.action_type === 2 &&
+                              <span style={{ textAlign: "start", color: "white" }}>
+                                Remove {item.token1_symbol} | {item.token2_symbol}:
+                              </span>
+                            }
+                          </div>
+                          <div style={{ float: "right", display: "inline" }}>
+                            <span
+                              style={{
+                                textAlign: "right",
+                                color: "white",
+                                float: "right"
+                              }}
+                            >
+                              {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(item.timeStamp * 1000)}
+                            </span>
+                          </div>
+                        </div>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ pt: 0, pl: 0 }}>
+                        <div>
+                          <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
+                            From:
+                          </span>
 
-                <div style={{ float: "right", display: "inline" }}>
-                {item.amount0 > 0 &&
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(Math.abs(item.amount0))} {item.token0.symbol}
-                  </span>
-                }
-                {item.amount1 > 0 &&
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
-                  </span>
-                }
-                </div>
-              </div>
+                          <div style={{ float: "right", display: "inline" }}>
+                            <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
+                              {item.amount1?item.amount1:"..."} {item.token1_symbol}
+                            </span>
+                          </div>
+                        </div>
 
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  To:
-                </span>
-                <div style={{ float: "right", display: "inline" }}>
-                  {item.amount0 < 0 &&
-                    <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                      {numFormat(Math.abs(item.amount0))} {item.token0.symbol}
-                    </span>
-                  }
-                  {item.amount1 < 0 &&
-                    <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                      {numFormat(Math.abs(item.amount1))} {item.token1.symbol}
-                    </span>
-                  }
-                </div>
-              </div>
-              {/* 
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Price:
-                </span>
+                        <div>
+                          <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
+                            To:
+                          </span>
+                          <div style={{ float: "right", display: "inline" }}>
+                            <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
+                              { item.amount2?item.amount2:"..."} {item.token2_symbol }
+                            </span>
+                          </div>
+                        </div>
 
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    1 USDC = 1.001 DAI{" "}
-                  </span>
-                </div>
-              </div> */}
+                        <div>
+                          <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
+                            Transaction:
+                          </span>
 
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Transaction:
-                </span>
-
-                <div style={{ float: "right", display: "inline", cursor: "pointer" }}>
-                  <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.transaction.id)}>
-                    {`${item.transaction.id.substring(0, 12)} ... ${item.transaction.id.substring(item.transaction.id.length - 6)}`}
-                  </span>
-                </div>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-        })
+                          <div style={{ float: "right", display: "inline", cursor: "pointer" }}>
+                            <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.hash)}>
+                              {`${item.hash.substring(0, 12)} ... ${item.blockHash.substring(item.hash.length - 6)}`}
+                            </span>
+                          </div>
+                        </div>
+                      </AccordionDetails>
+                    </Accordion>);
+            })}
+          <div style={{display:"flex", justifyContent:"end", paddingTop:"10px"}}>
+            <Pagination count={count} sx={{ button: { color: '#ffffff' } }} color="primary" shape="rounded" onChange={handleChange} />
+          </div>
+        </>
       }
-      {props.type === "join" &&
-        displayData.map((item) => {
-          return <Accordion
-            key={item.id}
-            sx={{ minHeight: "20px" }}
-            style={{ backgroundColor: "#12122c", color: "white" }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
-              aria-controls="panel1bh-content"
-              id="panel1bh-header"
-              style={{ marginTop: "0px" }}
-              sx={{ m: 0, pb: 0, pr: 0, mt: 0, mb: 0, pt: 0, pl: 0 }}
-            >
-              <div style={{ width: "100%" }}>
-                <div style={{ float: "left" }}>
-                  <span style={{ textAlign: "start", color: "white" }}>
-                    Add {item.token0.symbol} | {item.token1.symbol}:
-                  </span>
-                </div>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span
-                    style={{
-                      textAlign: "right",
-                      color: "white",
-                      float: "right"
-                    }}
-                  >
-                    {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(item.timestamp * 1000)}
-                  </span>
-                </div>
-              </div>
-            </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, pl: 0 }}>
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Token 1:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountsIn[0]))} {item.token0.symbol}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Token 2:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountsIn[1]))} {item.token1.symbol}
-                  </span>
-                </div>
-              </div>
-              {/* 
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Price:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    1 USDC = 1.001 DAI{" "}
-                  </span>
-                </div>
-              </div> */}
-
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Transaction:
-                </span>
-
-                <div style={{ float: "right", display: "inline", cursor: "pointer" }}>
-                  <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.transaction)}>
-                    {`${item.transaction.id.substring(0, 12)} ... ${item.transaction.id.substring(item.transaction.id.length - 6)}`}
-                  </span>
-                </div>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-        })
+      {!props.data.isLoad &&
+        <Box sx={{ width:"100%", mt:"1rem" }}>
+          <Skeleton animation="wave" />
+          <Skeleton animation="wave" />
+          <Skeleton animation="wave" />
+        </Box>
       }
-      {props.type === "exit" &&
-        displayData.map((item) => {
-          return <Accordion
-            sx={{ minHeight: "20px" }}
-            key={item.id}
-            style={{ backgroundColor: "#12122c", color: "white" }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
-              aria-controls="panel1bh-content"
-              id="panel1bh-header"
-              style={{ marginTop: "0px" }}
-              sx={{ m: 0, pb: 0, pr: 0, mt: 0, mb: 0, pt: 0, pl: 0 }}
-            >
-              <div style={{ width: "100%" }}>
-                <div style={{ float: "left" }}>
-                  <span style={{ textAlign: "start", color: "white" }}>
-                    Remove {item.token0.symbol} | {item.token1.symbol}:
-                  </span>
-                </div>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span
-                    style={{
-                      textAlign: "right",
-                      color: "white",
-                      float: "right"
-                    }}
-                  >
-                    {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(item.timestamp * 1000)}
-                  </span>
-                </div>
-              </div>
-            </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0, pl: 0 }}>
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  LP Amount:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(item.liquidity)} {item.token0.symbol} - {item.token1.symbol} LP
-                  </span>
-                </div>
-              </div>
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Token 1:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountsOut[0]))} {item.token0.symbol}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Token 2:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    {numFormat(web3.utils.fromWei(item.amountsOut[1]))} {item.token1.symbol}
-                  </span>
-                </div>
-              </div>
-              {/* 
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Price:
-                </span>
-
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: grayColor, fontSize: "12px" }}>
-                    1 USDC = 1.001 DAI{" "}
-                  </span>
-                </div>
-              </div> */}
-
-              <div>
-                <span style={{ textAlign: "start", color: grayColor, fontSize: "12px" }}>
-                  Transaction:
-                </span>
-
-                <div style={{ float: "right", display: "inline", cursor: "pointer" }}>
-                  <span style={{ textAlign: "right", color: darkFontColorSec, fontSize: "12px" }} onClick={() => viewBlockUrl(item.transaction)}>
-                    {`${item.transaction.id.substring(0, 12)} ... ${item.transaction.id.substring(item.transaction.id.length - 6)}`}
-                  </span>
-                </div>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-        })
-      }
-      <div style={{display:"flex", justifyContent:"end", paddingTop:"10px"}}>
-        <Pagination count={count} sx={{ button: { color: '#ffffff' } }} color="primary" shape="rounded" onChange={handleChange} />
-      </div>
     </>
   )
 }

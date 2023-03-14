@@ -1,3 +1,5 @@
+import Web3 from "web3";
+import { ethers } from "ethers";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
@@ -20,7 +22,8 @@ import {
 } from "@mui/icons-material";
 import tw from "twin.macro";
 import SwapCmp from "./SwapCmp";
-import { useWeightsData, useExitTransactionsData } from "../../config/chartData";
+import { useWeightsData } from "../../config/chartData";
+import { getKavaTx } from "../../services/kavaAPI";
 import {
   getPoolData,
   getPoolBalance,
@@ -41,8 +44,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Web3 from "web3";
 import { ADD_POOL, REMOVE_POOL } from "../../redux/constants";
+import routerABI from "../../assets/abi/router";
+import abiDecoder from "../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -115,10 +119,10 @@ export default function RLiquidity() {
   const [slippage, setSlippage] = useState(1);
   const [slippageFlag, setSlippageFlag] = useState(false);
   const [priceImpact, setPriceImpact] = useState(0);
+  const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
 
   const dispatch = useDispatch();
   const weightData = useWeightsData(selectedItem["address"].toLowerCase());
-  const exitTransactionsData = useExitTransactionsData(account);
   const isMobile = useMediaQuery("(max-width:600px)");
   const provider = defaultProvider[selected_chain];
 
@@ -269,9 +273,6 @@ export default function RLiquidity() {
     let search_qr = e.target.value.trim();
     setQuery(search_qr);
   }
-  useEffect(() => {
-    filterLP(query);
-  }, [query, filterLP])
 
   const getStatusData = async () => {
     const result1 = uniList[selected_chain].filter((item) => {
@@ -349,6 +350,9 @@ export default function RLiquidity() {
         contractAddresses[selected_chain]["router"]
       );
       setRemoving(false);
+      await setTimeout(function() {
+        fetchUserData();
+      }, 10000);
       await getStatusData();
     }
   };
@@ -469,22 +473,52 @@ export default function RLiquidity() {
     }
   }, [weightData]);
 
-  const transactionsData = useMemo(() => {
-    if (account) {
-      if (exitTransactionsData.exits && exitTransactionsData.exits.length !== 0) {
-        let result = [];
-        result = exitTransactionsData.exits.map(item => {
-          return item;
+  const fetchUserData = async () => {
+    const provider = await connector.getProvider();
+    const web3 = new Web3(provider);
+    abiDecoder.addABI(routerABI[0]);
+    getKavaTx(account, 150).then(async (response) => {
+      let filteredThx = response;
+      filteredThx.map((item) => {
+        item.raw_input = abiDecoder.decodeMethod(item.input);
+      });
+
+      filteredThx = await filteredThx.filter((item) => {
+        return (item.raw_input !== undefined && (item.raw_input.name === "exitPool"));
+      });
+
+      filteredThx.map(async (item) => {
+        let item_token1 = uniList[selected_chain].filter((unit) => {
+            return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
         });
-        return result;
-      } else {
-        return [];
-      }
-    } else {
-      return [];
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exitTransactionsData]);
+        let item_token2 = uniList[selected_chain].filter((unit) => {
+          return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[1].toLowerCase();
+        });
+        if(item_token1 && item_token2) {
+          let userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256"], item.raw_input.params[1].value.userData);
+          web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
+            item.amount1 = numFormat(decodedLogs[0].events[2].value[0]/10**item_token1[0].decimals);
+            item.amount2 = numFormat(decodedLogs[0].events[2].value[1]/10**item_token2[0].decimals);
+          });
+          item.action_type = 2;
+          item.token1_symbol = item_token1[0].symbol;
+          item.token2_symbol = item_token2[0].symbol;
+        } else {
+          item.action_type = 2;
+          item.token1_symbol = "Unknown";
+          item.token2_symbol = "Unknown";
+          item.amount1 = 0;
+          item.amount2 = 0;
+        }
+      });
+      setUserERC20Transactions({isLoad: true, data: filteredThx})
+    });
+  };
+
+  useEffect(() => {
+    filterLP(query);
+  }, [query, filterLP]);
 
 
   useEffect(() => {
@@ -549,10 +583,7 @@ export default function RLiquidity() {
       };
 
       getInfo();
-      // const intervalId = setInterval(() => {
-      //   getStatusData();
-      // }, 40000);
-      // return () => clearInterval(intervalId);
+      fetchUserData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
@@ -971,7 +1002,7 @@ export default function RLiquidity() {
             <Item sx={{ pl: 3, pr: 3, pb: 2, pt: 3 }} style={{ backgroundColor: "#12122c", textAlign: "left", borderRadius: "10px" }} className="history">
               <span style={{ textAlign: "start", color: "white" }}>History:</span>
               <hr></hr>
-              <History type="exit" data={transactionsData} />
+              <History data={userERC20Transactions} />
             </Item>
           }
         </Grid>
