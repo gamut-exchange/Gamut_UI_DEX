@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useWeb3React } from "@web3-react/core";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -8,12 +9,15 @@ import { Link, useLocation } from "react-router-dom";
 
 function Navigation() {
   const menuColor = "#13a8ff";
+  const { account, connector } = useWeb3React();
   const [active, setActive] = useState("home");
 
   const location = useLocation();
   useEffect(() => {
     if (location.pathname === "/add_liquidity" || location.pathname === "/remove_liquidity" || location.pathname === "/create_liquidity")
       setActive('liquidity');
+    else if(location.pathname === "/user_dashboard")
+      setActive('dashboard');
     else if (location.pathname === "/about")
       setActive('about');
     else if (location.pathname === "/contact")
@@ -79,18 +83,19 @@ function Navigation() {
                 Liquidity
               </Button>
             </Link>
-            <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
-              <Button
-                // key={item}
-                sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}
-                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
-                onClick={() => setActive("dashboard")}
-              >
-                {/* {item} */}
-                Dashboard
-              </Button>
-            </Link>
-            {/* ))} */}
+            {account &&
+              <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
+                <Button
+                  // key={item}
+                  sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}
+                  style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
+                  onClick={() => setActive("dashboard")}
+                >
+                  {/* {item} */}
+                  Dashboard
+                </Button>
+              </Link>
+            }
           </Box>
         </Toolbar>
       </AppBar>

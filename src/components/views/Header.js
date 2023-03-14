@@ -100,13 +100,15 @@ function Header(props) {
             </ListItemButton>
           </ListItem>
         </Link>
-        <Link to="/platform_dashboard" style={{ textDecoration: "none", color: "white" }}>
-          <ListItem disablePadding>
-            <ListItemButton sx={{ textAlign: "center" }}>
-              <ListItemText primary={"Dashboard"} />
-            </ListItemButton>
-          </ListItem>
-        </Link>
+        {account &&
+          <Link to="/platform_dashboard" style={{ textDecoration: "none", color: "white" }}>
+            <ListItem disablePadding>
+              <ListItemButton sx={{ textAlign: "center" }}>
+                <ListItemText primary={"Dashboard"} />
+              </ListItemButton>
+            </ListItem>
+          </Link>
+        }
       </List>
       <Box className={classes.actionGroup} style={{ justifyContent: "center" }}>
         <Box className={classes.connectWallet}>
