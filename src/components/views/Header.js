@@ -101,7 +101,7 @@ function Header(props) {
           </ListItem>
         </Link>
         {account &&
-          <Link to="/platform_dashboard" style={{ textDecoration: "none", color: "white" }}>
+          <Link to="/user_dashboard" style={{ textDecoration: "none", color: "white" }}>
             <ListItem disablePadding>
               <ListItemButton sx={{ textAlign: "center" }}>
                 <ListItemText primary={"Dashboard"} />
