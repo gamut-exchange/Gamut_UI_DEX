@@ -46,16 +46,34 @@ export default function UDashboard() {
   const [walletTVL, setWalletTVL] = useState(0);
   const [userTVL, setUserTVL] = useState(0);
   const [swapFee, setSwapFee] = useState(0);
+  const [popupPool, setPopupPool] = useState("");
+  const [popupToken, setPopupToken] = useState("");
+  const [popupTokenSymbol, setPopupTokenSymbol] = useState("");
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl1, setAnchorEl1] = React.useState(null);
   const open = Boolean(anchorEl);
+  const open1 = Boolean(anchorEl1);
   const classes = useStyles();
 
-  const handleClick = (event) => {
+  const handleClick = (event, pool_addr) => {
     setAnchorEl(event.currentTarget);
+    setPopupPool(pool_addr);
   };
+
+  const handleClick1 = (event, token_addr, symbol) => {
+    setAnchorEl1(event.currentTarget);
+    setPopupToken(token_addr);
+    setPopupTokenSymbol(symbol);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleClose1 = () => {
+    setAnchorEl1(null);
+  };
+
   const fetchUserData = async () => {
     const provider = await connector.getProvider();
     const web3 = new Web3(provider);
@@ -321,7 +339,7 @@ export default function UDashboard() {
                                     (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
                                   )[0].symbols[0]
                                 }
-                                /{" "}
+                                {" "}/{" "}
                                 {
                                   poolsData.filter(
                                     (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
@@ -337,7 +355,7 @@ export default function UDashboard() {
                             </h3>
                           </TableCell>
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
-                            0%
+                            {numFormat(pool?.apr)}%
                           </TableCell>
                           <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
                             <IconButton
@@ -347,7 +365,7 @@ export default function UDashboard() {
                               aria-controls={open ? 'long-menu' : undefined}
                               aria-expanded={open ? 'true' : undefined}
                               aria-haspopup="true"
-                              onClick={handleClick}
+                              onClick={(e) => handleClick(e, pool.address.toLowerCase())}
                             >
                               <MoreVertIcon />
                             </IconButton>
@@ -362,8 +380,11 @@ export default function UDashboard() {
                               TransitionComponent={Fade}
                               className={classes.menu}
                             >
-                              <Link to="/add_liquidity">
-                                <MenuItem onClick={handleClose}>To LP Page</MenuItem>
+                              <Link to={"/add_liquidity?pool="+popupPool}>
+                                <MenuItem onClick={handleClose}>Add Pool</MenuItem>
+                              </Link>
+                              <Link to={"/remove_liquidity?pool="+popupPool}>
+                                <MenuItem onClick={handleClose}>Remove Pool</MenuItem>
                               </Link>
                             </Menu>
                           </TableCell>
@@ -431,6 +452,9 @@ export default function UDashboard() {
                         <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                           Balance
                         </TableCell>
+                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                          Action
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -452,6 +476,34 @@ export default function UDashboard() {
                             <span className="font-medium text-blue-600 dark:text-blue-500">
                               {token?.eth_bal} {token?.symbol}
                             </span>
+                          </TableCell>
+                          <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
+                            <IconButton
+                              aria-label="more"
+                              id="long-button"
+                              style={{color:"white"}}
+                              aria-controls={open1 ? 'long-menu' : undefined}
+                              aria-expanded={open1 ? 'true' : undefined}
+                              aria-haspopup="true"
+                              onClick={(e) => handleClick1(e, token?.contractAddress.toLowerCase(), token.symbol)}
+                            >
+                              <MoreVertIcon />
+                            </IconButton>
+                            <Menu
+                              id="fade-menu"
+                              MenuListProps={{
+                                'aria-labelledby': 'fade-button',
+                              }}
+                              anchorEl={anchorEl1}
+                              open={open1}
+                              onClose={handleClose1}
+                              TransitionComponent={Fade}
+                              className={classes.menu}
+                            >
+                              <Link to={"/?token="+popupToken}>
+                                <MenuItem onClick={handleClose1}>Swap {popupTokenSymbol}</MenuItem>
+                              </Link>
+                            </Menu>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -6,6 +6,7 @@ import poolABI from "../assets/abi/pool";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
 import { chainIds } from "./constants";
+import { getInitialPoolData } from "./seedData";
 import axios from "axios";
 
 // web3 integration part
@@ -723,18 +724,19 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
         let decimal1 = await tokenContract1.methods["decimals"]().call();
         let decimal2 = await tokenContract2.methods["decimals"]().call();
         const supply = await poolContract.methods["totalSupply"]().call();
+        const initialPoolData = await getInitialPoolData(poolAddress);        
         const lp_balance = await poolContract.methods["balanceOf"](account).call();
         tvlBalance =
           tvlBalance +
           parseInt(lp_balance);
         let userlp = ethers.utils.formatEther(lp_balance);
         if(Number(userlp) !== 0) {
+            let apr = calcAPR(initialPoolData, supply, poolTokenAndBalance, weight, decimal1, decimal2);
             await axios
               .get(
                 `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
               )
               .then(async (response) => {
-
                 let a =
                   (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
                     (ethers.utils.formatEther(weight[0]) * 100)) /
@@ -757,6 +759,7 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                     (supply / 10 ** 18);
                   LPHolding.push({
                     address: poolAddress.toLowerCase(),
+                    apr:apr,
                     totalSupply: (lp * userlp).toFixed(4),
                   });
                 } else if (
@@ -768,18 +771,20 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                   let lp =
                     (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                       poolTokenAndBalance?.balances[1] / 10 ** decimal2) /
-                    supply;
+                    (supply / 10 ** 18);
                   LPHolding.push({
                     address: poolAddress,
+                    apr:apr,
                     totalSupply: (lp * userlp).toFixed(4),
                   });
                 } else {
                   let lp =
                     (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                       poolTokenAndBalance?.balances[1] / 10 ** decimal2) /
-                    supply;
+                    (supply / 10 ** 18);
                   LPHolding.push({
                     address: poolAddress,
+                    apr:apr,
                     totalSupply: (lp * userlp).toFixed(4),
                   });
                 }
@@ -792,6 +797,23 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
   }
   return [tvlBalance, LPHolding];
 };
+
+const calcAPR = (initialPoolData, supply, poolTokenAndBalance, weights, decimal1, decimal2) => {
+    let r1 = (initialPoolData.amountsIn[0]/10**decimal1)/(initialPoolData.liquidity);
+    let r2 = (initialPoolData.amountsIn[1]/10**decimal2)/(initialPoolData.liquidity);
+    let k1 = r1*(initialPoolData.pool.weight0/10**decimal1)*r2*(initialPoolData.pool.weight1/10**decimal2);
+    let r11 = (poolTokenAndBalance.balances[0]/10**decimal1)/(supply/10**18);
+    let r22 = (poolTokenAndBalance.balances[1]/10**decimal2)/(supply/10**18);
+    let k2 = r11*(weights[0]/10**decimal1)*r22*(weights[1]/10**decimal2);
+    let apr_yield = (k2/k1)-1;
+    const date1 = new Date(initialPoolData.timestamp*1000);
+    const date2 = new Date();
+    const diffTime = Math.abs(date2 - date1);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    let apy = (apr_yield/diffDays)*365;
+    let apr = ((apy+1)**(1/52)-1)*52;
+    return apr;
+}
 
 const toWeiVal = async (provider, tokenAddr, val) => {
     const abi = erc20ABI[0];

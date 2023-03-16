@@ -66,17 +66,17 @@ function History(props) {
                           <div style={{ float: "left" }}>
                             {item.action_type === 0 &&
                               <span style={{ textAlign: "start", color: "white" }}>
-                                Swap {item.token1_symbol} | {item.token2_symbol}:
+                                Swap {item.token1_symbol} | {item.token2_symbol}
                               </span>
                             }
                             {item.action_type === 1 &&
                               <span style={{ textAlign: "start", color: "white" }}>
-                                Add {item.token1_symbol} | {item.token2_symbol}:
+                                Add {item.token1_symbol} | {item.token2_symbol}
                               </span>
                             }
                             {item.action_type === 2 &&
                               <span style={{ textAlign: "start", color: "white" }}>
-                                Remove {item.token1_symbol} | {item.token2_symbol}:
+                                Remove {item.token1_symbol} | {item.token2_symbol}
                               </span>
                             }
                           </div>

@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
+import { useSearchParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import History from "./History";
 import TokenList from "./TokenList";
@@ -97,9 +98,11 @@ export default function Swap() {
   const selected_chain = useSelector((state) => state.selectedChain);
   const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
+  const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
   const darkFontColor = "#FFFFFF";
   const grayColor = "#6d6d7d";
+  
   const [setting, setSetting] = useState(false);
   const [mopen, setMopen] = useState(false);
   const [inValue, setInValue] = useState(0);
@@ -787,6 +790,25 @@ export default function Swap() {
     });
   };
 
+  const setInitialTokens = () => {
+    const token_addr = searchParams.get("token");
+    if(token_addr) {
+
+      let token_item1 = uniList[selected_chain].filter((unit) => {
+        return unit.address.toLowerCase() === "0x0000000000000000000000000000000000000000";
+      })[0];
+
+      let token_item2 = uniList[selected_chain].filter((unit) => {
+        return unit.address.toLowerCase() === token_addr.toLowerCase();
+      })[0];
+      selectToken(token_item1, 0);
+      selectToken(token_item2, 1);
+    } else {
+      selectToken(uniList[selected_chain][0], 0);
+      selectToken(uniList[selected_chain][1], 1);
+    }
+  }
+
   useEffect(() => {
     if (account) {
       const getInfo = async () => {
@@ -828,8 +850,7 @@ export default function Swap() {
   }, [inToken, outToken, inValue]);
 
   useEffect(() => {
-    selectToken(uniList[selected_chain][0], 0);
-    selectToken(uniList[selected_chain][1], 1);
+    setInitialTokens();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain]);
 

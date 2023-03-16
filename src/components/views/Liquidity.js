@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import React, { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
+import { useSearchParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import {
   Paper,
@@ -99,6 +100,7 @@ export default function Liquidity() {
   const selected_chain = useSelector((state) => state.selectedChain);
   const uniList = useSelector((state) => state.tokenList);
   const { account, connector } = useWeb3React();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [setting, setSetting] = useState(false);
   const [isExist, setIsExist] = useState(false);
@@ -736,6 +738,26 @@ export default function Liquidity() {
     return value + "%";
   }
 
+  const setInitialTokens = () => {
+    const pool_addr = searchParams.get("pool");
+    if(pool_addr) {
+      let pool_item = poolList[selected_chain].filter((unit) => {
+        return unit.address.toLowerCase() === pool_addr.toLowerCase();
+      })[0];
+      let token1 = uniList[selected_chain].filter((unit) => {
+        return unit.symbol.toLowerCase() === pool_item.symbols[0].toLowerCase();
+      })[0];
+      let token2 = uniList[selected_chain].filter((unit) => {
+        return unit.symbol.toLowerCase() === pool_item.symbols[1].toLowerCase();
+      })[0];
+      selectToken(token1, 0);
+      selectToken(token2, 1);
+    } else {
+      selectToken(uniList[selected_chain][0], 0);
+      selectToken(uniList[selected_chain][1], 1);
+    }
+  }
+
   const fetchUserData = async () => {
     abiDecoder.addABI(routerABI[0]);
     getKavaTx(account, 150).then(async (response) => {
@@ -782,8 +804,7 @@ export default function Liquidity() {
   };
 
   useEffect(() => {
-    selectToken(uniList[selected_chain][0], 0);
-    selectToken(uniList[selected_chain][1], 1);
+    setInitialTokens();
     if (account) {
       fetchUserData();
       if (inToken["address"].toLowerCase() !== outToken["address"].toLowerCase()) {

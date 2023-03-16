@@ -22,6 +22,8 @@ function Navigation() {
       setActive('about');
     else if (location.pathname === "/contact")
       setActive('contact');
+    else
+      setActive('home');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 

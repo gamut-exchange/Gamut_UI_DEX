@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
+import { useSearchParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import History from './History';
 import {
@@ -100,6 +101,8 @@ export default function RLiquidity() {
   const uniList = useSelector((state) => state.tokenList);
   const poolList = useSelector((state) => state.poolList);
   const { account, connector } = useWeb3React();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [setting, setSetting] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(0);
@@ -516,6 +519,73 @@ export default function RLiquidity() {
     });
   };
 
+  const setInitialTokens = () => {
+    const pool_addr = searchParams.get("pool");
+    if(pool_addr) {
+      let pool_item = poolList[selected_chain].filter((unit) => {
+        return unit.address.toLowerCase() === pool_addr.toLowerCase();
+      })[0];
+      selectToken(pool_item);
+    } else {
+      selectToken(poolList[selected_chain][0]);
+    }
+  }
+
+  const addPool = (e, index) => {
+    e.stopPropagation();
+    filterData[index].added = true;
+    addToCustomList(filterData[index]);
+    setFilterData([...filterData]);
+  }
+
+  const deletePool = (e, index) => {
+    e.stopPropagation();
+    filterData[index].added = false;
+    removeFromCustomList(filterData[index]);
+    setFilterData([...filterData]);
+  }
+
+  const addToCustomList = (data) => {
+    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
+    if (!_userSetting) {
+      _userSetting = {};
+    }
+    if (!_userSetting[customPoolList]) {
+      _userSetting[customPoolList] = {};
+      _userSetting[customPoolList][selected_chain] = [];
+    }
+    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
+    if (index !== -1) return;
+    _userSetting[customPoolList][selected_chain].push(data);
+    localStorage.setItem(userSettings, JSON.stringify(_userSetting));
+    dispatch({
+      type: ADD_POOL,
+      payload: data,
+      chain: selected_chain
+    });
+  }
+
+  const removeFromCustomList = (data) => {
+    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
+    if (!_userSetting) {
+      _userSetting = {};
+    }
+    if (!_userSetting[customPoolList]) {
+      _userSetting[customPoolList] = {};
+      _userSetting[customPoolList][selected_chain] = [];
+    }
+    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
+    if (index !== -1) {
+      _userSetting[customPoolList][selected_chain].splice(index, 1);
+      localStorage.setItem(userSettings, JSON.stringify(_userSetting));
+    }
+    dispatch({
+      type: REMOVE_POOL,
+      payload: data,
+      chain: selected_chain
+    });
+  }
+
   useEffect(() => {
     filterLP(query);
   }, [query, filterLP]);
@@ -590,64 +660,9 @@ export default function RLiquidity() {
 
   useEffect(() => {
     setFilterData(poolList[selected_chain]);
-    selectToken(poolList[selected_chain][0]);
+    setInitialTokens();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, selected_chain, account]);
-
-  const addPool = (e, index) => {
-    e.stopPropagation();
-    filterData[index].added = true;
-    addToCustomList(filterData[index]);
-    setFilterData([...filterData]);
-  }
-
-  const deletePool = (e, index) => {
-    e.stopPropagation();
-    filterData[index].added = false;
-    removeFromCustomList(filterData[index]);
-    setFilterData([...filterData]);
-  }
-
-  const addToCustomList = (data) => {
-    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
-    if (!_userSetting) {
-      _userSetting = {};
-    }
-    if (!_userSetting[customPoolList]) {
-      _userSetting[customPoolList] = {};
-      _userSetting[customPoolList][selected_chain] = [];
-    }
-    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
-    if (index !== -1) return;
-    _userSetting[customPoolList][selected_chain].push(data);
-    localStorage.setItem(userSettings, JSON.stringify(_userSetting));
-    dispatch({
-      type: ADD_POOL,
-      payload: data,
-      chain: selected_chain
-    });
-  }
-
-  const removeFromCustomList = (data) => {
-    let _userSetting = JSON.parse(localStorage.getItem(userSettings));
-    if (!_userSetting) {
-      _userSetting = {};
-    }
-    if (!_userSetting[customPoolList]) {
-      _userSetting[customPoolList] = {};
-      _userSetting[customPoolList][selected_chain] = [];
-    }
-    const index = _userSetting[customPoolList][selected_chain].findIndex(each => each.address === data.address);
-    if (index !== -1) {
-      _userSetting[customPoolList][selected_chain].splice(index, 1);
-      localStorage.setItem(userSettings, JSON.stringify(_userSetting));
-    }
-    dispatch({
-      type: REMOVE_POOL,
-      payload: data,
-      chain: selected_chain
-    });
-  }
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
