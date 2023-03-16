@@ -279,7 +279,7 @@ export default function UDashboard() {
           <Item
             sx={{ pt: 2, pl: 1, pr: 1, pb: 2 }}
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
-            className="home__main"
+            className=""
           >
             <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
               <Table sx ={{ minWidth: 550 }} aria-label="simple table">
@@ -431,7 +431,7 @@ export default function UDashboard() {
             md={12}
             sx={{ pt: 2, pl: 1, pr: 1, pb: 2 }}
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
-            className="home__main"
+            className=""
           >
             <div
               style={{ display: "flex", justifyContent: "space-between" }}
@@ -529,7 +529,7 @@ export default function UDashboard() {
           <Item
             // sx={{ pl: 3, pr: 3, pb: 2 }}
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
-            className="home__main"
+            className=""
           >
             <div
               style={{ display: "flex", justifyContent: "space-between" }}
