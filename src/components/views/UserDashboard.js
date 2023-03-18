@@ -6,7 +6,7 @@ import { utils } from "ethers";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Menu, Fade, MenuItem, Skeleton, Box } from "@mui/material";
+import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Menu, Fade, MenuItem, CircularProgress, Box } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Link } from "react-router-dom";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -41,7 +41,7 @@ export default function UDashboard() {
 
   const [poolsData, setPoolsData] = useState(poolList[selected_chain]);
   const [pools, setPools] = useState({ isLoad: false, data: [], total: 0 });
-  const [userERC20, setUserERC20] = useState([]);
+  const [userERC20, setUserERC20] = useState({isLoad: false, data: []});
   const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
   const [walletTVL, setWalletTVL] = useState(0);
   const [userTVL, setUserTVL] = useState(0);
@@ -86,7 +86,7 @@ export default function UDashboard() {
       filteredTokens.map((item) => {
         item.eth_bal = numFormat(item.balance/10**item.decimals);
       });
-      setUserERC20(filteredTokens);
+      setUserERC20({isLoad:true, data:filteredTokens});
     });
     getKavaTx(account, 35).then(async (response) => {
       let filteredThx = response;
@@ -345,13 +345,14 @@ export default function UDashboard() {
                                     (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
                                   )[0].symbols[1]
                                 }
+                                {" "}+/-
                               </p>
                             </div>
                           </TableCell>
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                             <h3 className="font-medium">
-                              {/* {utils.formatEther(pool?.totalSupply)} */}$
-                              {pool?.totalSupply}
+                              
+                              {numFormat(pool?.totalSupply)}$
                             </h3>
                           </TableCell>
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
@@ -397,11 +398,9 @@ export default function UDashboard() {
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={5} align="center">
-                        <Box sx={{ width: "100%" }}>
-                          <Skeleton animation="wave" />
-                          <Skeleton animation="wave" />
-                          <Skeleton animation="wave" />
-                        </Box>
+                        <div style={{ minHeight: "170px", textAlign: "center" }}>
+                          <CircularProgress style={{ marginTop: "65px" }} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -457,57 +456,79 @@ export default function UDashboard() {
                         </TableCell>
                       </TableRow>
                     </TableHead>
-                    <TableBody>
-                      {userERC20?.map((token, index) => (
-                        <TableRow
-                          key={token?.name + index}
-                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                          <TableCell component="th" scope="row" align="left" style={{color:"white", paddingTop:15, paddingBottom:15}}>
-                            {token?.name}
-                          </TableCell>
-                          <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
-                            {token?.contractAddress?.slice(0, 6) +
-                              "..." +
-                              token?.contractAddress?.slice(38, -1)}
-                          </TableCell>
-                          <TableCell align="left" style={{paddingTop:10, paddingBottom:10}}>
-                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                            <span className="font-medium text-blue-600 dark:text-blue-500">
-                              {token?.eth_bal} {token?.symbol}
-                            </span>
-                          </TableCell>
-                          <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
-                            <IconButton
-                              aria-label="more"
-                              id="long-button"
-                              style={{color:"white"}}
-                              aria-controls={open1 ? 'long-menu' : undefined}
-                              aria-expanded={open1 ? 'true' : undefined}
-                              aria-haspopup="true"
-                              onClick={(e) => handleClick1(e, token?.contractAddress.toLowerCase(), token.symbol)}
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
-                            <Menu
-                              id="fade-menu"
-                              MenuListProps={{
-                                'aria-labelledby': 'fade-button',
-                              }}
-                              anchorEl={anchorEl1}
-                              open={open1}
-                              onClose={handleClose1}
-                              TransitionComponent={Fade}
-                              className={classes.menu}
-                            >
-                              <Link to={"/?token="+popupToken}>
-                                <MenuItem onClick={handleClose1}>Swap {popupTokenSymbol}</MenuItem>
-                              </Link>
-                            </Menu>
+                    {userERC20.isLoad && 
+                      <TableBody>
+                        {userERC20.data?.map((token, index) => (
+                          <TableRow
+                            key={token?.name + index}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                          >
+                            <TableCell component="th" scope="row" align="left" style={{color:"white", paddingTop:15, paddingBottom:15}}>
+                              {token?.name}
+                            </TableCell>
+                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
+                              {token?.contractAddress?.slice(0, 6) +
+                                "..." +
+                                token?.contractAddress?.slice(38, -1)}
+                            </TableCell>
+                            <TableCell align="left" style={{paddingTop:10, paddingBottom:10}}>
+                              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                              <span 
+                                style={{cursor:"pointer"}}
+                                onClick={() =>
+                                  window.open(
+                                    "https://explorer.kava.io/address/" +
+                                      token?.contractAddress + "/transactions",
+                                    "_blank"
+                                  )
+                                }
+                                className="font-medium text-blue-600 dark:text-blue-500">
+                                {token?.eth_bal} {token?.symbol}
+                              </span>
+                            </TableCell>
+                            <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
+                              <IconButton
+                                aria-label="more"
+                                id="long-button"
+                                style={{color:"white"}}
+                                aria-controls={open1 ? 'long-menu' : undefined}
+                                aria-expanded={open1 ? 'true' : undefined}
+                                aria-haspopup="true"
+                                onClick={(e) => handleClick1(e, token?.contractAddress.toLowerCase(), token.symbol)}
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                              <Menu
+                                id="fade-menu"
+                                MenuListProps={{
+                                  'aria-labelledby': 'fade-button',
+                                }}
+                                anchorEl={anchorEl1}
+                                open={open1}
+                                onClose={handleClose1}
+                                TransitionComponent={Fade}
+                                className={classes.menu}
+                              >
+                                <Link to={"/?token="+popupToken}>
+                                  <MenuItem onClick={handleClose1}>Swap {popupTokenSymbol}</MenuItem>
+                                </Link>
+                              </Menu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    }
+                    {!userERC20.isLoad &&
+                      <TableBody>
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            <div style={{ minHeight: "170px", textAlign: "center" }}>
+                              <CircularProgress style={{ marginTop: "65px" }} />
+                            </div>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
+                      </TableBody>
+                    }
                   </Table>
                 </TableContainer>
               </div>
@@ -569,7 +590,7 @@ export default function UDashboard() {
                                   token?.hash +
                                   "/internal-transactions",
                                 "_blank"
-                              )                          
+                              )
                             }
                             style={{cursor: "pointer"}}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -609,11 +630,9 @@ export default function UDashboard() {
                       <TableBody>
                         <TableRow>
                           <TableCell colSpan={5} align="center">
-                            <Box sx={{ width: "100%" }}>
-                              <Skeleton animation="wave" />
-                              <Skeleton animation="wave" />
-                              <Skeleton animation="wave" />
-                            </Box>
+                            <div style={{ minHeight: "170px", textAlign: "center" }}>
+                              <CircularProgress style={{ marginTop: "65px" }} />
+                            </div>
                           </TableCell>
                         </TableRow>
                       </TableBody>

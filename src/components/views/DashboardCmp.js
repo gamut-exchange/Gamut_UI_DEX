@@ -41,7 +41,6 @@ function DashboardCmp() {
             }}
           >
             <Stack spacing={2} direction="row">
-              
               <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
@@ -78,7 +77,7 @@ function DashboardCmp() {
               style={{ flexDirection: isMobile ? "column" : "row" }}
             >
               <Link
-                to="/add_liquidity"
+                to="/user_dashboard"
                 style={{
                   textDecoration: "none",
                   marginLeft: isMobile ? "0px" : "auto",
@@ -93,64 +92,13 @@ function DashboardCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname === "/add_liquidity"
+                      location.pathname === "/user_dashboard"
                         ? activeSwapColor
                         : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/add_liquidity")}
+                  onClick={() => setActiveSwapColor("/user_dashboard")}
                 >
-                  Add Liquidity
-                </Button>
-              </Link>
-              <Link
-                to="/remove_liquidity"
-                style={{
-                  textDecoration: "none",
-                  marginLeft: isMobile ? "0px" : "auto",
-                  marginBottom: isMobile ? "4px" : "0px",
-                }}
-              >
-                <Button
-                  size={isMobile ? "small" : "large"}
-                  variant="contained"
-                  sx={{
-                    width: 200,
-                    padding: 2,
-                    fontWeight: "bold",
-                    background:
-                      location.pathname === "/remove_liquidity"
-                        ? activeSwapColor
-                        : "#12122c",
-                  }}
-                  onClick={() => setActiveSwapColor("/remove_liquidity")}
-                >
-                  REMOVE LIQUIDITY
-                </Button>
-              </Link>
-
-              <Link
-                to="/create_liquidity"
-                style={{
-                  textDecoration: "none",
-                  marginLeft: isMobile ? "0px" : "auto",
-                  marginBottom: isMobile ? "4px" : "0px",
-                }}
-              >
-                <Button
-                  size={isMobile ? "small" : "large"}
-                  variant="contained"
-                  sx={{
-                    width: 200,
-                    padding: 2,
-                    fontWeight: "bold",
-                    background:
-                      location.pathname === "/create_liquidity"
-                        ? activeSwapColor
-                        : "#12122c",
-                  }}
-                  onClick={() => setActiveSwapColor("/create_liquidity")}
-                >
-                  Pool Factory
+                  User Dashboard
                 </Button>
               </Link>
             </Stack>
