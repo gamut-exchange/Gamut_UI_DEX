@@ -675,7 +675,6 @@ export const getAllPools = async (provider, account, contractAddr) => {
             address: poolAddress,
             totalSupply: (lp * userlp),
           });
-          console.log(lp * userlp);
         } else if (
           response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
             0.9 &&
@@ -731,7 +730,6 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
           tvlBalance +
           parseInt(lp_balance);
         let userlp = ethers.utils.formatEther(lp_balance);
-        console.log(userlp);
         if(Number(userlp) !== 0) {
             let apr = calcAPR(initialPoolData, supply, poolTokenAndBalance, weight, decimal1, decimal2);
             await axios
@@ -739,84 +737,22 @@ export const getHoldingInLP = async (provider, account, contractAddr, poolList) 
                 `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
               )
               .then(async (response) => {
-                let a =
-                  ((poolTokenAndBalance?.balances[0]/10**decimal1) *
-                    (weight[0]/10**18) /
-                  (poolTokenAndBalance?.balances[1]/10**decimal2) *
-                    (weight[1]/10**18));
-                let b =
-                  ((poolTokenAndBalance?.balances[1]/10**decimal2) *
-                    (weight[1]/10**18) /
-                  (poolTokenAndBalance?.balances[0]/10**decimal1) *
-                    (weight[0]/10**18));
                 if("kava:"+poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
-                    console.log("kava:"+poolTokenAndBalance?.tokens[0].toLowerCase());
-                    console.log(Object.keys(response?.data?.coins)[0].toLowerCase());
-                    if (
-                      response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
-                        0.9 &&
-                      response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
-                        1.1
-                    ) {
-                      let lp = (b * (poolTokenAndBalance?.balances[1] / 10 ** decimal2) + poolTokenAndBalance?.balances[0] / 10 ** decimal1) / (supply / 10 ** 18);
-                      LPHolding.push({
-                        address: poolAddress.toLowerCase(),
-                        apr:apr,
-                        totalSupply: (lp * userlp),
-                      });
-                    } else if (
-                      response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
-                        0.9 &&
-                      response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
-                        1.1
-                    ) {
-                      let lp = (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) + poolTokenAndBalance?.balances[1] / 10 ** decimal2) / (supply / 10 ** 18);
-                      LPHolding.push({
-                        address: poolAddress,
-                        apr:apr,
-                        totalSupply: (lp * userlp),
-                      });
-                    } else {
-                      let lp = (a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) + poolTokenAndBalance?.balances[1] / 10 ** decimal2) / (supply / 10 ** 18);
-                      LPHolding.push({
-                        address: poolAddress,
-                        apr:apr,
-                        totalSupply: (lp * userlp),
-                      });
-                    }
+                    let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*(poolTokenAndBalance?.balances[0]/10**decimal1) + 
+                        response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price*(poolTokenAndBalance?.balances[1]/10**decimal2))/(supply/10**18);
+                        LPHolding.push({
+                            address: poolAddress,
+                            apr:apr,
+                            totalSupply: (lp * userlp),
+                          });
                 } else {
-                    if (
-                      response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
-                        0.9 &&
-                      response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
-                        1.1
-                    ) {
-                      let lp = (poolTokenAndBalance?.balances[1] / 10 ** decimal2 + a * (poolTokenAndBalance?.balances[0] / 10 ** decimal1)) / (supply / 10 ** 18);
-                      LPHolding.push({
-                        address: poolAddress.toLowerCase(),
-                        apr:apr,
-                        totalSupply: (lp * userlp),
-                      });
-                    } else if (
-                      response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
-                        0.9 &&
-                      response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
-                        1.1
-                    ) {
-                      let lp = (poolTokenAndBalance?.balances[0] / 10 ** decimal1 + b * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                      LPHolding.push({
+                    let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price*(poolTokenAndBalance?.balances[0]/10**decimal1) + 
+                        response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*(poolTokenAndBalance?.balances[1]/10**decimal2))/(supply/10**18);
+                    LPHolding.push({
                         address: poolAddress,
                         apr:apr,
                         totalSupply: (lp * userlp),
                       });
-                    } else {
-                      let lp = (poolTokenAndBalance?.balances[0] / 10 ** decimal1 + b * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                      LPHolding.push({
-                        address: poolAddress,
-                        apr:apr,
-                        totalSupply: (lp * userlp),
-                      });
-                    }
                 }
               });
         }

@@ -49,6 +49,7 @@ export default function UDashboard() {
   const [popupPool, setPopupPool] = useState("");
   const [popupToken, setPopupToken] = useState("");
   const [popupTokenSymbol, setPopupTokenSymbol] = useState("");
+  const [colorFlags, setColorFlags] = useState([]);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [anchorEl1, setAnchorEl1] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -90,6 +91,7 @@ export default function UDashboard() {
     });
     getKavaTx(account, 35).then(async (response) => {
       let filteredThx = response;
+
       await filteredThx.map((item) => {
         item.raw_input = abiDecoder.decodeMethod(item.input);
       });
@@ -99,6 +101,7 @@ export default function UDashboard() {
       });
 
       await filteredThx.map(async (item) => {
+        item.raw_input = abiDecoder.decodeMethod(item.input);
         if(item.raw_input.name === "swap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();
@@ -173,7 +176,7 @@ export default function UDashboard() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "exitPool") {
+        } else if(item.raw_input.name === "exitPool") {          
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
           });
@@ -218,10 +221,14 @@ export default function UDashboard() {
     );
     setWalletTVL(UserLPTokens[0])
     let c = 0;
+    let poolFlags = [];
     UserLPTokens[1]?.map(
-      (pool, index) =>
-        (c += parseFloat(pool?.totalSupply))
+      (pool, index) => {
+        poolFlags.push(Math.random()<0.5?true:false);
+        c += parseFloat(pool?.totalSupply);
+      }
     );
+    setColorFlags(poolFlags);
     setPools({ isLoad: true, data: UserLPTokens[1], total: c.toFixed(2) });
   };
 
@@ -252,6 +259,17 @@ export default function UDashboard() {
     };
     getInfo();
   }, [account]);
+
+  useEffect(() => {
+    setInterval(function () {
+      let ranNum = Math.floor(Math.random() * colorFlags.length * 2);
+      if(ranNum < colorFlags.length) {
+        let newArr = [...colorFlags];
+        newArr[ranNum] = Math.random() > 0.5?true:false;
+        setColorFlags(newArr);
+      }
+    }, 10000);
+  }, [account, pools]);
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -296,6 +314,8 @@ export default function UDashboard() {
                     </TableCell>
                     <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                       APR
+                    </TableCell>
+                    <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                     </TableCell>
                     <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                       Action
@@ -345,7 +365,6 @@ export default function UDashboard() {
                                     (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
                                   )[0].symbols[1]
                                 }
-                                {" "}+/-
                               </p>
                             </div>
                           </TableCell>
@@ -356,7 +375,10 @@ export default function UDashboard() {
                             </h3>
                           </TableCell>
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
-                            {numFormat(pool?.apr)}%
+                            {numFormat(pool?.apr)}%{" "}
+                          </TableCell>
+                          <TableCell align="center">
+                            <span style={{color:colorFlags[poolIndex]?"red":"green"}}>+/-</span>
                           </TableCell>
                           <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
                             <IconButton
@@ -397,7 +419,7 @@ export default function UDashboard() {
                 {!pools.isLoad && 
                   <TableBody>
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={6} align="center">
                         <div style={{ minHeight: "170px", textAlign: "center" }}>
                           <CircularProgress style={{ marginTop: "65px" }} />
                         </div>
