@@ -112,7 +112,7 @@ export default function UDashboard() {
             `https://coins.llama.fi/prices/current/kava:${item.contractAddress}?searchWidth=6h`
           )
           .then(async (response) => {
-            totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*item.eth_bal;
+            totalTokemAmount += (response?.data?.coins[Object.keys(response?.data?.coins)[0]])?response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*item.eth_bal:0;
         });
       });
       let coinAmount = await web3.eth.getBalance(account);
