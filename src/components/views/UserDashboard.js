@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { utils } from "ethers";
 import { useWeb3React } from "@web3-react/core";
+import axios from "axios";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
 import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Menu, Fade, MenuItem, CircularProgress, Box } from "@mui/material";
@@ -41,10 +42,9 @@ export default function UDashboard() {
 
   const [poolsData, setPoolsData] = useState(poolList[selected_chain]);
   const [pools, setPools] = useState({ isLoad: false, data: [], total: 0 });
-  const [userERC20, setUserERC20] = useState({isLoad: false, data: []});
+  const [userERC20, setUserERC20] = useState({isLoad: false, data: [], total:0});
   const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
   const [walletTVL, setWalletTVL] = useState(0);
-  const [userTVL, setUserTVL] = useState(0);
   const [swapFee, setSwapFee] = useState(0);
   const [popupPool, setPopupPool] = useState("");
   const [popupToken, setPopupToken] = useState("");
@@ -80,14 +80,36 @@ export default function UDashboard() {
     const web3 = new Web3(provider);
     abiDecoder.addABI(routerABI[0]);
     // Get Kava Token
-    getKavaERC20(account).then((response) => {
+    getKavaERC20(account).then(async (response) => {
       let filteredTokens = response.filter((item) => {
         return item.symbol !== "Gamut-LP"
       });
-      filteredTokens.map((item) => {
+      let totalTokemAmount = 0;
+      filteredTokens.map(async (item) => {
         item.eth_bal = numFormat(item.balance/10**item.decimals);
+        await axios
+          .get(
+            `https://coins.llama.fi/prices/current/kava:${item.contractAddress}?searchWidth=6h`
+          )
+          .then(async (response) => {
+            totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*item.eth_bal;
+        });
       });
-      setUserERC20({isLoad:true, data:filteredTokens});
+      let coinAmount = await web3.eth.getBalance(account);
+      coinAmount = numFormat(coinAmount / 10**18);
+      
+      filteredTokens.splice(0, 0, {name:"Kava Coin", contractAddress:account, eth_bal:coinAmount, symbol:"KAVA", price:response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price});
+      
+      await axios
+        .get(
+          `https://coins.llama.fi/prices/current/kava:0x0000000000000000000000000000000000000000?searchWidth=6h`
+        )
+        .then(async (response) => {
+          totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount;
+          console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount);
+      });
+      console.log(totalTokemAmount);
+      setUserERC20({isLoad:true, data:filteredTokens, total:numFormat(totalTokemAmount)});
     });
     getKavaTx(account, 35).then(async (response) => {
       let filteredThx = response;
@@ -444,7 +466,7 @@ export default function UDashboard() {
             sm={12}
             md={12}
             className="text-white text-xl text-left font-semibold mb-2 ml-2 w-full">
-            User Tokens
+            User Tokens  <span style={{marginTop:5, fontSize:14, color:"green"}}>(Value: ${userERC20.total})</span>
           </h3>
           <Item
             xs={12}
@@ -485,14 +507,6 @@ export default function UDashboard() {
                             key={token?.name + index}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
-                            <TableCell component="th" scope="row" align="left" style={{color:"white", paddingTop:15, paddingBottom:15}}>
-                              {token?.name}
-                            </TableCell>
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
-                              {token?.contractAddress?.slice(0, 6) +
-                                "..." +
-                                token?.contractAddress?.slice(38, -1)}
-                            </TableCell>
                             <TableCell align="left" style={{paddingTop:10, paddingBottom:10}}>
                               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                               <span 
@@ -505,8 +519,16 @@ export default function UDashboard() {
                                   )
                                 }
                                 className="font-medium text-blue-600 dark:text-blue-500">
-                                {token?.eth_bal} {token?.symbol}
+                                {token?.name}
                               </span>
+                            </TableCell>
+                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
+                              {token?.contractAddress?.slice(0, 6) +
+                                "..." +
+                                token?.contractAddress?.slice(38, -1)}
+                            </TableCell>
+                            <TableCell component="th" scope="row" align="left" style={{color:"white", paddingTop:15, paddingBottom:15}}>
+                              {token?.eth_bal} {token?.symbol}
                             </TableCell>
                             <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
                               <IconButton
@@ -618,17 +640,17 @@ export default function UDashboard() {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
                             {token.action_type === 0 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#fc077d", paddingTop:15, paddingBottom:15}}>
+                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
                                 SWAP {token.token1_symbol} for {token.token2_symbol}
                               </TableCell>
                             }
                             {token.action_type === 1 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#fc077d", paddingTop:15, paddingBottom:15}}>
+                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
                                 ADD {token.token1_symbol} & {token.token2_symbol}
                               </TableCell>
                             }
                             {token.action_type === 2 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#fc077d", paddingTop:15, paddingBottom:15}}>
+                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
                                 REMOVE {token.token1_symbol} & {token.token2_symbol}
                               </TableCell>
                             }

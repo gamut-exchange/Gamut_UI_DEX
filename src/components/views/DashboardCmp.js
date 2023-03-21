@@ -34,13 +34,9 @@ function DashboardCmp() {
         <Grid item xs={12} sm={12} md={9} lg={8}>
           <Item
             elevation={1}
-            style={{
-              backgroundColor: "transparent",
-              color: darkFontColor,
-              boxShadow: "0px 0px 0px 0px",
-            }}
+            style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" , padding:"0px 0px 8px 0px"  }}
           >
-            <Stack spacing={2} direction="row">
+            <Stack direction="row">
               <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
