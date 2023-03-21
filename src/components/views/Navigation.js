@@ -85,19 +85,17 @@ function Navigation() {
                 Liquidity
               </Button>
             </Link>
-            {account &&
-              <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
-                <Button
-                  // key={item}
-                  sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}
-                  style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
-                  onClick={() => setActive("dashboard")}
-                >
-                  {/* {item} */}
-                  Dashboard
-                </Button>
-              </Link>
-            }
+            <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
+              <Button
+                // key={item}
+                sx={{ color: active === "dashboard" ? menuColor : "white", pr: 5 }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
+                onClick={() => setActive("dashboard")}
+              >
+                {/* {item} */}
+                Dashboard
+              </Button>
+            </Link>
           </Box>
         </Toolbar>
       </AppBar>

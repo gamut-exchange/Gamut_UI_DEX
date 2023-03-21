@@ -7,7 +7,7 @@ import { useWeb3React } from "@web3-react/core";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Box } from "@mui/material";
+import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Box, Button, useMediaQuery } from "@mui/material";
 import { HelpOutline } from '@mui/icons-material';
 import Popover from '@mui/material/Popover';
 import { makeStyles } from "@mui/styles";
@@ -65,6 +65,8 @@ export default function UDashboard() {
   const open1 = Boolean(anchorEl1);
   const open2 = Boolean(anchorEl2);
   const classes = useStyles();
+
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const handleClick = (event, pool_addr) => {
     setAnchorEl(event.currentTarget);
@@ -126,7 +128,6 @@ export default function UDashboard() {
           totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount;
           console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount);
       });
-      console.log(totalTokemAmount);
       setUserERC20({isLoad:true, data:filteredTokens, total:numFormat(totalTokemAmount)});
     });
     getKavaTx(account, 35).then(async (response) => {
@@ -283,6 +284,10 @@ export default function UDashboard() {
       return Number(val).toFixed(8) * 1;
   }
 
+  const clickConWallet = () => {
+    document.getElementById("connect_wallet_btn").click();
+  };
+
   useEffect(() => {
     if (account === undefined) return;
     const getInfo = async () => {
@@ -388,7 +393,7 @@ export default function UDashboard() {
                     </TableCell>
                   </TableRow>
                 </TableHead>
-                {pools.isLoad && (
+                {(account && pools.isLoad) && (
                   <TableBody>
                     {pools?.data?.map((pool, poolIndex) => {
                       return (
@@ -482,13 +487,37 @@ export default function UDashboard() {
                     })}
                   </TableBody>
                 )}
-                {!pools.isLoad && 
+                {(account && !pools.isLoad) && 
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={6} align="center">
                         <div style={{ minHeight: "170px", textAlign: "center" }}>
                           <CircularProgress style={{ marginTop: "65px" }} />
                         </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                }
+                {!account && 
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          onClick={clickConWallet}
+                          style={{
+                            background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            color: "#fff",
+                            textAlign: "center",
+                            marginRight: "8px",
+                            maxHeight: 57
+                          }}
+                          className="btn-primary font-bold w-full dark:text-black flex-1"
+                        >
+                          {"Connect to Wallet"}
+                        </Button>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -544,7 +573,7 @@ export default function UDashboard() {
                         </TableCell>
                       </TableRow>
                     </TableHead>
-                    {userERC20.isLoad && 
+                    {(account && userERC20.isLoad) && 
                       <TableBody>
                         {userERC20.data?.map((token, index) => (
                           <TableRow
@@ -606,13 +635,37 @@ export default function UDashboard() {
                         ))}
                       </TableBody>
                     }
-                    {!userERC20.isLoad &&
+                    {(account && !userERC20.isLoad) &&
                       <TableBody>
                         <TableRow>
                           <TableCell colSpan={5} align="center">
                             <div style={{ minHeight: "170px", textAlign: "center" }}>
                               <CircularProgress style={{ marginTop: "65px" }} />
                             </div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    }
+                    {!account &&
+                      <TableBody>
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            <Button
+                              size={isMobile ? "small" : "large"}
+                              variant="contained"
+                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                              onClick={clickConWallet}
+                              style={{
+                                background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                color: "#fff",
+                                textAlign: "center",
+                                marginRight: "8px",
+                                maxHeight: 57
+                              }}
+                              className="btn-primary font-bold w-full dark:text-black flex-1"
+                            >
+                              {"Connect to Wallet"}
+                            </Button>
                           </TableCell>
                         </TableRow>
                       </TableBody>
@@ -667,7 +720,7 @@ export default function UDashboard() {
                         </TableCell>
                       </TableRow>
                     </TableHead>
-                    {userERC20Transactions.isLoad &&
+                    {(account && userERC20Transactions.isLoad) &&
                       <TableBody>
                         {userERC20Transactions.data?.map((token, index) => (
                           <TableRow
@@ -714,13 +767,37 @@ export default function UDashboard() {
                         ))}
                       </TableBody>
                     }
-                    {!userERC20Transactions.isLoad &&
+                    {(account && !userERC20Transactions.isLoad) &&
                       <TableBody>
                         <TableRow>
                           <TableCell colSpan={5} align="center">
                             <div style={{ minHeight: "170px", textAlign: "center" }}>
                               <CircularProgress style={{ marginTop: "65px" }} />
                             </div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    }
+                    {!account &&
+                      <TableBody>
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            <Button
+                              size={isMobile ? "small" : "large"}
+                              variant="contained"
+                              sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                              onClick={clickConWallet}
+                              style={{
+                                background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                color: "#fff",
+                                textAlign: "center",
+                                marginRight: "8px",
+                                maxHeight: 57
+                              }}
+                              className="btn-primary font-bold w-full dark:text-black flex-1"
+                            >
+                              {"Connect to Wallet"}
+                            </Button>
                           </TableCell>
                         </TableRow>
                       </TableBody>
