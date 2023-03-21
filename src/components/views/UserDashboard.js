@@ -7,7 +7,9 @@ import { useWeb3React } from "@web3-react/core";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Menu, Fade, MenuItem, CircularProgress, Box } from "@mui/material";
+import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Box } from "@mui/material";
+import { HelpOutline } from '@mui/icons-material';
+import Popover from '@mui/material/Popover';
 import { makeStyles } from "@mui/styles";
 import { Link } from "react-router-dom";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -32,6 +34,12 @@ export const useStyles = makeStyles((theme: Theme) => ({
       backgroundColor: "#07071c",
       color:"white"
     }
+  },
+  popover: {
+    "& .MuiPaper-root": {
+      backgroundColor: "#07071c",
+      color:"white"
+    }
   }
 }));
 
@@ -52,8 +60,10 @@ export default function UDashboard() {
   const [colorFlags, setColorFlags] = useState([]);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [anchorEl1, setAnchorEl1] = React.useState(null);
+  const [anchorEl2, setAnchorEl2] = React.useState(null);
   const open = Boolean(anchorEl);
   const open1 = Boolean(anchorEl1);
+  const open2 = Boolean(anchorEl2);
   const classes = useStyles();
 
   const handleClick = (event, pool_addr) => {
@@ -67,6 +77,10 @@ export default function UDashboard() {
     setPopupTokenSymbol(symbol);
   };
 
+  const handleClick2 = (event) => {
+    setAnchorEl2(event.currentTarget);
+  }
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -74,6 +88,10 @@ export default function UDashboard() {
   const handleClose1 = () => {
     setAnchorEl1(null);
   };
+
+  const handleClose2 = () => {
+    setAnchorEl2(null);
+  }
 
   const fetchUserData = async () => {
     const provider = await connector.getProvider();
@@ -338,6 +356,32 @@ export default function UDashboard() {
                       APR
                     </TableCell>
                     <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                      <HelpOutline
+                        aria-owns={open ? 'mouse-over-popover' : undefined}
+                        aria-haspopup="true"
+                        onMouseEnter={handleClick2}
+                        onMouseLeave={handleClose2}
+                      />
+                      <Popover
+                        sx={{
+                          pointerEvents: 'none'
+                        }}
+                        open={open2}
+                        anchorEl={anchorEl2}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'center',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'center',
+                        }}
+                        onClose={handleClose2}
+                        disableRestoreFocus
+                        className={classes.popover}
+                      >
+                        <Typography sx={{ p: 1 }}>Shows whether the APR <br/>is currently increasing <br/>or decreasing.</Typography>
+                      </Popover>
                     </TableCell>
                     <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                       Action
@@ -466,7 +510,7 @@ export default function UDashboard() {
             sm={12}
             md={12}
             className="text-white text-xl text-left font-semibold mb-2 ml-2 w-full">
-            User Tokens  <span style={{marginTop:5, fontSize:14, color:"green"}}>(Value: ${userERC20.total})</span>
+            User Tokens(Value: ${userERC20.total})
           </h3>
           <Item
             xs={12}
@@ -640,18 +684,18 @@ export default function UDashboard() {
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
                             {token.action_type === 0 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
-                                SWAP {token.token1_symbol} for {token.token2_symbol}
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15}}>
+                                <span className="font-medium text-blue-600 dark:text-blue-500">SWAP {token.token1_symbol} for {token.token2_symbol}</span>
                               </TableCell>
                             }
                             {token.action_type === 1 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
-                                ADD {token.token1_symbol} & {token.token2_symbol}
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15 }}>
+                                <span className="font-medium text-blue-600 dark:text-blue-500">ADD {token.token1_symbol} & {token.token2_symbol}</span>
                               </TableCell>
                             }
                             {token.action_type === 2 &&
-                              <TableCell component="th" scope="row" align="left" style={{color:"#078bfc", paddingTop:15, paddingBottom:15}}>
-                                REMOVE {token.token1_symbol} & {token.token2_symbol}
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15}}>
+                                <span className="font-medium text-blue-600 dark:text-blue-500">REMOVE {token.token1_symbol} & {token.token2_symbol}</span>
                               </TableCell>
                             }
                             <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
