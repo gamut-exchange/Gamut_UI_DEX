@@ -437,7 +437,7 @@ export default function UDashboard() {
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                             <h3 className="font-medium">
                               
-                              {numFormat(pool?.totalSupply)}$
+                              ${numFormat(pool?.totalSupply)}
                             </h3>
                           </TableCell>
                           <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
@@ -510,7 +510,7 @@ export default function UDashboard() {
             sm={12}
             md={12}
             className="text-white text-xl text-left font-semibold mb-2 ml-2 w-full">
-            User Tokens(Value: ${userERC20.total})
+            User Tokens Value: ${userERC20.total}
           </h3>
           <Item
             xs={12}
