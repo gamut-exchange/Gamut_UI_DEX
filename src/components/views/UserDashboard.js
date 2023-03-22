@@ -336,7 +336,7 @@ export default function UDashboard() {
         >
           <div style={{width:"100%"}}>
             <h3 className="text-white text-xl text-left font-semibold mb-2 ml-2">
-              Wallet TVL: ${pools.total}
+              Liquidity Value: ${pools.total}
             </h3>
           </div>
           <Item
@@ -539,7 +539,7 @@ export default function UDashboard() {
             sm={12}
             md={12}
             className="text-white text-xl text-left font-semibold mb-2 ml-2 w-full">
-            User Tokens Value: ${userERC20.total}
+            Tokens Value: ${userERC20.total}
           </h3>
           <Item
             xs={12}
