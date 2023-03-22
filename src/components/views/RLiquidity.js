@@ -110,7 +110,7 @@ export default function RLiquidity() {
   const [tokenA, setTokenA] = useState([]);
   const [tokenB, setTokenB] = useState([]);
   const [scale, setScale] = useState(50);
-  const [lpPercentage, setLpPercentage] = useState(50);
+  const [lpPercentage, setLpPercentage] = useState(0.5);
   const [poolAmount, setPoolAmount] = useState(0);
   const [selectedItem, setSelectedItem] = useState(poolList[selected_chain][0]);
   const [filterData, setFilterData] = useState(poolList[selected_chain]);
@@ -158,12 +158,6 @@ export default function RLiquidity() {
     let weight1 = newValue / 100;
     setWeightA(weight1);
     await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
-  };
-
-  const handleSlider = async (event) => {
-    setLpPercentage(event.target.value);
-    setValue(poolAmount * (event.target.value / 100));
-    await calculateOutput(totalLPTokens, poolAmount * (event.target.value / 100), weightA, tokenA, tokenB);
   };
 
   const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
@@ -317,13 +311,13 @@ export default function RLiquidity() {
         selectedItem["address"]
       );
       setPoolAmount(amount);
-      setValue((amount * lpPercentage) / 100);
+      setValue(amount * lpPercentage);
       let totalLPAmount = await getPoolSupply(
         provider,
         selectedItem["address"]
       );
       setTotalLPTokens(totalLPAmount);
-      await calculateOutput(totalLPAmount, (amount * lpPercentage) / 100, weight1, result1[0], result2[0]);
+      await calculateOutput(totalLPAmount, amount * lpPercentage, weight1, result1[0], result2[0]);
     }
   }
 
@@ -338,7 +332,7 @@ export default function RLiquidity() {
       const provider = await connector.getProvider();
       let ratio = (1 - scale / 100).toFixed(8);
       let real_val = Number((Math.floor(poolAmount * Math.pow(10, 9)) / Math.pow(10, 9)).toFixed(9));
-      real_val = toLongNum(real_val * lpPercentage / 100);
+      real_val = toLongNum(real_val * lpPercentage);
       setRemoving(true);
       await removePool(
         account,
@@ -361,14 +355,16 @@ export default function RLiquidity() {
   };
 
   const numFormat = (val) => {
-    if (Math.abs(val) > 1)
+    if(Math.abs(val) === 0)
+      return 0;
+    else if (Math.abs(val) > 1)
       return Number(val).toFixed(2) * 1;
     else if (Math.abs(val) > 0.001)
       return Number(val).toFixed(4) * 1;
     else if (Math.abs(val) > 0.00001)
       return Number(val).toFixed(6) * 1;
     else
-      return toLongNum(Number(val).toFixed(8));
+      return toLongNum(Number(val).toFixed(12));
   }
 
   const valueLabelFormat = (value) => {
@@ -586,6 +582,12 @@ export default function RLiquidity() {
     });
   }
 
+  const setInLimit = async (percentage) => {
+    setLpPercentage(percentage);
+    setValue(poolAmount * (percentage));
+    await calculateOutput(totalLPTokens, poolAmount * percentage, weightA, tokenA, tokenB);
+  }
+
   useEffect(() => {
     filterLP(query);
   }, [query, filterLP]);
@@ -645,7 +647,7 @@ export default function RLiquidity() {
         setTotalLPTokens(amount2);
         await calculateOutput(
           amount2,
-          (amount * lpPercentage) / 100,
+          (amount * lpPercentage),
           weight1,
           result1[0],
           result2[0]
@@ -742,7 +744,7 @@ export default function RLiquidity() {
                 <BootstrapInput
                   id="demo-customized-textbox"
                   type="text"
-                  value={value}
+                  value={numFormat(value)}
                   min={0}
                   style={{
                     color: "#FFFFFF",
@@ -754,102 +756,91 @@ export default function RLiquidity() {
                   readOnly={true}
                 />
               </div>
-              {/* <div>
-                <span style={{ float: "left", color: grayColor }}>
-                  Balance: {poolAmount}
-                </span>
-                <span style={{ float: "right", color: grayColor }}>
-                  25% 50% 75% 100%
-                </span>
-              </div> */}
             </FormControl>
             {/* </FormControl> */}
-            <div style={{ width: "100%" }}>
-              <span style={{ float: "left", color: grayColor, paddingTop: "7px" }}>
-                Percentage to remove:
+            <div style={{ float: "left", width: "100%", marginBottom:"20px" }}>
+              <span style={{ float: "left", color: grayColor }}>
+                Balance: {numFormat(poolAmount)}
               </span>
-              <Slider
-                size="small"
-                value={lpPercentage}
-                step={0.01}
-                aria-label="Small"
-                valueLabelDisplay="auto"
-                onChange={handleSlider} />
+              <span style={{ float: "right", color: lpPercentage===0.25?"lightblue":"gray" }}>
+                <span style={{ cursor: "pointer" }} onClick={() => setInLimit(0.25)}>25%</span>
+                <span style={{ paddingLeft: "5px", cursor: "pointer", color: lpPercentage===0.5?"lightblue":"gray" }} onClick={() => setInLimit(0.5)}>50%</span>
+                <span style={{ paddingLeft: "5px", cursor: "pointer", color: lpPercentage===0.75?"lightblue":"gray" }} onClick={() => setInLimit(0.75)}>75%</span>
+                <span style={{ paddingLeft: "5px", cursor: "pointer", color: lpPercentage===1?"lightblue":"gray" }} onClick={() => setInLimit(1)}>100%</span>
+              </span>
             </div>
             {/* Drop down 2 Start  */}
-            <FormControl
-              sx={{ m: 0 }}
-              style={{ alignItems: "flex-start", display: "inline" }}
-              variant="standard"
-            >
-              <div style={{ backgroundColor: "#12122c", marginTop: "4px" }}>
-                <Button
-                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
-                  startIcon={
-                    <img
-                      src={tokenB.logoURL}
-                      alt=""
-                      style={{ height: 30 }}
-                    />
-                  }
-                  disabled={true}
-                >
-                  {tokenB.symbol}
-                </Button>
-                <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={numFormat(outTokenB)}
-                  style={{
-                    color: "#FFFFFF",
-                    width: "50%",
-                    float: "left",
-                    borderLeft: "1px solid white",
-                    borderRadius: "14px",
-                  }}
-                  readOnly={true}
-                />
-              </div>
-            </FormControl>
-            {/* </FormControl> */}
-            <br />
-            <br />
-            <br />
-            <FormControl
-              sx={{ m: 0 }}
-              style={{ alignItems: "flex-start", display: "inline" }}
-              variant="standard"
-            >
-              <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
-                <Button
-                  style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
-                  startIcon={
-                    <img
-                      src={tokenA.logoURL}
-                      alt=""
-                      style={{ height: 30 }}
-                    />
-                  }
-                  disabled={true}
-                >
-                  {tokenA.symbol}
-                </Button>
-                <BootstrapInput
-                  id="demo-customized-textbox"
-                  type="text"
-                  value={numFormat(outTokenA)}
-                  style={{
-                    color: "#FFFFFF",
-                    width: "50%",
-                    float: "left",
-                    borderLeft: "1px solid white",
-                    borderRadius: "14px",
-                  }}
-                  readOnly={true}
-                />
-              </div>
-              <br />
-            </FormControl>
+            <div style={{ float:"left", width:"100%" }}>
+              <FormControl
+                sx={{ m: 0 }}
+                style={{ float:"left", width:"100%" }}
+                variant="standard"
+              >
+                <div style={{ backgroundColor: "#12122c", marginTop: "15px" }}>
+                  <Button
+                    style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                    startIcon={
+                      <img
+                        src={tokenB.logoURL}
+                        alt=""
+                        style={{ height: 30 }}
+                      />
+                    }
+                    disabled={true}
+                  >
+                    {tokenB.symbol}
+                  </Button>
+                  <BootstrapInput
+                    id="demo-customized-textbox"
+                    type="text"
+                    value={numFormat(outTokenB)}
+                    style={{
+                      color: "#FFFFFF",
+                      width: "50%",
+                      float: "left",
+                      borderLeft: "1px solid white",
+                      borderRadius: "14px",
+                    }}
+                    readOnly={true}
+                  />
+                </div>
+              </FormControl>
+              <FormControl
+                sx={{ m: 0 }}
+                style={{ float:"left", width:"100%", marginTop:"1px" }}
+                variant="standard"
+              >
+                <div style={{ backgroundColor: "#12122c", marginBottom: "15px" }}>
+                  <Button
+                    style={{ width: "50%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
+                    startIcon={
+                      <img
+                        src={tokenA.logoURL}
+                        alt=""
+                        style={{ height: 30 }}
+                      />
+                    }
+                    disabled={true}
+                  >
+                    {tokenA.symbol}
+                  </Button>
+                  <BootstrapInput
+                    id="demo-customized-textbox"
+                    type="text"
+                    value={numFormat(outTokenA)}
+                    style={{
+                      color: "#FFFFFF",
+                      width: "50%",
+                      float: "left",
+                      borderLeft: "1px solid white",
+                      borderRadius: "14px",
+                    }}
+                    readOnly={true}
+                  />
+                </div>
+                <br />
+              </FormControl>
+            </div>
             <br />
             <br />
             <div style={{ color: "white", display: "block", textAlign: "left", marginTop: "9px", marginBottom: "12px" }}>

@@ -344,7 +344,7 @@ export default function UDashboard() {
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
             className=""
           >
-            <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
+            <TableContainer component={Paper} style={{ backgroundColor:"transparent", boxShadow: "0px 0px 0px 0px" }}>
               <Table sx ={{ minWidth: 550 }} aria-label="simple table">
                 <TableHead>
                   <TableRow style={{color:"white"}}>
@@ -554,7 +554,7 @@ export default function UDashboard() {
               className="text-white"
             >
               {/* Table */}
-              <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg">
+              <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg" style={{ boxShadow: "0px 0px 0px 0px" }}>
                 <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
                   <Table sx ={{ minWidth: 550 }} aria-label="simple table">
                     <TableHead>
@@ -698,7 +698,7 @@ export default function UDashboard() {
               className="text-white"
             >
               {/* Table */}
-              <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg">
+              <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg" style={{ boxShadow: "0px 0px 0px 0px" }}>
                 <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
                   <Table sx ={{ minWidth: 600 }} aria-label="simple table">
                     <TableHead >

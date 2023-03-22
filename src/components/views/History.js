@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { AccordionDetails, AccordionSummary, Accordion, Box, Skeleton } from '@mui/material'
+import { AccordionDetails, AccordionSummary, Accordion, Box, CircularProgress } from '@mui/material'
 import React, { useState, useEffect } from 'react';
 import Pagination from '@mui/material/Pagination';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -53,7 +53,7 @@ function History(props) {
             return (<Accordion
                       key={item.hash}
                       sx={{ minHeight: "20px" }}
-                      style={{ backgroundColor: "#12122c", color: "white" }}
+                      style={{ backgroundColor: "#12122c", color: "white", boxShadow: "0px 0px 0px 0px" }}
                     >
                       <AccordionSummary
                         expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
@@ -138,9 +138,9 @@ function History(props) {
       }
       {!props.data.isLoad &&
         <Box sx={{ width:"100%", mt:"1rem" }}>
-          <Skeleton animation="wave" />
-          <Skeleton animation="wave" />
-          <Skeleton animation="wave" />
+          <div style={{ minHeight: "170px", textAlign: "center" }}>
+            <CircularProgress style={{ marginTop: "65px" }} />
+          </div>
         </Box>
       }
     </>

@@ -117,6 +117,8 @@ export default function Liquidity() {
   // const [sliderValue, setSliderValue] = useState(50);
   const [approval, setApproval] = useState(false);
   const [limitedout, setLimitedout] = useState(false);
+  const [position1, setPosition1] = useState(0);
+  const [position2, setPosition2] = useState(0);
   const [approval1, setApproval1] = useState(false);
   const [approval2, setApproval2] = useState(false);
   const [approvedVal1, setApprovedVal1] = useState(0);
@@ -546,6 +548,7 @@ export default function Liquidity() {
 
   const setInLimit = async (position) => {
     if (inBal) {
+      setPosition1(position);
       let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
       setValue(val1 / position);
       setLimitedout(false);
@@ -576,6 +579,7 @@ export default function Liquidity() {
 
   const setOutLimit = async (position) => {
     if (outBal) {
+      setPosition2(position);
       let val2 = outBal.toString().replaceAll(",", "");
       setValueEth(val2 / position);
       setLimitedout(false);
@@ -934,13 +938,13 @@ export default function Liquidity() {
               </div>
               <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: grayColor }}>
-                  Balance: {inBal}
+                  Balance: {numFormat(inBal)}
                 </span>
                 <span style={{ float: "right", color: grayColor }}>
-                  <span style={{ cursor: "pointer" }} onClick={() => setInLimit(4)}>25%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(2)}>50%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1.3333)}>75%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setInLimit(1)}>100%</span>
+                  <span style={{ cursor: "pointer", color: position1===4?"lightblue":"gray" }} onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1===2?"lightblue":"gray" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1===1.3333?"lightblue":"gray" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1===1?"lightblue":"gray" }} onClick={() => setInLimit(1)}>100%</span>
                 </span>
               </div>
             </FormControl>
@@ -997,17 +1001,17 @@ export default function Liquidity() {
               </div>
               <div style={{ float: "left", display: "block", width: "100%" }}>
                 <span style={{ color: grayColor, float: "left" }}>
-                  Balance: {outBal}
+                  Balance: {numFormat(outBal)}
                 </span>
                 <p style={{ float: "right", color: grayColor }}>
-                  <span style={{ cursor: "pointer" }} onClick={() => setOutLimit(4)}>25%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(2)}>50%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(1.3333)}>75%</span>
-                  <span style={{ paddingLeft: "5px", cursor: "pointer" }} onClick={() => setOutLimit(1)}>100%</span>
+                  <span style={{ cursor: "pointer", color: position2===4?"lightblue":"gray" }} onClick={() => setOutLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===2?"lightblue":"gray" }} onClick={() => setOutLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===1.3333?"lightblue":"gray" }} onClick={() => setOutLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===1?"lightblue":"gray" }} onClick={() => setOutLimit(1)}>100%</span>
                 </p>
               </div>
               <div style={{ color: "white", display: "block", float: "left", marginTop: "12px", width: "100%" }}>
-                <span style={{ float: "left", paddingLeft: "0px" }}>Ratio {ratio.toPrecision(6)}% {inToken["symbol"]} + {(100 - ratio).toPrecision(6)}% {outToken["symbol"]}</span>
+                <span style={{ float: "left", paddingLeft: "0px" }}>Ratio {numFormat(ratio)}% {inToken["symbol"]} + {numFormat(100-ratio)}% {outToken["symbol"]}</span>
               </div>
               <div style={{ float: "left", width: "100%", marginTop: "10px" }}>
                 <span style={{ float: "left", color: "white" }}>

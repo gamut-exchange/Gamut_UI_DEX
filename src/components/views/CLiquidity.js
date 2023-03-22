@@ -92,6 +92,7 @@ export default function CLiquidity() {
   const [outVal, setOutVal] = useState(0);
   const [inBal, setInBal] = useState(0);
   const [outBal, setOutBal] = useState(0);
+  const [tradingFee, setTradingFee] = useState(0.1);
   const [pairStatus, setPairStatus] = useState(0);
   const [weight, setWeight] = useState(50);
   const [limitedOut, setLimitedout] = useState(false);
@@ -106,10 +107,6 @@ export default function CLiquidity() {
   };
 
   const handleClose = () => setMopen(false);
-
-  const handleSlider = (event, newValue) => {
-    setWeight(newValue);
-  };
 
   const selectToken = async (token, selected) => {
     handleClose();
@@ -237,7 +234,7 @@ export default function CLiquidity() {
         await createPool(account, provider,
           inToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : inToken["address"],
           outToken["address"] === "0x0000000000000000000000000000000000000000" ? "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b" : outToken["address"],
-          weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"]);
+          weight / 100, 1 - weight / 100, contractAddresses[selected_chain]["hedgeFactory"], tradingFee);
         setCreating(false);
         checkPairStatus(inToken['address'].toLowerCase(), outToken['address'].toLowerCase());
       }
@@ -408,27 +405,15 @@ export default function CLiquidity() {
               </div>
             </FormControl>
             <div style={{ float: "left", marginTop: "10px", width:"100%" }}>
-              <span style={{ float:"left", color: "white" }}>
-                Weight: {weight}% ({inToken["symbol"]}) + {100 - weight}% ({outToken["symbol"]})
-              </span>
-              <Slider
-                size="small"
-                value={weight}
-                onChange={handleSlider}
-                defaultValue={50}
-                step={1}
-                min={10}
-                max={90}
-                aria-label="Small"
-                valueLabelDisplay="auto"
-              />
               <div style={{float:"left", width:"100%"}}>
                 <span style={{ float: "left", color: "white", fontSize: "18px" }}>
                   Trading Fee:{" "}
                 </span>
 
                 <div style={{ float: "right", display: "inline", fontSize: "18px" }}>
-                  <span style={{ float: "right", color: "#6d6d7d" }}>0.1%</span>
+                  <span style={{ color: tradingFee === 0.1 ? "lightblue" : "gray", cursor: "pointer" }} onClick={() => setTradingFee(0.1)}>0.1%</span>
+                  <span style={{ color: tradingFee === 0.2 ? "lightblue" : "gray", paddingLeft: "10px", cursor: "pointer" }} onClick={() => setTradingFee(0.2)}>0.2%</span>
+                  <span style={{ color: tradingFee === 0.3 ? "lightblue" : "gray", paddingLeft: "10px", cursor: "pointer" }} onClick={() => setTradingFee(0.3)}>0.3%</span>
                 </div>
               </div>
               {account &&
