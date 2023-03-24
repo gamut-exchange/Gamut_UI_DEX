@@ -143,7 +143,9 @@ export default function UDashboard() {
 
       await filteredThx.map(async (item) => {
         item.raw_input = abiDecoder.decodeMethod(item.input);
-        if(item.raw_input.name === "swap") {
+        if(item.raw_input === undefined) {
+          item.action_type = 3;
+        } else if(item.raw_input.name === "swap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();
           });
@@ -217,7 +219,7 @@ export default function UDashboard() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "exitPool") {          
+        } else if(item.raw_input.name === "exitPool") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
           });
