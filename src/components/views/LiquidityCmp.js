@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import "./Navigation.css"
 
-function SwapCmp() {
+function LiquidityCmp() {
   const darkFontColor = "#FFF";
   const [activeSwapColor, setActiveSwapColor] = useState("linear-gradient(to right bottom, #13a8ff, #0074f0)");
 
@@ -188,4 +188,4 @@ function SwapCmp() {
   )
 }
 
-export default SwapCmp
+export default LiquidityCmp

@@ -26,9 +26,10 @@ import {
   approveToken,
   getPoolData,
   createPool,
-  initAddPool
+  initAddPool,
+  numFormat
 } from "../../config/web3";
-import SwapCmp from "./SwapCmp";
+import LiquidityCmp from "./LiquidityCmp";
 import { contractAddresses } from "../../config/constants";
 import TokenList from "./TokenList";
 
@@ -92,6 +93,8 @@ export default function CLiquidity() {
   const [outVal, setOutVal] = useState(0);
   const [inBal, setInBal] = useState(0);
   const [outBal, setOutBal] = useState(0);
+  const [position1, setPosition1] = useState(0);
+  const [position2, setPosition2] = useState(0);
   const [tradingFee, setTradingFee] = useState(0.1);
   const [pairStatus, setPairStatus] = useState(0);
   const [weight, setWeight] = useState(50);
@@ -150,9 +153,9 @@ export default function CLiquidity() {
 
   const checkPairStatus = async (token1Addr, token2Addr) => {
     const provider = await connector.getProvider();
-    if (token1Addr === token2Addr 
-      || (token1Addr === "0x0000000000000000000000000000000000000000" && token2Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()) 
-      ||(token2Addr === "0x0000000000000000000000000000000000000000" && token1Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()))
+    if (token1Addr === token2Addr
+      || (token1Addr === "0x0000000000000000000000000000000000000000" && token2Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())
+      || (token2Addr === "0x0000000000000000000000000000000000000000" && token1Addr.toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase()))
       setPairStatus(1);
     else {
       try {
@@ -262,8 +265,8 @@ export default function CLiquidity() {
         if (poolData.tokens[0].toLowerCase() === inToken["address"].toLowerCase()
           ||
           (inToken["address"] === "0x0000000000000000000000000000000000000000" && poolData.tokens[0].toLowerCase() === "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b".toLowerCase())) {
-            await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
-          }
+          await initAddPool(account, provider, outToken["address"], inToken["address"], outVal, inVal, contractAddresses[selected_chain]["router"]);
+        }
         else {
           await initAddPool(account, provider, inToken["address"], outToken["address"], inVal, outVal, contractAddresses[selected_chain]["router"]);
         }
@@ -275,6 +278,24 @@ export default function CLiquidity() {
       console.log(e.message);
     }
   }
+
+  const setInLimit = async (position) => {
+    if (inBal) {
+      setPosition1(position);
+      let val1 = inBal ? inBal.toString().replaceAll(",", "") : 0;
+      setInVal(val1 / position);
+      setLimitedout(false);
+    }
+  };
+
+  const setOutLimit = async (position) => {
+    if (outBal) {
+      setPosition2(position);
+      let val2 = outBal ? outBal.toString().replaceAll(",", "") : 0;
+      setOutVal(val2 / position);
+      setLimitedout(false);
+    }
+  };
 
   const clickConWallet = () => {
     document.getElementById("connect_wallet_btn").click();
@@ -301,9 +322,9 @@ export default function CLiquidity() {
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
-        <SwapCmp />
+        <LiquidityCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
-          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", float:"left", width:"100%" }} className="home__main">
+          <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px", float: "left", width: "100%" }} className="home__main">
 
             <Typography
               variant="h5"
@@ -325,13 +346,13 @@ export default function CLiquidity() {
 
               <div style={{ backgroundColor: "#12122c" }}>
                 <Button
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   onClick={() => handleMopen(0)}
                   startIcon={
                     <img
                       alt=""
                       src={inToken['logoURL']}
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -339,7 +360,7 @@ export default function CLiquidity() {
                 </Button>
                 <BootstrapInput
                   type="number"
-                  value={inVal}
+                  value={numFormat(inVal)}
                   onChange={handleInVal}
                   inputProps={{ min: 0, max: Number(inBal.toString().replaceAll(",", "")) }}
                   readOnly={(pairStatus === 2 || pairStatus === 3 || pairStatus === 4 || pairStatus === 5) ? false : true}
@@ -352,9 +373,15 @@ export default function CLiquidity() {
                   }}
                 />
               </div>
-              <div style={{ display: "block", float: "left", width:"100%" }}>
-                <span style={{ float:"left", color: grayColor }}>
-                  Balance: {inBal}
+              <div style={{ display: "block", float: "left", width: "100%" }}>
+                <span style={{ float: "left", color: grayColor }}>
+                  Balance: {numFormat(inBal)}
+                </span>
+                <span style={{ float: "right", color: grayColor }}>
+                  <span style={{ cursor: "pointer", color: position1 === 4 ? "lightblue" : "gray" }} onClick={() => setInLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1 === 2 ? "lightblue" : "gray" }} onClick={() => setInLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1 === 1.3333 ? "lightblue" : "gray" }} onClick={() => setInLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position1 === 1 ? "lightblue" : "gray" }} onClick={() => setInLimit(1)}>100%</span>
                 </span>
               </div>
             </FormControl>
@@ -370,13 +397,13 @@ export default function CLiquidity() {
             >
               <div>
                 <Button
-                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight:49 }}
+                  style={{ width: "40%", float: "left", border: "0px", padding: "9px 8px", fontSize: "13px", backgroundColor: "#07071c", color: "white", minHeight: 49 }}
                   onClick={() => handleMopen(1)}
                   startIcon={
                     <img
                       alt=""
                       src={outToken['logoURL']}
-                      style={{height:30}}
+                      style={{ height: 30 }}
                     />
                   }
                 >
@@ -384,7 +411,7 @@ export default function CLiquidity() {
                 </Button>
                 <BootstrapInput
                   type="number"
-                  value={outVal}
+                  value={numFormat(outVal)}
                   onChange={handleOutVal}
                   min={0}
                   max={Number(outBal.toString().replaceAll(",", ""))}
@@ -398,14 +425,20 @@ export default function CLiquidity() {
                   }}
                 />
               </div>
-              <div style={{ display: "block", float: "left", width:"100%" }}>
-                <span style={{ float:"left", color: grayColor }}>
-                  Balance: {outBal}
+              <div style={{ display: "block", float: "left", width: "100%" }}>
+                <span style={{ float: "left", color: grayColor }}>
+                  Balance: {numFormat(outBal)}
+                </span>
+                <span style={{ float: "right", color: grayColor }}>
+                  <span style={{ cursor: "pointer", color: position2 === 4 ? "lightblue" : "gray" }} onClick={() => setOutLimit(4)}>25%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2 === 2 ? "lightblue" : "gray" }} onClick={() => setOutLimit(2)}>50%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2 === 1.3333 ? "lightblue" : "gray" }} onClick={() => setOutLimit(1.3333)}>75%</span>
+                  <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2 === 1 ? "lightblue" : "gray" }} onClick={() => setOutLimit(1)}>100%</span>
                 </span>
               </div>
             </FormControl>
-            <div style={{ float: "left", marginTop: "10px", width:"100%" }}>
-              <div style={{float:"left", width:"100%"}}>
+            <div style={{ float: "left", marginTop: "20px", width: "100%" }}>
+              <div style={{ float: "left", width: "100%" }}>
                 <span style={{ float: "left", color: "white", fontSize: "18px" }}>
                   Trading Fee:{" "}
                 </span>

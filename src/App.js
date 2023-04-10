@@ -8,6 +8,7 @@ import Liquidity from './components/views/Liquidity';
 import RLiquidity from './components/views/RLiquidity';
 import PDashboard from './components/views/PlatformDashboard';
 import UDashboard from './components/views/UserDashboard';
+import StakingPool from './components/views/StakingPool';
 import {HashRouter, Route, Routes } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { useEffect } from 'react';
@@ -37,6 +38,7 @@ function App() {
         <Route path="/remove_liquidity" element={<RLiquidity />} />
         <Route path="/platform_dashboard" element={<PDashboard />} />
         <Route path="/user_dashboard" element={<UDashboard />} />
+        <Route path="/staking_pool" element={<StakingPool />} />
       </Routes>
       <Footer />
     </HashRouter>

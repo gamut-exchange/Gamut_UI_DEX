@@ -22,7 +22,7 @@ import {
   Settings,
 } from "@mui/icons-material";
 import tw from "twin.macro";
-import SwapCmp from "./SwapCmp";
+import LiquidityCmp from "./LiquidityCmp";
 import { useWeightsData } from "../../config/chartData";
 import { getKavaTx } from "../../services/kavaAPI";
 import {
@@ -32,8 +32,9 @@ import {
   fromWeiVal,
   getPoolSupply,
   calculateSwap,
+  getPoolList,
   toLongNum,
-  getPoolList
+  numFormat
 } from "../../config/web3";
 import { customPoolList, defaultProvider, userSettings } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -354,19 +355,6 @@ export default function RLiquidity() {
     }
   };
 
-  const numFormat = (val) => {
-    if(Math.abs(val) === 0)
-      return 0;
-    else if (Math.abs(val) > 1)
-      return Number(val).toFixed(2) * 1;
-    else if (Math.abs(val) > 0.001)
-      return Number(val).toFixed(4) * 1;
-    else if (Math.abs(val) > 0.00001)
-      return Number(val).toFixed(6) * 1;
-    else
-      return toLongNum(Number(val).toFixed(12));
-  }
-
   const valueLabelFormat = (value) => {
     return value + "%";
   }
@@ -475,7 +463,7 @@ export default function RLiquidity() {
   const fetchUserData = async () => {
     const provider = await connector.getProvider();
     const web3 = new Web3(provider);
-    abiDecoder.addABI(routerABI[0]);
+    abiDecoder.addABI(routerABI);
     getKavaTx(account, 150).then(async (response) => {
       let filteredThx = response;
       filteredThx.map((item) => {
@@ -621,18 +609,6 @@ export default function RLiquidity() {
         setWeightA(weight1);
         setScale((weight1 * 100));
 
-        // const result1 = uniList[selected_chain].filter((item) => {
-        //   return item.address.toLowerCase() === pData["tokens"][0].toLowerCase();
-        // });
-
-        // setTokenA(result1[0]);
-
-        // const result2 = uniList[selected_chain].filter((item) => {
-        //   return item.address.toLowerCase() === pData["tokens"][1].toLowerCase();
-        // });
-
-        // setTokenB(result2[0]);
-
         let amount = await getPoolBalance(
           account,
           provider,
@@ -674,7 +650,7 @@ export default function RLiquidity() {
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
-        <SwapCmp />
+        <LiquidityCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -871,28 +847,6 @@ export default function RLiquidity() {
               </div>
             </div>
             <div style={{ textAlign: "left" }}>
-              {/* <span style={{ textAlign: "start", color: "white" }}>
-                Price Impact:
-              </span>
-              <div style={{ float: "right", display: "inline" }}>
-                <span style={{ textAlign: "right", color: "white" }}>0%</span>
-              </div>
-              <div>
-                <span style={{ textAlign: "start", color: "white" }}>
-                  Expected Output:
-                </span>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
-                </div>
-              </div>
-              <div>
-                <span style={{ textAlign: "start", color: "white" }}>
-                  Minimum Output after Slippage:
-                </span>
-                <div style={{ float: "right", display: "inline" }}>
-                  <span style={{ textAlign: "right", color: "white" }}>0</span>
-                </div>
-              </div> */}
               <div className="">
                 {account &&
                   <Button

@@ -2,12 +2,11 @@ import Web3 from "web3";
 import { ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { utils } from "ethers";
 import { useWeb3React } from "@web3-react/core";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Box, Button, useMediaQuery } from "@mui/material";
+import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Button, useMediaQuery } from "@mui/material";
 import { HelpOutline } from '@mui/icons-material';
 import Popover from '@mui/material/Popover';
 import { makeStyles } from "@mui/styles";
@@ -16,7 +15,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardCmp from "./DashboardCmp";
 import { getKavaERC20, getKavaTx } from "../../services/kavaAPI";
 import { poolList, contractAddresses } from "../../config/constants";
-import { getHoldingInLP, calcOutput, getSwapFeePercent } from "../../config/web3";
+import { getHoldingInLP, getSwapFeePercent } from "../../config/web3";
 import routerABI from "../../assets/abi/router";
 import abiDecoder from "../../config/abiDecoder";
 
@@ -28,7 +27,7 @@ const Item = styled(Paper)(({ theme }) => ({
   color: "theme.palette.text.secondary",
 }));
 
-export const useStyles = makeStyles((theme: Theme) => ({
+export const useStyles = makeStyles(() => ({
   menu: {
     "& .MuiPaper-root": {
       backgroundColor: "#07071c",
@@ -98,7 +97,7 @@ export default function UDashboard() {
   const fetchUserData = async () => {
     const provider = await connector.getProvider();
     const web3 = new Web3(provider);
-    abiDecoder.addABI(routerABI[0]);
+    abiDecoder.addABI(routerABI);
     // Get Kava Token
     getKavaERC20(account).then(async (response) => {
       let filteredTokens = response.filter((item) => {
@@ -364,7 +363,7 @@ export default function UDashboard() {
                     </TableCell>
                     <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
                       <HelpOutline
-                        aria-owns={open ? 'mouse-over-popover' : undefined}
+                        aria-owns={open2 ? 'mouse-over-popover' : undefined}
                         aria-haspopup="true"
                         onMouseEnter={handleClick2}
                         onMouseLeave={handleClose2}
@@ -387,7 +386,7 @@ export default function UDashboard() {
                         disableRestoreFocus
                         className={classes.popover}
                       >
-                        <Typography sx={{ p: 1 }}>Shows whether the APR <br/>is currently increasing <br/>or decreasing.</Typography>
+                        <Typography sx={{ p: 1, fontSize:13 }}>Shows whether the APR <br/>is currently increasing <br/>or decreasing.</Typography>
                       </Popover>
                     </TableCell>
                     <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>

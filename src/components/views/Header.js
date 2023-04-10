@@ -107,6 +107,13 @@ function Header(props) {
             </ListItemButton>
           </ListItem>
         </Link>
+        <Link to="/staking_pool" style={{ textDecoration: "none", color: "white" }}>
+          <ListItem disablePadding>
+            <ListItemButton sx={{ textAlign: "center" }}>
+              <ListItemText primary={"Earn"} />
+            </ListItemButton>
+          </ListItem>
+        </Link>
       </List>
       <Box className={classes.actionGroup} style={{ justifyContent: "center" }}>
         <Box className={classes.connectWallet}>

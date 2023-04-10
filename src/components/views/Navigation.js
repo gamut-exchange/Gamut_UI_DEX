@@ -18,6 +18,8 @@ function Navigation() {
       setActive('liquidity');
     else if(location.pathname === "/user_dashboard")
       setActive('dashboard');
+    else if(location.pathname === "/staking_pool")
+      setActive('staking');
     else if (location.pathname === "/about")
       setActive('about');
     else if (location.pathname === "/contact")
@@ -94,6 +96,17 @@ function Navigation() {
               >
                 {/* {item} */}
                 Dashboard
+              </Button>
+            </Link>
+            <Link to="/staking_pool" style={{ textDecoration: "none" }}>
+              <Button
+                // key={item}
+                sx={{ color: active === "staking" ? menuColor : "white", pr: 5 }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
+                onClick={() => setActive("staking")}
+              >
+                {/* {item} */}
+                Earn
               </Button>
             </Link>
           </Box>

@@ -37,6 +37,14 @@ export const poolList = {
 		{ value: "other", address: "0xbd87cd1512763eefc14b3717ff42538022e95c95", symbols: ["USDT", "ETH"], logoURLs: ["/icons/usdt.png", "/icons/eth.png"] },
 		{ value: "other", address: "0x9f065518185436fbdd72fd7ca7fd99ccaf3f061a", symbols: ["DAI", "USDC"], logoURLs: ["/icons/dai.svg", "/icons/usdc.svg"] },
 		{ value: "other", address: "0x02bd2e7f107a15ce8b6414df67f4a7e662218bc9", symbols: ["DAI", "USDT"], logoURLs: ["/icons/dai.svg", "/icons/usdt.svg"] },
-		{ value: "other", address: "0x545236b930e5f5f339934296a5d442014978706f", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.svg", "/icons/eth.svg"] },
+		{ value: "other", address: "0x545236b930e5f5f339934296a5d442014978706f", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.svg", "/icons/eth.png"] },
+		{ value: "other", address: "0x656e29ef744466297583c489b225acc0d00217a8", symbols: ["acsUSDT", "acsWKAVA"], logoURLs: ["/icons/usdt.svg", "/icons/wkava.png"] },
+	]
+}
+
+export const farmingPoolList = {
+	'kava': [
+		{ value: "other", address: "0x6be57618c8832ad25cceadf2745d5c92de7ab7b2", farmingPoolAddress: "0x632d4a3540c6b9697a34d59708a75c832e0c5271", symbols: ["BUSD", "WKAVA"], logoURLs: ["/icons/busd.svg", "/icons/wkava.png"] },
+		{ value: "other", address: "0x1e34dd2f920630e6af04519221ed9004608a6c52", farmingPoolAddress: "0xb126d9a8c88b7e83f1fbcb4bb57e74fb55dbba34", symbols: ["DAI", "WKAVA"], logoURLs: ["/icons/dai.svg", "/icons/wkava.png"] },
 	]
 }

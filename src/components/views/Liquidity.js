@@ -31,6 +31,7 @@ import {
   tokenApproval,
   approveToken,
   calculateSwap,
+  numFormat
 } from "../../config/web3";
 import { poolList } from "../../config/constants";
 import { contractAddresses } from "../../config/constants";
@@ -44,7 +45,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import SwapCmp from "./SwapCmp";
+import LiquidityCmp from "./LiquidityCmp";
 import routerABI from "../../assets/abi/router";
 import abiDecoder from "../../config/abiDecoder";
 
@@ -727,17 +728,6 @@ export default function Liquidity() {
     return null;
   };
 
-  const numFormat = (val) => {
-    if (Math.abs(val) > 1)
-      return Number(val).toFixed(2) * 1;
-    else if (Math.abs(val) > 0.001)
-      return Number(val).toFixed(4) * 1;
-    else if (Math.abs(val) > 0.00001)
-      return Number(val).toFixed(6) * 1;
-    else
-      return Number(val).toFixed(8) * 1;
-  }
-
   const valueLabelFormat = (value) => {
     return value + "%";
   }
@@ -763,7 +753,7 @@ export default function Liquidity() {
   }
 
   const fetchUserData = async () => {
-    abiDecoder.addABI(routerABI[0]);
+    abiDecoder.addABI(routerABI);
     getKavaTx(account, 150).then(async (response) => {
       let filteredThx = response;
       filteredThx.map((item) => {
@@ -853,7 +843,7 @@ export default function Liquidity() {
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
-        <SwapCmp />
+        <LiquidityCmp />
         <Grid item xs={12} sm={12} md={5} sx={{ mt: 2 }} className="home__mainC">
           <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#12122c", borderRadius: "10px" }} className="home__main">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -1003,12 +993,12 @@ export default function Liquidity() {
                 <span style={{ color: grayColor, float: "left" }}>
                   Balance: {numFormat(outBal)}
                 </span>
-                <p style={{ float: "right", color: grayColor }}>
+                <span style={{ float: "right", color: grayColor }}>
                   <span style={{ cursor: "pointer", color: position2===4?"lightblue":"gray" }} onClick={() => setOutLimit(4)}>25%</span>
                   <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===2?"lightblue":"gray" }} onClick={() => setOutLimit(2)}>50%</span>
                   <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===1.3333?"lightblue":"gray" }} onClick={() => setOutLimit(1.3333)}>75%</span>
                   <span style={{ paddingLeft: "5px", cursor: "pointer", color: position2===1?"lightblue":"gray" }} onClick={() => setOutLimit(1)}>100%</span>
-                </p>
+                </span>
               </div>
               <div style={{ color: "white", display: "block", float: "left", marginTop: "12px", width: "100%" }}>
                 <span style={{ float: "left", paddingLeft: "0px" }}>Ratio {numFormat(ratio)}% {inToken["symbol"]} + {numFormat(100-ratio)}% {outToken["symbol"]}</span>

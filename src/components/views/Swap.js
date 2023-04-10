@@ -1,5 +1,4 @@
 import Web3 from "web3";
-import { ethers } from "ethers";
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
@@ -38,7 +37,8 @@ import {
   getSwapFeePercent,
   calculateSwap,
   calcOutput,
-  getMiddleToken
+  getMiddleToken,
+  numFormat
 } from "../../config/web3";
 import { useTokenPricesData } from "../../config/chartData";
 import { getKavaTx } from "../../services/kavaAPI";
@@ -537,17 +537,6 @@ export default function Swap() {
     }
   };
 
-  const numFormat = (val) => {
-    if (Math.abs(val) > 1)
-      return Number(val).toFixed(4) * 1;
-    else if (Math.abs(val) > 0.001)
-      return Number(val).toFixed(6) * 1;
-    else if (Math.abs(val) > 0.00001)
-      return Number(val).toFixed(8) * 1;
-    else
-      return Number(val).toFixed(8) * 1;
-  }
-
   const valueLabelFormat = (value) => {
     return value + "%";
   }
@@ -726,7 +715,7 @@ export default function Swap() {
   const fetchUserData = async () => {
     const provider = await connector.getProvider();
     const web3 = new Web3(provider);
-    abiDecoder.addABI(routerABI[0]);
+    abiDecoder.addABI(routerABI);
     getKavaTx(account, 150).then(async (response) => {
       let filteredThx = response;
       filteredThx.map((item) => {
@@ -836,7 +825,7 @@ export default function Swap() {
       fetchUserData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, ""]);
+  }, [account]);
 
   // let handleValueTimer;
 

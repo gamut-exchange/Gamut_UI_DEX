@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import erc20ABI from "../assets/abi/erc20";
 import hedgeFactoryABI from "../assets/abi/hedgeFactory";
 import poolABI from "../assets/abi/pool";
+import farmABI from "../assets/abi/farm";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
 import { chainIds } from "./constants";
@@ -11,7 +12,7 @@ import axios from "axios";
 
 // web3 integration part
 export const getTokenBalance = async (provider, tokenAddr, account) => {
-    const abi = erc20ABI[0];
+    const abi = erc20ABI;
     let web3 = new Web3(provider);
     if (tokenAddr === "0x0000000000000000000000000000000000000000") {
         const coinbal = await web3.eth.getBalance(account);
@@ -36,7 +37,7 @@ export const getPoolAddress = async (
     token2Addr,
     contractAddr
 ) => {
-    const abi = hedgeFactoryABI[0];
+    const abi = hedgeFactoryABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi, contractAddr);
     let result = await contract.methods["getPool"](token1Addr, token2Addr).call();
@@ -44,8 +45,8 @@ export const getPoolAddress = async (
 };
 
 export const getPoolData = async (provider, poolAddress) => {
-    const abi = poolABI[0];
-    const tokenAbi = erc20ABI[0];
+    const abi = poolABI;
+    const tokenAbi = erc20ABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi, poolAddress);
     let result1 = await contract.methods["getPoolTokensAndBalances"]().call();
@@ -64,7 +65,7 @@ export const getPoolData = async (provider, poolAddress) => {
 };
 
 export const tokenApproval = async (account, provider, tokenAddr, contractAddr) => {
-    const tokenAbi = erc20ABI[0];
+    const tokenAbi = erc20ABI;
     let web3 = new Web3(provider);
     let tokenContract = new web3.eth.Contract(tokenAbi, tokenAddr);
     // const owner = await contract.methods['owner']().call();
@@ -77,6 +78,20 @@ export const tokenApproval = async (account, provider, tokenAddr, contractAddr) 
     return remain;
 };
 
+export const poolApproval = async (account, provider, poolAddr, contractAddr) => {
+    const poolAbi = poolABI;
+    let web3 = new Web3(provider);
+    let poolContract = new web3.eth.Contract(poolAbi, poolAddr);
+    // const owner = await contract.methods['owner']().call();
+    let remain = await poolContract.methods["allowance"](
+        account,
+        contractAddr
+    ).call();
+    let decimal = await poolContract.methods["decimals"]().call();
+    remain = remain / 10 ** decimal;
+    return remain;
+}
+
 export const approveToken = async (
     account,
     provider,
@@ -84,7 +99,7 @@ export const approveToken = async (
     value,
     contractAddr
 ) => {
-    const tokenAbi = erc20ABI[0];
+    const tokenAbi = erc20ABI;
     let web3 = new Web3(provider);
     let token_contract = new web3.eth.Contract(tokenAbi, tokenAddr);
     const weiVal = await toWeiVal(provider, tokenAddr, value);
@@ -100,6 +115,29 @@ export const approveToken = async (
     return result;
 };
 
+export const approvePool = async (
+    account,
+    provider,
+    poolAddr,
+    value,
+    contractAddr
+) => {
+    const poolAbi = poolABI;
+    let web3 = new Web3(provider);
+    let pool_contract = new web3.eth.Contract(poolAbi, poolAddr);
+    const weiVal = await toWeiVal(provider, poolAddr, value);
+    try {
+        await pool_contract.methods["approve"](
+            contractAddr,
+            weiVal
+        ).send({ from: account });
+    } catch (e) {
+        console.log(e.message);
+    }
+    const result = await poolApproval(account, provider, poolAddr, contractAddr);
+    return result;
+};
+
 export const swapTokens = async (
     provider,
     inTokenAddr,
@@ -110,7 +148,7 @@ export const swapTokens = async (
     deadTime,
     contractAddr
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     let web3 = new Web3(provider);
     let wei_amount = "0";
     let wei_limit = "0";
@@ -156,7 +194,7 @@ export const batchSwapTokens = async (
     deadTime,
     contractAddr
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     let web3 = new Web3(provider);
     let wei_amount = "0";
     // let wei_limit = "0";
@@ -247,7 +285,7 @@ export const joinPool = async (
     isCoin1,
     isCoin2
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     const web3 = new Web3(provider);
     const poolAddr = await getPoolAddress(
         provider,
@@ -373,7 +411,7 @@ export const joinOnePool = async (
     isCoin1,
     isCoin2
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     const web3 = new Web3(provider);
     const poolAddr = await getPoolAddress(
         provider,
@@ -495,7 +533,7 @@ export const initAddPool = async (
     amountB,
     routerContractAddr
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     let web3 = new Web3(provider);
     let token1_wei_val = "0";
     let token2_wei_val = "0";
@@ -538,7 +576,7 @@ export const initAddPool = async (
 }
 
 export const getPoolBalance = async (account, provider, poolAddr) => {
-    const abi = poolABI[0];
+    const abi = poolABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi);
     contract.options.address = poolAddr;
@@ -548,7 +586,7 @@ export const getPoolBalance = async (account, provider, poolAddr) => {
 };
 
 export const getPoolSupply = async (provider, poolAddr) => {
-    const abi = poolABI[0];
+    const abi = poolABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi);
     contract.options.address = poolAddr;
@@ -557,7 +595,7 @@ export const getPoolSupply = async (provider, poolAddr) => {
 };
 
 export const getSwapFeePercent = async (provider, poolAddr) => {
-    const abi = poolABI[0];
+    const abi = poolABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi);
     contract.options.address = poolAddr;
@@ -577,7 +615,7 @@ export const removePool = async (
     slippage,
     contractAddr
 ) => {
-    const abi = routerABI[0];
+    const abi = routerABI;
     let web3 = new Web3(provider);
     const totalAmount = await web3.utils.toWei((Math.floor(amount * Math.pow(10, 16)) / Math.pow(10, 16)).toFixed(16));
     const tokenRatio = await web3.utils.toWei(ratio.toString());
@@ -613,12 +651,12 @@ export const createPool = async (
     contractAddr,
     tradingFee
 ) => {
-    const abi = hedgeFactoryABI[0];
+    const abi = hedgeFactoryABI;
     let web3 = new Web3(provider);
     const contract = new web3.eth.Contract(abi, contractAddr);
     const weight1_str = web3.utils.toWei(weight1.toString());
     const weight2_str = web3.utils.toWei(weight2.toString());
-    const swap_fee = web3.utils.toWei((tradingFee*0.01).toString());
+    const swap_fee = web3.utils.toWei((tradingFee * 0.01).toString());
     try {
         await contract.methods["create"](tokenAddr1, tokenAddr2, weight1_str, weight2_str, swap_fee, true).send({ from: account });
     } catch (e) {
@@ -627,171 +665,330 @@ export const createPool = async (
 
 }
 
+export const stakePool = async (
+    account,
+    provider,
+    value,
+    farmingPoolAddress,
+    setStaking
+) => {
+    let web3 = new Web3(provider);
+    let depositAmount = web3.utils.toWei(numFormat(value));
+    let contract = new web3.eth.Contract(farmABI, farmingPoolAddress);
+    try {
+        await contract.methods["deposit"](depositAmount).send({ from: account });
+    } catch(e) {
+        setStaking(false);
+    }
+}
+
+export const unStakePool = async (
+    account,
+    provider,
+    value,
+    farmingPoolAddress,
+    setStaking
+) => {
+    let web3 = new Web3(provider);
+    let withdrawAmount = web3.utils.toWei(numFormat(value));
+    let contract = new web3.eth.Contract(farmABI, farmingPoolAddress);
+    try {
+        await contract.methods["withdraw"](withdrawAmount).send({ from: account });
+    } catch(e) {
+        setStaking(false);
+    }
+}
+
+export const harvestReward = async (
+    account,
+    provider,
+    farmingPoolAddress
+) => {
+    let web3 = new Web3(provider);
+    let contract = new web3.eth.Contract(farmABI, farmingPoolAddress);
+    await contract.methods["deposit"](0).send({ from: account });
+}
+
 // Get All Pools
 export const getAllPools = async (provider, account, contractAddr) => {
-  let web3 = new Web3(provider);
-  const factoryABI = hedgeFactoryABI[0];
-  const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
-  const pAbi = poolABI[0];
-  const poolContract = new web3.eth.Contract(pAbi);
-  let pLength = await factoryContract.methods["allPoolsLength"]().call();
-  let pools = [];
-  for (let i = 0; i < pLength; i++) {
-    let poolAddress = await factoryContract.methods["allPools"](i).call();
-    poolContract.options.address = poolAddress;
-    let poolTokenAndBalance = await poolContract.methods[
-      "getPoolTokensAndBalances"
-    ]().call();
-    let weight = await poolContract.methods["getWeights"]().call();
-    new Promise((resolve) => setTimeout(resolve, 1000));
-    let supply = await poolContract.methods["totalSupply"]().call();
-    new Promise((resolve) => setTimeout(resolve, 1000));
-    let userlp = ethers.utils.formatEther(supply.toString());
-    await axios
-      .get(
-        `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-      )
-      .then(async (response) => {
-        let a =
-          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
-            (ethers.utils.formatEther(weight[0]) * 100)) /
-          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
-            (ethers.utils.formatEther(weight[1]) * 100));
-        let b =
-          (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
-            (ethers.utils.formatEther(weight[1]) * 100)) /
-          (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
-            (ethers.utils.formatEther(weight[0]) * 100));
-        if (
-          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
-            0.9 &&
-          response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
-            1.1
-        ) {
-          let lp =
-            (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
-              poolTokenAndBalance?.balances[0] / 10 ** 18) /
-            (supply / 10 ** 18);
-          pools.push({
-            address: poolAddress,
-            totalSupply: (lp * userlp),
-          });
-        } else if (
-          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
-            0.9 &&
-          response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
-            1.1
-        ) {
-          let lp =
-            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
-              poolTokenAndBalance?.balances[1] / 10 ** 18) /
-            supply;
-          pools.push({
-            address: poolAddress,
-            totalSupply: (lp * userlp),
-          });
-        } else {
-          let lp =
-            (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
-              poolTokenAndBalance?.balances[1] / 10 ** 18) /
-            supply;
-          pools.push({
-            address: poolAddress,
-            totalSupply: (lp * userlp),
-          });
-        }
-      });
-  }
-  return pools;
+    let web3 = new Web3(provider);
+    const factoryABI = hedgeFactoryABI;
+    const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
+    const pAbi = poolABI;
+    const poolContract = new web3.eth.Contract(pAbi);
+    let pLength = await factoryContract.methods["allPoolsLength"]().call();
+    let pools = [];
+    for (let i = 0; i < pLength; i++) {
+        let poolAddress = await factoryContract.methods["allPools"](i).call();
+        poolContract.options.address = poolAddress;
+        let poolTokenAndBalance = await poolContract.methods[
+            "getPoolTokensAndBalances"
+        ]().call();
+        let weight = await poolContract.methods["getWeights"]().call();
+        new Promise((resolve) => setTimeout(resolve, 1000));
+        let supply = await poolContract.methods["totalSupply"]().call();
+        new Promise((resolve) => setTimeout(resolve, 1000));
+        let userlp = ethers.utils.formatEther(supply.toString());
+        await axios
+            .get(
+                `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+            )
+            .then(async (response) => {
+                let a =
+                    (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+                        (ethers.utils.formatEther(weight[0]) * 100)) /
+                    (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+                        (ethers.utils.formatEther(weight[1]) * 100));
+                let b =
+                    (ethers.utils.formatEther(poolTokenAndBalance?.balances[1]) *
+                        (ethers.utils.formatEther(weight[1]) * 100)) /
+                    (ethers.utils.formatEther(poolTokenAndBalance?.balances[0]) *
+                        (ethers.utils.formatEther(weight[0]) * 100));
+                if (
+                    response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price >
+                    0.9 &&
+                    response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price <
+                    1.1
+                ) {
+                    let lp =
+                        (b * (poolTokenAndBalance?.balances[1] / 10 ** 18) +
+                            poolTokenAndBalance?.balances[0] / 10 ** 18) /
+                        (supply / 10 ** 18);
+                    pools.push({
+                        address: poolAddress,
+                        totalSupply: (lp * userlp),
+                    });
+                } else if (
+                    response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price >
+                    0.9 &&
+                    response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price <
+                    1.1
+                ) {
+                    let lp =
+                        (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+                            poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                        supply;
+                    pools.push({
+                        address: poolAddress,
+                        totalSupply: (lp * userlp),
+                    });
+                } else {
+                    let lp =
+                        (a * (poolTokenAndBalance?.balances[0] / 10 ** 18) +
+                            poolTokenAndBalance?.balances[1] / 10 ** 18) /
+                        supply;
+                    pools.push({
+                        address: poolAddress,
+                        totalSupply: (lp * userlp),
+                    });
+                }
+            });
+    }
+    return pools;
 };
 
 // User Holding in All Pools ----------------------------------------------------------------------
 export const getHoldingInLP = async (provider, account, contractAddr, poolList) => {
-  let web3 = new Web3(provider);
-  const tokenAbi = erc20ABI[0];
-  const factoryABI = hedgeFactoryABI[0];
-  const factoryContract = new web3.eth.Contract(factoryABI, contractAddr);
-  const pAbi = poolABI[0];
-  let tvlBalance = 0;
-  let LPHolding = [];
-  for (let i = 0; i < poolList.length; i++) {
-    try {
-        let poolAddress = poolList[i].address;
-        let poolContract = new web3.eth.Contract(pAbi, poolAddress);
-        const poolTokenAndBalance = await poolContract.methods.getPoolTokensAndBalances().call();
+    let web3 = new Web3(provider);
+    const tokenAbi = erc20ABI;
+    const pAbi = poolABI;
+    let tvlBalance = 0;
+    let LPHolding = [];
+    for (let i = 0; i < poolList.length; i++) {
+        try {
+            let poolAddress = poolList[i].address;
+            let poolContract = new web3.eth.Contract(pAbi, poolAddress);
+            const poolTokenAndBalance = await poolContract.methods.getPoolTokensAndBalances().call();
+            const weight = await poolContract.methods["getWeights"]().call();
+            let tokenContract1 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][0]);
+            let tokenContract2 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][1]);
+            let decimal1 = await tokenContract1.methods["decimals"]().call();
+            let decimal2 = await tokenContract2.methods["decimals"]().call();
+            const supply = await poolContract.methods["totalSupply"]().call();
+            const initialPoolData = await getInitialPoolData(poolAddress);
+            const lp_balance = await poolContract.methods["balanceOf"](account).call();
+            tvlBalance =
+                tvlBalance +
+                parseInt(lp_balance);
+            let userlp = ethers.utils.formatEther(lp_balance);
+            if (Number(userlp) !== 0) {
+                let apr = calcAPR(initialPoolData, supply, poolTokenAndBalance, weight, decimal1, decimal2);
+                await axios
+                    .get(
+                        `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+                    )
+                    .then(async (response) => {
+                        if (Object.keys(response?.data?.coins)[0]) {
+                            if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
+                                let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                                    response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                                LPHolding.push({
+                                    address: poolAddress,
+                                    apr: apr,
+                                    totalSupply: (lp * userlp),
+                                });
+                            } else {
+                                let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                                    response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                                LPHolding.push({
+                                    address: poolAddress,
+                                    apr: apr,
+                                    totalSupply: (lp * userlp),
+                                });
+                            }
+                        } else {
+                            LPHolding.push({
+                                address: poolAddress,
+                                apr: apr,
+                                totalSupply: 0,
+                            });
+                        }
+                    });
+            }
+        } catch (e) {
+            console.log(e.message);
+            i--;
+        }
+    }
+    return [tvlBalance, LPHolding];
+};
+
+// Get All Pools
+export const getAllFarmPools = async (provider, account, farmList) => {
+    let web3 = new Web3(provider);
+    const tokenAbi = erc20ABI;
+    const pAbi = poolABI;
+    const farmAbi = farmABI;
+    const poolContract = new web3.eth.Contract(pAbi);
+    const farmContract = new web3.eth.Contract(farmAbi);
+    let pools = [];
+    for (let i = 0; i < farmList.length; i++) {
+        let poolAddress = farmList[i].address;
+        poolContract.options.address = poolAddress;
+        farmContract.options.address = farmList[i].farmingPoolAddress;
+        let poolTokenAndBalance = await poolContract.methods[
+            "getPoolTokensAndBalances"
+        ]().call();
         const weight = await poolContract.methods["getWeights"]().call();
-        let tokenContract1 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][0]);
-        let tokenContract2 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][1]);
-        let decimal1 = await tokenContract1.methods["decimals"]().call();
-        let decimal2 = await tokenContract2.methods["decimals"]().call();
+        const tokenContract1 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][0]);
+        const tokenContract2 = new web3.eth.Contract(tokenAbi, poolTokenAndBalance["tokens"][1]);
+        const decimal1 = await tokenContract1.methods["decimals"]().call();
+        const decimal2 = await tokenContract2.methods["decimals"]().call();
         const supply = await poolContract.methods["totalSupply"]().call();
-        const initialPoolData = await getInitialPoolData(poolAddress);        
+        const totalStaked = await poolContract.methods["balanceOf"](farmList[i].farmingPoolAddress).call();
         const lp_balance = await poolContract.methods["balanceOf"](account).call();
-        tvlBalance =
-          tvlBalance +
-          parseInt(lp_balance);
-        let userlp = ethers.utils.formatEther(lp_balance);
-        if(Number(userlp) !== 0) {
+        const stakedVal = await farmContract.methods["userInfo"](account).call();
+        const pendingReward = await farmContract.methods["pendingReward"](account).call();
+        const startBlock = await farmContract.methods["startBlock"]().call();
+        const endBlock = await farmContract.methods["bonusEndBlock"]().call();
+        const currentBlock = web3.eth.getBlockNumber();
+        const initialPoolData = await getInitialPoolData(poolAddress.toLowerCase());
+        const remain = await poolApproval(account, provider, poolAddress, farmList[i].farmingPoolAddress);
+        const totallp = ethers.utils.formatEther(supply.toString());
+        const stakedlp = ethers.utils.formatEther(totalStaked.toString());
+        const userlp = ethers.utils.formatEther(lp_balance);
+        const userstakedlp = await ethers.utils.formatEther(stakedVal.amount);
+        const userreward = await ethers.utils.formatEther(pendingReward);
+        if (Number(totallp) !== 0) {
             let apr = calcAPR(initialPoolData, supply, poolTokenAndBalance, weight, decimal1, decimal2);
             await axios
-              .get(
-                `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-              )
-              .then(async (response) => {
-                if(Object.keys(response?.data?.coins)[0]) {
-                    if("kava:"+poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
-                        let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*(poolTokenAndBalance?.balances[0]/10**decimal1) + 
-                            response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price*(poolTokenAndBalance?.balances[1]/10**decimal2))/(supply/10**18);
-                        LPHolding.push({
-                            address: poolAddress,
-                            apr:apr,
-                            totalSupply: (lp * userlp),
-                          });
+                .get(
+                    `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
+                )
+                .then(async (response) => {
+                    if (Object.keys(response?.data?.coins)[0]) {
+                        if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
+                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                                response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                            pools.push({
+                                ...farmList[i],
+                                apr: apr*1,
+                                userlp: userlp*1,
+                                totalStakedUSD: (lp * stakedlp),
+                                totalSupplyUSD: (lp * totallp),
+                                userSupplyUSD: (lp * userlp),
+                                stakedVal: userstakedlp*1,
+                                pendingReward: userreward*1,
+                                startBlock:startBlock*1,
+                                finished: Number(endBlock)<Number(currentBlock),
+                                allowed: remain < userlp ? false : true
+                            });
+                        } else {
+                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                                response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                            pools.push({
+                                ...farmList[i],
+                                apr: apr*1,
+                                userlp: userlp*1,
+                                totalStakedUSD: (lp * stakedlp),
+                                totalSupplyUSD: (lp * totallp),
+                                userSupplyUSD: (lp * userlp),
+                                stakedVal: userstakedlp*1,
+                                pendingReward: userreward*1,
+                                startBlock:startBlock*1,
+                                finished: Number(endBlock)<Number(currentBlock),
+                                allowed: remain < userlp ? false : true
+                            });
+                        }
                     } else {
-                        let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price*(poolTokenAndBalance?.balances[0]/10**decimal1) + 
-                            response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*(poolTokenAndBalance?.balances[1]/10**decimal2))/(supply/10**18);
-                        LPHolding.push({
-                            address: poolAddress,
-                            apr:apr,
-                            totalSupply: (lp * userlp),
-                          });
+                        pools.push({
+                            ...farmList[i],
+                            apr: apr,
+                            userlp: 0,
+                            totalStakedUSD: 0,
+                            totalSupplyUSD: 0,
+                            userSupplyUSD: 0,
+                            stakedVal: 0,
+                            pendingReward: 0,
+                            startBlock:-1,
+                            finished: Number(endBlock)<Number(currentBlock),
+                            allowed: remain < userlp ? false : true
+                        });
                     }
-                } else {
-                    LPHolding.push({
-                        address: poolAddress,
-                        apr:apr,
-                        totalSupply: 0,
-                      });
-                }
-              });
+                });
+        } else {
+            pools.push({
+                ...farmList[i],
+                apr: 0,
+                userlp: 0,
+                totalStakedUSD: 0,
+                totalSupplyUSD: 0,
+                userSupplyUSD: 0,
+                stakedVal: 0,
+                pendingReward: 0,
+                startBlock:-1,
+                finished: Number(endBlock)<Number(currentBlock),
+                allowed: remain < userlp ? false : true
+            });
         }
-    } catch (e) {
-        console.log(e.message);
-        i--;
     }
-  }
-  return [tvlBalance, LPHolding];
+    console.log(pools);
+    return pools;
 };
 
 const calcAPR = (initialPoolData, supply, poolTokenAndBalance, weights, decimal1, decimal2) => {
-    let r1 = (initialPoolData.amountsIn[0]/10**decimal1)/(initialPoolData.liquidity);
-    let r2 = (initialPoolData.amountsIn[1]/10**decimal2)/(initialPoolData.liquidity);
-    let k1 = r1*(initialPoolData.pool.weight0/10**18)*r2*(initialPoolData.pool.weight1/10**18);
-    let r11 = (poolTokenAndBalance.balances[0]/10**decimal1)/(supply/10**18);
-    let r22 = (poolTokenAndBalance.balances[1]/10**decimal2)/(supply/10**18);
-    let k2 = r11*(weights[0]/10**18)*r22*(weights[1]/10**18);
-    let apr_yield = (k2/k1)-1;
-    const date1 = new Date(initialPoolData.timestamp*1000);
-    const date2 = new Date();
-    const diffTime = Math.abs(date2 - date1);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-    let apy = (apr_yield/diffDays)*365;
-    let apr = ((apy+1)**(1/52)-1)*52;
-    return apr;
+    if (initialPoolData) {
+        let r1 = (initialPoolData.amountsIn[0] / 10 ** decimal1) / (initialPoolData.liquidity);
+        let r2 = (initialPoolData.amountsIn[1] / 10 ** decimal2) / (initialPoolData.liquidity);
+        let k1 = r1 * (initialPoolData.pool.weight0 / 10 ** 18) * r2 * (initialPoolData.pool.weight1 / 10 ** 18);
+        let r11 = (poolTokenAndBalance.balances[0] / 10 ** decimal1) / (supply / 10 ** 18);
+        let r22 = (poolTokenAndBalance.balances[1] / 10 ** decimal2) / (supply / 10 ** 18);
+        let k2 = r11 * (weights[0] / 10 ** 18) * r22 * (weights[1] / 10 ** 18);
+        let apr_yield = (k2 / k1) - 1;
+        const date1 = new Date(initialPoolData.timestamp * 1000);
+        const date2 = new Date();
+        const diffTime = Math.abs(date2 - date1);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        let apy = (apr_yield / diffDays) * 365;
+        let apr = ((apy + 1) ** (1 / 52) - 1) * 52;
+        return apr;
+    } else {
+        return 0;
+    }
 }
 
 const toWeiVal = async (provider, tokenAddr, val) => {
-    const abi = erc20ABI[0];
+    const abi = erc20ABI;
     const web3 = new Web3(provider);
 
     const contract = new web3.eth.Contract(abi, tokenAddr);
@@ -837,7 +1034,7 @@ export const toLongNum = (x) => {
 // getting faucet tokens part
 
 export const requestToken = async (account, provider, faucetAddr) => {
-    const abi = faucetABI[0];
+    const abi = faucetABI;
     let web3 = new Web3(provider);
 
     let contract = new web3.eth.Contract(abi, faucetAddr);
@@ -845,7 +1042,7 @@ export const requestToken = async (account, provider, faucetAddr) => {
 };
 
 export const allowedToWithdraw = async (account, provider, faucetAddr) => {
-    const abi = faucetABI[0];
+    const abi = faucetABI;
     let web3 = new Web3(provider);
 
     let contract = new web3.eth.Contract(abi, faucetAddr);
@@ -1084,7 +1281,7 @@ export const getPairs = (arr) => {
 export const getERC20TokenData = async (address, provider, selected_chain, tokenList) => {
     const index = tokenList.findIndex(each => each.address === Web3.utils.toChecksumAddress(address));
     if (index !== -1) return tokenList.slice(index, index + 1);
-    const abi = erc20ABI[0];
+    const abi = erc20ABI;
     let web3 = new Web3(provider);
     const contract = new web3.eth.Contract(abi, address);
     try {
@@ -1092,8 +1289,8 @@ export const getERC20TokenData = async (address, provider, selected_chain, token
         let name = result[0];
         let symbol = result[1];
         let decimals = result[2];
-        return [{value: symbol.toLowerCase(), chainId: chainIds[selected_chain], address: Web3.utils.toChecksumAddress(address), symbol, name, decimals, logoURL: "/icons/unknown.svg", tags: ["Token"], custom: true, added: false}]
-    } catch(e) {
+        return [{ value: symbol.toLowerCase(), chainId: chainIds[selected_chain], address: Web3.utils.toChecksumAddress(address), symbol, name, decimals, logoURL: "/icons/unknown.svg", tags: ["Token"], custom: true, added: false }]
+    } catch (e) {
         return []
     }
 }
@@ -1101,8 +1298,8 @@ export const getERC20TokenData = async (address, provider, selected_chain, token
 export const getPoolList = async (provider, poolAddress, tokenList, selected_chain, poolList) => {
     const index = poolList.findIndex(each => each.address === Web3.utils.toChecksumAddress(poolAddress));
     if (index !== -1) return poolList.slice(index, index + 1);
-    const abi = poolABI[0];
-    const tokenAbi = erc20ABI[0];
+    const abi = poolABI;
+    const tokenAbi = erc20ABI;
     let web3 = new Web3(provider);
     let contract = new web3.eth.Contract(abi, poolAddress);
     try {
@@ -1110,7 +1307,7 @@ export const getPoolList = async (provider, poolAddress, tokenList, selected_cha
         const token0 = result.tokens[0];
         const token1 = result.tokens[1];
         let symbol0, symbol1, logo0, logo1;
-        for(let token of tokenList[selected_chain]) {
+        for (let token of tokenList[selected_chain]) {
             if (token.address.toLowerCase() === token0.toLowerCase()) {
                 symbol0 = token.symbol;
                 logo0 = token.logoURL;
@@ -1132,10 +1329,23 @@ export const getPoolList = async (provider, poolAddress, tokenList, selected_cha
             logo1 = "/icons/unknown.svg";
         }
         return [
-            {value: "other", address: Web3.utils.toChecksumAddress(poolAddress), symbols: [symbol0, symbol1], logoURLs: [logo0, logo1], custom: true, added: false}
+            { value: "other", address: Web3.utils.toChecksumAddress(poolAddress), symbols: [symbol0, symbol1], logoURLs: [logo0, logo1], custom: true, added: false }
         ]
     }
     catch (e) {
         return [];
     }
+}
+
+export const numFormat = (val) => {
+    if (Math.abs(val) === 0)
+        return 0;
+    else if (Math.abs(val) > 1)
+        return Number(val).toFixed(2) * 1;
+    else if (Math.abs(val) > 0.001)
+        return Number(val).toFixed(4) * 1;
+    else if (Math.abs(val) > 0.00001)
+        return Number(val).toFixed(6) * 1;
+    else
+        return toLongNum(Number(val).toFixed(12));
 }
