@@ -123,7 +123,7 @@ function Farms(props) {
                                                             alt=""
                                                         />
                                                     </div>
-                                                    <p className="text-light-primary text-lg font-bold" >
+                                                    <p className="text-lg font-bold" style={{ color:"#84b1e1" }}>
                                                         {item?.symbols[0]}
                                                         {"-"}
                                                         {item?.symbols[1]}
@@ -131,19 +131,19 @@ function Farms(props) {
                                                     </p>
                                                 </div>
                                             </Grid>
-                                            <Grid xs={4} sm={4} md={2} style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                <p>Earned</p>
-                                                <p>{numFormat(item?.pendingReward)}</p>
+                                            <Grid xs={4} sm={4} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                <p style={{ fontSize:13 }}>Earned</p>
+                                                <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.pendingReward)}</p>
                                             </Grid>
-                                            <Grid xs={4} sm={6} md={1} style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                <p>APR</p>
-                                                <p>{numFormat(item.apr)}%</p>
+                                            <Grid xs={4} sm={6} md={1} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                <p style={{ fontSize:13 }}>APR</p>
+                                                <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item.apr)}%</p>
                                             </Grid>
                                             {!item?.allowed &&
                                                 <Grid xs={4} sm={6} md={3} style={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                                    <div style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                        <p>Liquidity</p>
-                                                        <p>${numFormat(item.totalSupplyUSD)}</p>
+                                                    <div style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                        <p style={{ fontSize:13 }}>Liquidity</p>
+                                                        <p style={{ color:"lightgray", fontWeight:"bold" }}>${numFormat(item.totalSupplyUSD)}</p>
                                                     </div>
                                                     <HelpOutline
                                                         aria-owns={open1 ? 'mouse-over-popover' : undefined}
@@ -177,9 +177,9 @@ function Farms(props) {
                                             {item?.allowed &&
                                                 <>
                                                     <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                                        <div style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                            <p>Staked Liquidity</p>
-                                                            <p>${numFormat(item.totalStakedUSD)}</p>
+                                                        <div style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                            <p style={{ fontSize:13 }}>Staked Liquidity</p>
+                                                            <p style={{ color:"lightgray", fontWeight:"bold" }}>${numFormat(item.totalStakedUSD)}</p>
                                                         </div>
                                                         <HelpOutline
                                                             aria-owns={open2 ? 'mouse-over-popover' : undefined}
@@ -209,12 +209,12 @@ function Farms(props) {
                                                             <Typography sx={{ p: 1, fontSize: 13 }}>Total active (in-range) liquidity staked <br />in the farm.</Typography>
                                                         </Popover>
                                                     </Grid>
-                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                        <p>Available</p>
+                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                        <p style={{ fontSize:13 }}>Available</p>
                                                         <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.userlp)} LP</p>
                                                     </Grid>
-                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                        <p>Staked</p>
+                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
+                                                        <p style={{ fontSize:13 }}>Staked</p>
                                                         <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.stakedVal)} LP</p>
                                                     </Grid>
                                                 </>
@@ -268,8 +268,8 @@ function Farms(props) {
                                                     {!item?.allowed && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Enable Farm</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) === 0) && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Stake Pool</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) !== 0) &&
-                                                        <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>
-                                                            <span style={{ color: "tomato" }}>{item?.symbols[0]}
+                                                        <Typography sx={{ fontSize: 12 }}>
+                                                            <span style={{ color: "tomato", fontWeight: "bold", }}>{item?.symbols[0]}
                                                                 {"-"}
                                                                 {item?.symbols[1]}
                                                                 {" "}LP
@@ -311,10 +311,10 @@ function Farms(props) {
                                                     {(item?.allowed && Number(item?.stakedVal) !== 0) &&
                                                         <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 0.5 }}>
                                                             <div style={{ display: "flex", flexDirection: "column" }}>
-                                                                <Typography sx={{ fontSize: 16 }}>
+                                                                <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
                                                                     {numFormat(item?.stakedVal)}
                                                                 </Typography>
-                                                                <Typography sx={{ fontSize: 12 }}>
+                                                                <Typography sx={{ fontSize: 12, fontWeight: "bold" }}>
                                                                     ~{numFormat(item?.userSupplyUSD * item?.stakedVal / (Number(item?.userlp) + 0.0000000000000001))}{" "}USD
                                                                 </Typography>
                                                             </div>

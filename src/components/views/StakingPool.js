@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { styled } from "@mui/material/styles";
 import {
   Paper,
   Grid,
   Stack,
+  useMediaQuery,
   Typography,
   Switch,
   FormLabel,
@@ -16,7 +17,6 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import {
-  toLongNum,
   getAllFarmPools
 } from "../../config/web3";
 import { farmingPoolList } from "../../config/constants";
@@ -117,6 +117,8 @@ export default function StackingPool() {
   const [filteredData, setFilteredData] = useState([]);
   const [pools, setPools] = useState({ isLoad: false, data: [] });
 
+  const isMobile = useMediaQuery("(max-width:600px)");
+
   const handleStatus = () => {
     setStatusFlag(!statusFlag);
     filteringData(!statusFlag, stakedFlag, sortBy, query);
@@ -206,16 +208,16 @@ export default function StackingPool() {
         <StakingCmp />
         <Grid
           container
-          sx={{ maxWidth: "1100px", alignItems: "center" }}
+          sx={{ pl:isMobile?0:2 }}
         >
           <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
               style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px" }}
             >
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="start">
                 <div className="flex flex-col">
-                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#cdcf6c" }}>FILTER BY</FormLabel>
+                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>FILTER BY</FormLabel>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Typography style={{ color: "white", fontSize: 14 }}>Finished</Typography>
                     <AntSwitch defaultChecked onChange={handleStatus} inputProps={{ 'aria-label': 'ant design' }} />
@@ -232,7 +234,7 @@ export default function StackingPool() {
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
-                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#cdcf6c" }}>FILTER BY</FormLabel>
+                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>FILTER BY</FormLabel>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <AntSwitch onChange={handleStaked} inputProps={{ 'aria-label': 'ant design' }} />
                     <Typography style={{ color: "white", fontSize: 14 }}>Stacked only</Typography>
@@ -248,7 +250,7 @@ export default function StackingPool() {
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
-                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#cdcf6c" }}>SORT BY</FormLabel>
+                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>SORT BY</FormLabel>
                   <Stack direction="row" spacing={1}>
                     <FormControl variant="filled" sx={{ mt: 0, minWidth: 120, fontWeight: "bold", backgroundColor: "#5e5e6b", borderRadius: 1, height: 30 }} className={classes.menu}>
                       <StyledSelect
@@ -280,7 +282,7 @@ export default function StackingPool() {
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
-                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#cdcf6c" }}>SEARCH</FormLabel>
+                  <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>SEARCH</FormLabel>
                   <Stack direction="row" spacing={1}>
                     <FormControl sx={{ width: '160px', backgroundColor: "#5e5e6b", height: 30, borderRadius: 1 }} >
                       <StyledInput placeholder="Search Farms" value={query} onChange={handleQuery} onKeyUp={handleQuery} />

@@ -6,7 +6,24 @@ import { useWeb3React } from "@web3-react/core";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import "./Navigation.css";
-import { Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, IconButton, Menu, Fade, MenuItem, CircularProgress, Button, useMediaQuery } from "@mui/material";
+import {
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  IconButton,
+  Menu,
+  Fade,
+  MenuItem,
+  CircularProgress,
+  Button,
+  useMediaQuery
+} from "@mui/material";
 import { HelpOutline } from '@mui/icons-material';
 import Popover from '@mui/material/Popover';
 import { makeStyles } from "@mui/styles";
@@ -14,8 +31,8 @@ import { Link } from "react-router-dom";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardCmp from "./DashboardCmp";
 import { getKavaERC20, getKavaTx } from "../../services/kavaAPI";
-import { poolList, contractAddresses } from "../../config/constants";
-import { getHoldingInLP, getSwapFeePercent } from "../../config/web3";
+import { poolList, farmingPoolList } from "../../config/constants";
+import { getHoldingInLP, getHoldingInFarms } from "../../config/web3";
 import routerABI from "../../assets/abi/router";
 import abiDecoder from "../../config/abiDecoder";
 
@@ -31,13 +48,13 @@ export const useStyles = makeStyles(() => ({
   menu: {
     "& .MuiPaper-root": {
       backgroundColor: "#07071c",
-      color:"white"
+      color: "white"
     }
   },
   popover: {
     "& .MuiPaper-root": {
       backgroundColor: "#07071c",
-      color:"white"
+      color: "white"
     }
   }
 }));
@@ -47,12 +64,9 @@ export default function UDashboard() {
   const selected_chain = useSelector((state) => state.selectedChain);
   const uniList = useSelector((state) => state.tokenList);
 
-  const [poolsData, setPoolsData] = useState(poolList[selected_chain]);
   const [pools, setPools] = useState({ isLoad: false, data: [], total: 0 });
-  const [userERC20, setUserERC20] = useState({isLoad: false, data: [], total:0});
-  const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
-  const [walletTVL, setWalletTVL] = useState(0);
-  const [swapFee, setSwapFee] = useState(0);
+  const [userERC20, setUserERC20] = useState({ isLoad: false, data: [], total: 0 });
+  const [userERC20Transactions, setUserERC20Transactions] = useState({ isLoad: false, data: [] });
   const [popupPool, setPopupPool] = useState("");
   const [popupToken, setPopupToken] = useState("");
   const [popupTokenSymbol, setPopupTokenSymbol] = useState("");
@@ -105,29 +119,29 @@ export default function UDashboard() {
       });
       let totalTokemAmount = 0;
       filteredTokens.map(async (item) => {
-        item.eth_bal = numFormat(item.balance/10**item.decimals);
+        item.eth_bal = numFormat(item.balance / 10 ** item.decimals);
         await axios
           .get(
             `https://coins.llama.fi/prices/current/kava:${item.contractAddress}?searchWidth=6h`
           )
           .then(async (response) => {
-            totalTokemAmount += (response?.data?.coins[Object.keys(response?.data?.coins)[0]])?response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*item.eth_bal:0;
-        });
+            totalTokemAmount += (response?.data?.coins[Object.keys(response?.data?.coins)[0]]) ? response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * item.eth_bal : 0;
+          });
       });
       let coinAmount = await web3.eth.getBalance(account);
-      coinAmount = numFormat(coinAmount / 10**18);
-      
-      filteredTokens.splice(0, 0, {name:"Kava Coin", contractAddress:account, eth_bal:coinAmount, symbol:"KAVA", price:response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price});
-      
+      coinAmount = numFormat(coinAmount / 10 ** 18);
+
+      filteredTokens.splice(0, 0, { name: "Kava Coin", contractAddress: account, eth_bal: coinAmount, symbol: "KAVA", price: response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price });
+
       await axios
         .get(
           `https://coins.llama.fi/prices/current/kava:0x0000000000000000000000000000000000000000?searchWidth=6h`
         )
         .then(async (response) => {
-          totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount;
-          console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price*coinAmount);
-      });
-      setUserERC20({isLoad:true, data:filteredTokens, total:numFormat(totalTokemAmount)});
+          totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * coinAmount;
+          console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * coinAmount);
+        });
+      setUserERC20({ isLoad: true, data: filteredTokens, total: numFormat(totalTokemAmount) });
     });
     getKavaTx(account, 35).then(async (response) => {
       let filteredThx = response;
@@ -142,9 +156,9 @@ export default function UDashboard() {
 
       await filteredThx.map(async (item) => {
         item.raw_input = abiDecoder.decodeMethod(item.input);
-        if(item.raw_input === undefined) {
+        if (item.raw_input === undefined) {
           item.action_type = 3;
-        } else if(item.raw_input.name === "swap") {
+        } else if (item.raw_input.name === "swap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();
           });
@@ -155,10 +169,10 @@ export default function UDashboard() {
             item.action_type = 0;
             item.token1_symbol = item_token1[0].symbol;
             item.token2_symbol = item_token2[0].symbol;
-            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            web3.eth.getTransactionReceipt(item.hash, function (e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
-              item.amount2 = numFormat(decodedLogs[0].events[3].value/10**item_token2[0].decimals);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[0].events[3].value / 10 ** item_token2[0].decimals);
             });
           } else {
             item.action_type = 0;
@@ -167,21 +181,21 @@ export default function UDashboard() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "batchSwap") {
+        } else if (item.raw_input.name === "batchSwap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value[0].toLowerCase();
           });
           let item_token2 = uniList[selected_chain].filter((unit) => {
-            return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length-1].toLowerCase();
+            return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length - 1].toLowerCase();
           });
           if (item_token1 && item_token2) {
             item.action_type = 0;
             item.token1_symbol = item_token1[0].symbol;
             item.token2_symbol = item_token2[0].symbol;
-            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            web3.eth.getTransactionReceipt(item.hash, function (e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
-              item.amount2 = numFormat(decodedLogs[decodedLogs.length-1].events[3].value/10**item_token2[0].decimals);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[decodedLogs.length - 1].events[3].value / 10 ** item_token2[0].decimals);
             });
           } else {
             item.action_type = 0;
@@ -190,23 +204,23 @@ export default function UDashboard() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "joinPool") {
+        } else if (item.raw_input.name === "joinPool") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
           });
           let item_token2 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[1].toLowerCase();
           });
-          if(item_token1 && item_token2) {
+          if (item_token1 && item_token2) {
             let userDT = [];
             try {
               userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256[]", "uint256"], item.raw_input.params[1].value.userData);
-              item.amount1 = numFormat((userDT[1][0]._hex).toString()/10**item_token1[0].decimals);
-              item.amount2 = numFormat((userDT[1][1]._hex).toString()/10**item_token2[0].decimals);
+              item.amount1 = numFormat((userDT[1][0]._hex).toString() / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat((userDT[1][1]._hex).toString() / 10 ** item_token2[0].decimals);
             } catch (e) {
               userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256", "uint256", "uint256"], item.raw_input.params[1].value.userData);
-              item.amount1 = numFormat((userDT[1]._hex).toString()/10**item_token1[0].decimals);
-              item.amount2 = numFormat((userDT[2]._hex).toString()/10**item_token2[0].decimals);
+              item.amount1 = numFormat((userDT[1]._hex).toString() / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat((userDT[2]._hex).toString() / 10 ** item_token2[0].decimals);
             }
             item.action_type = 1;
             item.token1_symbol = item_token1[0].symbol;
@@ -218,19 +232,19 @@ export default function UDashboard() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "exitPool") {
+        } else if (item.raw_input.name === "exitPool") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[0].toLowerCase();
           });
           let item_token2 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value.tokens[1].toLowerCase();
           });
-          if(item_token1 && item_token2) {
+          if (item_token1 && item_token2) {
             let userDT = ethers.utils.defaultAbiCoder.decode(["uint256", "uint256"], item.raw_input.params[1].value.userData);
-            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            web3.eth.getTransactionReceipt(item.hash, function (e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              item.amount1 = numFormat(decodedLogs[0].events[2].value[0]/10**item_token1[0].decimals);
-              item.amount2 = numFormat(decodedLogs[0].events[2].value[1]/10**item_token2[0].decimals);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value[0] / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[0].events[2].value[1] / 10 ** item_token2[0].decimals);
             });
             item.action_type = 2;
             item.token1_symbol = item_token1[0].symbol;
@@ -249,7 +263,7 @@ export default function UDashboard() {
       filteredThx.filter((item) => {
         return item.action_type !== 3;
       });
-      await setUserERC20Transactions({isLoad: true, data: filteredThx})
+      await setUserERC20Transactions({ isLoad: true, data: filteredThx })
     });
   };
 
@@ -258,20 +272,32 @@ export default function UDashboard() {
     const UserLPTokens = await getHoldingInLP(
       provider,
       account,
-      contractAddresses[selected_chain]["hedgeFactory"],
       poolList[selected_chain]
     );
-    setWalletTVL(UserLPTokens[0])
-    let c = 0;
+
+    const userStakedLPTokens = await getHoldingInFarms(
+      provider,
+      account,
+      farmingPoolList[selected_chain]
+    );
+
+    let totalLP = 0;
+    let totalStaked = 0;
     let poolFlags = [];
     UserLPTokens[1]?.map(
-      (pool, index) => {
-        poolFlags.push(Math.random()<0.5?true:false);
-        c += parseFloat(pool?.totalSupply);
+      (pool) => {
+        poolFlags.push(Math.random() < 0.5 ? true : false);
+        totalLP += parseFloat(pool?.totalSupply);
+      }
+    );
+    userStakedLPTokens?.map(
+      (farm) => {
+        poolFlags.push(Math.random() < 0.5 ? true : false);
+        totalStaked += parseFloat(farm?.stakedValUSD);
       }
     );
     setColorFlags(poolFlags);
-    setPools({ isLoad: true, data: UserLPTokens[1], total: c.toFixed(2) });
+    setPools({ isLoad: true, data1: UserLPTokens[1], data2: userStakedLPTokens, total1: numFormat(totalLP), total2: numFormat(totalStaked) });
   };
 
   const numFormat = (val) => {
@@ -292,12 +318,6 @@ export default function UDashboard() {
   useEffect(() => {
     if (account === undefined) return;
     const getInfo = async () => {
-      const provider = await connector.getProvider();
-      const swapFeePercent = await getSwapFeePercent(
-        provider,
-        poolList[selected_chain][0]["address"]
-      );
-      setSwapFee(swapFeePercent * 0.01);
       fetchUserData();
       setTimeout(function () {
         handleWalletTVL();
@@ -309,9 +329,9 @@ export default function UDashboard() {
   useEffect(() => {
     setInterval(function () {
       let ranNum = Math.floor(Math.random() * colorFlags.length * 2);
-      if(ranNum < colorFlags.length) {
+      if (ranNum < colorFlags.length) {
         let newArr = [...colorFlags];
-        newArr[ranNum] = Math.random() > 0.5?true:false;
+        newArr[ranNum] = Math.random() > 0.5 ? true : false;
         setColorFlags(newArr);
       }
     }, 10000);
@@ -332,12 +352,12 @@ export default function UDashboard() {
           xs={12}
           sm={12}
           md={6}
-          sx={{ mt: 2, flexDirection:"column" }}
+          sx={{ mt: 2, flexDirection: "column" }}
           className="home__mainC"
         >
-          <div style={{width:"100%"}}>
+          <div style={{ width: "100%" }}>
             <h3 className="text-white text-xl text-left font-semibold mb-2 ml-2">
-              Liquidity Value: ${pools.total}
+              Liquidity Value: ${pools.total1}
             </h3>
           </div>
           <Item
@@ -345,23 +365,23 @@ export default function UDashboard() {
             style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
             className=""
           >
-            <TableContainer component={Paper} style={{ backgroundColor:"transparent", boxShadow: "0px 0px 0px 0px" }}>
-              <Table sx ={{ minWidth: 550 }} aria-label="simple table">
+            <TableContainer component={Paper} style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px" }}>
+              <Table sx={{ minWidth: 550 }} aria-label="simple table">
                 <TableHead>
-                  <TableRow style={{color:"white"}}>
-                    <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                  <TableRow style={{ color: "white" }}>
+                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       #
                     </TableCell>
-                    <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       Pools
                     </TableCell>
-                    <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       User LP Tokens
                     </TableCell>
-                    <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       APR
                     </TableCell>
-                    <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       <HelpOutline
                         aria-owns={open2 ? 'mouse-over-popover' : undefined}
                         aria-haspopup="true"
@@ -386,32 +406,30 @@ export default function UDashboard() {
                         disableRestoreFocus
                         className={classes.popover}
                       >
-                        <Typography sx={{ p: 1, fontSize:13 }}>Shows whether the APR <br/>is currently increasing <br/>or decreasing.</Typography>
+                        <Typography sx={{ p: 1, fontSize: 13 }}>Shows whether the APR <br />is currently increasing <br />or decreasing.</Typography>
                       </Popover>
                     </TableCell>
-                    <TableCell align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                       Action
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 {(account && pools.isLoad) && (
                   <TableBody>
-                    {pools?.data?.map((pool, poolIndex) => {
+                    {pools?.data1?.map((pool, poolIndex) => {
                       return (
-                        <TableRow 
+                        <TableRow
                           key={poolIndex + "list"}
                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
-                          <TableCell component="th" scope="row" align="center" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                          <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                             {poolIndex + 1}
                           </TableCell>
-                          <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                             <div className="flex justify-left">
                               <img
                                 src={
-                                  poolsData.filter(
-                                    (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
-                                  )[0]?.logoURLs[0]
+                                  pool?.logoURLs[0]
                                 }
                                 alt=""
                                 className="h-5 w-5"
@@ -419,44 +437,38 @@ export default function UDashboard() {
                               <img
                                 className="z-10 relative right-2 h-5 w-5"
                                 src={
-                                  poolsData.filter(
-                                    (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
-                                  )[0].logoURLs[1]
+                                  pool?.logoURLs[1]
                                 }
                                 alt=""
                               />
                               <p>
                                 {
-                                  poolsData.filter(
-                                    (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
-                                  )[0].symbols[0]
+                                  pool?.symbols[0]
                                 }
                                 {" "}/{" "}
                                 {
-                                  poolsData.filter(
-                                    (data) => data?.address.toLowerCase() === pool.address.toLowerCase()
-                                  )[0].symbols[1]
+                                  pool?.symbols[1]
                                 }
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                             <h3 className="font-medium">
-                              
+
                               ${numFormat(pool?.totalSupply)}
                             </h3>
                           </TableCell>
-                          <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                             {numFormat(pool?.apr)}%{" "}
                           </TableCell>
                           <TableCell align="center">
-                            <span style={{color:colorFlags[poolIndex]?"red":"green"}}>+/-</span>
+                            <span style={{ color: colorFlags[poolIndex] ? "red" : "green" }}>+/-</span>
                           </TableCell>
-                          <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
+                          <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
                             <IconButton
                               aria-label="more"
                               id="long-button"
-                              style={{color:"white"}}
+                              style={{ color: "white" }}
                               aria-controls={open ? 'long-menu' : undefined}
                               aria-expanded={open ? 'true' : undefined}
                               aria-haspopup="true"
@@ -475,10 +487,10 @@ export default function UDashboard() {
                               TransitionComponent={Fade}
                               className={classes.menu}
                             >
-                              <Link to={"/add_liquidity?pool="+popupPool}>
+                              <Link to={"/add_liquidity?pool=" + popupPool}>
                                 <MenuItem onClick={handleClose}>Add Pool</MenuItem>
                               </Link>
-                              <Link to={"/remove_liquidity?pool="+popupPool}>
+                              <Link to={"/remove_liquidity?pool=" + popupPool}>
                                 <MenuItem onClick={handleClose}>Remove Pool</MenuItem>
                               </Link>
                             </Menu>
@@ -488,7 +500,7 @@ export default function UDashboard() {
                     })}
                   </TableBody>
                 )}
-                {(account && !pools.isLoad) && 
+                {(account && !pools.isLoad) &&
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={6} align="center">
@@ -499,7 +511,159 @@ export default function UDashboard() {
                     </TableRow>
                   </TableBody>
                 }
-                {!account && 
+                {!account &&
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        <Button
+                          size={isMobile ? "small" : "large"}
+                          variant="contained"
+                          sx={{ width: "100%", padding: 2, fontWeight: "bold", mt: 2 }}
+                          onClick={clickConWallet}
+                          style={{
+                            background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                            color: "#fff",
+                            textAlign: "center",
+                            marginRight: "8px",
+                            maxHeight: 57
+                          }}
+                          className="btn-primary font-bold w-full dark:text-black flex-1"
+                        >
+                          {"Connect to Wallet"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                }
+              </Table>
+            </TableContainer >
+          </Item>
+          <div style={{ width: "100%" }}>
+            <h3 className="text-white text-xl text-left font-semibold mb-2 ml-2 mt-5">
+              Total Staked Value: ${pools.total2}
+            </h3>
+          </div>
+          <Item
+            sx={{ pt: 2, pl: 1, pr: 1, pb: 2 }}
+            style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+            className=""
+          >
+            <TableContainer component={Paper} style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px" }}>
+              <Table sx={{ minWidth: 550, mt: 2 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow style={{ color: "white" }}>
+                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                      #
+                    </TableCell>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                      Pools
+                    </TableCell>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                      LP Staked
+                    </TableCell>
+                    <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                      Pending Reward
+                    </TableCell>
+                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                      Action
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                {(account && pools.isLoad) && (
+                  <TableBody>
+                    {pools?.data2?.map((farm, farmIndex) => {
+                      return (
+                        <TableRow
+                          key={farmIndex + "list"}
+                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                          <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                            {farmIndex + 1}
+                          </TableCell>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                            <div className="flex justify-left">
+                              <img
+                                src={
+                                  farm?.logoURLs[0]
+                                }
+                                alt=""
+                                className="h-5 w-5"
+                              />
+                              <img
+                                className="z-10 relative right-2 h-5 w-5"
+                                src={
+                                  farm?.logoURLs[1]
+                                }
+                                alt=""
+                              />
+                              <p>
+                                {
+                                  farm?.symbols[0]
+                                }
+                                {" "}/{" "}
+                                {
+                                  farm?.symbols[1]
+                                }
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                            <h3 className="font-medium">
+
+                              ${numFormat(farm?.stakedValUSD)}
+                            </h3>
+                          </TableCell>
+                          <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                            ${numFormat(farm?.pendingRewardUSD)}
+                          </TableCell>
+                          <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+                            <IconButton
+                              aria-label="more"
+                              id="long-button"
+                              style={{ color: "white" }}
+                              aria-controls={open ? 'long-menu' : undefined}
+                              aria-expanded={open ? 'true' : undefined}
+                              aria-haspopup="true"
+                              onClick={(e) => handleClick(e, farm.address.toLowerCase())}
+                            >
+                              <MoreVertIcon />
+                            </IconButton>
+                            <Menu
+                              id="fade-menu"
+                              MenuListProps={{
+                                'aria-labelledby': 'fade-button',
+                              }}
+                              anchorEl={anchorEl}
+                              open={open}
+                              onClose={handleClose}
+                              TransitionComponent={Fade}
+                              className={classes.menu}
+                            >
+                              <Link to={"/add_liquidity?pool=" + popupPool}>
+                                <MenuItem onClick={handleClose}>Add Pool</MenuItem>
+                              </Link>
+                              <Link to={"/remove_liquidity?pool=" + popupPool}>
+                                <MenuItem onClick={handleClose}>Remove Pool</MenuItem>
+                              </Link>
+                            </Menu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                )}
+                {(account && !pools.isLoad) &&
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        <div style={{ minHeight: "170px", textAlign: "center" }}>
+                          <CircularProgress style={{ marginTop: "65px" }} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                }
+                {!account &&
                   <TableBody>
                     <TableRow>
                       <TableCell colSpan={6} align="center">
@@ -532,7 +696,7 @@ export default function UDashboard() {
           xs={12}
           sm={12}
           md={6}
-          sx={{ mt: 2, flexDirection:"column" }}
+          sx={{ mt: 2, flexDirection: "column" }}
           className="home__mainC"
         >
           <h3
@@ -556,39 +720,39 @@ export default function UDashboard() {
             >
               {/* Table */}
               <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg" style={{ boxShadow: "0px 0px 0px 0px" }}>
-                <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
-                  <Table sx ={{ minWidth: 550 }} aria-label="simple table">
+                <TableContainer component={Paper} style={{ backgroundColor: "transparent" }}>
+                  <Table sx={{ minWidth: 550 }} aria-label="simple table">
                     <TableHead>
-                      <TableRow style={{color:"white"}}>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                      <TableRow style={{ color: "white" }}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Token
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Address
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Balance
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Action
                         </TableCell>
                       </TableRow>
                     </TableHead>
-                    {(account && userERC20.isLoad) && 
+                    {(account && userERC20.isLoad) &&
                       <TableBody>
                         {userERC20.data?.map((token, index) => (
                           <TableRow
                             key={token?.name + index}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
-                            <TableCell align="left" style={{paddingTop:10, paddingBottom:10}}>
+                            <TableCell align="left" style={{ paddingTop: 10, paddingBottom: 10 }}>
                               {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                              <span 
-                                style={{cursor:"pointer"}}
+                              <span
+                                style={{ cursor: "pointer" }}
                                 onClick={() =>
                                   window.open(
                                     "https://explorer.kava.io/address/" +
-                                      token?.contractAddress + "/transactions",
+                                    token?.contractAddress + "/transactions",
                                     "_blank"
                                   )
                                 }
@@ -596,19 +760,19 @@ export default function UDashboard() {
                                 {token?.name}
                               </span>
                             </TableCell>
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
+                            <TableCell align="left" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
                               {token?.contractAddress?.slice(0, 6) +
                                 "..." +
                                 token?.contractAddress?.slice(38, -1)}
                             </TableCell>
-                            <TableCell component="th" scope="row" align="left" style={{color:"white", paddingTop:15, paddingBottom:15}}>
+                            <TableCell component="th" scope="row" align="left" style={{ color: "white", paddingTop: 15, paddingBottom: 15 }}>
                               {token?.eth_bal} {token?.symbol}
                             </TableCell>
-                            <TableCell align="center" style={{paddingTop:5, paddingBottom:5}}>
+                            <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
                               <IconButton
                                 aria-label="more"
                                 id="long-button"
-                                style={{color:"white"}}
+                                style={{ color: "white" }}
                                 aria-controls={open1 ? 'long-menu' : undefined}
                                 aria-expanded={open1 ? 'true' : undefined}
                                 aria-haspopup="true"
@@ -627,7 +791,7 @@ export default function UDashboard() {
                                 TransitionComponent={Fade}
                                 className={classes.menu}
                               >
-                                <Link to={"/?token="+popupToken}>
+                                <Link to={"/?token=" + popupToken}>
                                   <MenuItem onClick={handleClose1}>Swap {popupTokenSymbol}</MenuItem>
                                 </Link>
                               </Menu>
@@ -683,7 +847,7 @@ export default function UDashboard() {
           xs={12}
           sm={12}
           md={12}
-          sx={{ mt: 2, flexDirection:"column" }}
+          sx={{ mt: 2, flexDirection: "column" }}
           className="home__mainC"
         >
           <h3 className="text-white text-xl text-left font-semibold mb-2 ml-2">
@@ -700,23 +864,23 @@ export default function UDashboard() {
             >
               {/* Table */}
               <div className="relative w-full overflow-x-auto shadow-md sm:rounded-lg" style={{ boxShadow: "0px 0px 0px 0px" }}>
-                <TableContainer component={Paper} style={{backgroundColor:"transparent"}}>
-                  <Table sx ={{ minWidth: 600 }} aria-label="simple table">
+                <TableContainer component={Paper} style={{ backgroundColor: "transparent" }}>
+                  <Table sx={{ minWidth: 600 }} aria-label="simple table">
                     <TableHead >
-                      <TableRow style={{color:"white"}}>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                      <TableRow style={{ color: "white" }}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Action
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Block
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Token Amount
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Token Amount
                         </TableCell>
-                        <TableCell align="left" style={{color:"white", paddingTop:5, paddingBottom:5}}>
+                        <TableCell align="left" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                           Time
                         </TableCell>
                       </TableRow>
@@ -729,39 +893,39 @@ export default function UDashboard() {
                             onClick={() =>
                               window.open(
                                 "https://explorer.kava.io/tx/" +
-                                  token?.hash +
-                                  "/internal-transactions",
+                                token?.hash +
+                                "/internal-transactions",
                                 "_blank"
                               )
                             }
-                            style={{cursor: "pointer"}}
+                            style={{ cursor: "pointer" }}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
                             {token.action_type === 0 &&
-                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15}}>
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop: 15, paddingBottom: 15 }}>
                                 <span className="font-medium text-blue-600 dark:text-blue-500">SWAP {token.token1_symbol} for {token.token2_symbol}</span>
                               </TableCell>
                             }
                             {token.action_type === 1 &&
-                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15 }}>
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop: 15, paddingBottom: 15 }}>
                                 <span className="font-medium text-blue-600 dark:text-blue-500">ADD {token.token1_symbol} & {token.token2_symbol}</span>
                               </TableCell>
                             }
                             {token.action_type === 2 &&
-                              <TableCell component="th" scope="row" align="left" style={{ paddingTop:15, paddingBottom:15}}>
+                              <TableCell component="th" scope="row" align="left" style={{ paddingTop: 15, paddingBottom: 15 }}>
                                 <span className="font-medium text-blue-600 dark:text-blue-500">REMOVE {token.token1_symbol} & {token.token2_symbol}</span>
                               </TableCell>
                             }
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
+                            <TableCell align="left" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
                               {token?.blockNumber}
                             </TableCell>
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
-                              {token.amount1?token.amount1:"..."} {token?.token1_symbol}
+                            <TableCell align="left" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                              {token.amount1 ? token.amount1 : "..."} {token?.token1_symbol}
                             </TableCell>
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
-                              {token.amount2?token.amount2:"..."} {token?.token2_symbol}
+                            <TableCell align="left" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                              {token.amount2 ? token.amount2 : "..."} {token?.token2_symbol}
                             </TableCell>
-                            <TableCell align="left" style={{color:"white", paddingTop:10, paddingBottom:10}}>
+                            <TableCell align="left" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
                               {new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(token?.timeStamp * 1000)}
                             </TableCell>
                           </TableRow>

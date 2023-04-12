@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useWeb3React } from "@web3-react/core";
-import { Modal, Grid, Paper, InputBase, Typography, Button } from '@mui/material'
+import { Modal, Grid, Paper, InputBase, Typography, Button, useMediaQuery } from '@mui/material'
 import tw from "twin.macro";
 import { styled } from "@mui/material/styles";
 import {
@@ -37,9 +37,11 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
     "& .MuiInputBase-input": {
         borderRadius: 4,
         position: "relative",
+        backgroundColor: "#07071c",
+        border: "0px solid #ced4da",
         fontSize: 20,
         textAlign: "start",
-        padding: "10px 16px 10px 0px",
+        padding: "10px 16px 10px 12px",
         transition: theme.transitions.create(["border-color", "box-shadow"]),
         // Use the system font instead of the default Roboto font.
         fontFamily: [
@@ -54,6 +56,12 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
             '"Segoe UI Emoji"',
             '"Segoe UI Symbol"',
         ].join(","),
+        "&:focus": {
+            borderRadius: 4,
+            borderColor: "#80bdff",
+            boxShadow: "0 0 0 0.2rem rgba(0,123,255,.25)",
+            color: "white"
+        },
     },
     icon: {
         color: "white",
@@ -64,6 +72,8 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
     const { account, connector } = useWeb3React();
     const [stakeVal, setStakeVal] = useState(0);
     const [staking, setStaking] = useState(false);
+
+    const isMobile = useMediaQuery("(max-width:600px)");
 
     const handleStakeVal = (event) => {
         let e_val = event.target.value;
@@ -106,44 +116,65 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                 }
                 <hr />
                 <Grid sx={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", mt: 3, mb: 1 }}>
-                    <Item sx={{ pl: 3, pr: 3, pb: 2 }} style={{ backgroundColor: "#09071e", borderRadius: "10px" }}>
-                        <Typography sx={{ display: "flex", justifyContent: "left", width: "100%", fontSize: 16 }}>
-                            Balance: {mtype === 1 ? numFormat(poolData?.userlp) : numFormat(poolData?.stakedVal)}
+                    <Item sx={{ pl: isMobile ? 0.5 : 3, pr: isMobile ? 0.5 : 3, pb: 2 }} style={{ backgroundColor: "transparent" }}>
+                        <Typography sx={{ color: "#6d6d7d", fontWeight:"bold", ml:isMobile?"51%":"41%", textAlign:"left" }}>
+                            ~{numFormat(poolData?.userSupplyUSD * stakeVal / (Number(poolData?.userlp) + 0.0000000000000001))}{" "}USD
                         </Typography>
-                        <div style={{ width: "100%", marginTop: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ backgroundColor: "#12122c" }}>
+                            <Button
+                                style={{ width: isMobile ? "50%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "9px" : "11px" }}
+                                startIcon={
+                                    <div style={{ float: "left" }}>
+                                        <img
+                                            src={poolData?.logoURLs[0]}
+                                            alt=""
+                                            style={{ float: "left" }}
+                                            className="w-4 md:w-6"
+                                        />
+                                        <img
+                                            src={poolData?.logoURLs[1]}
+                                            alt=""
+                                            style={{ float: "left", marginLeft: -5 }}
+                                            className="w-4 md:w-6"
+                                        />
+                                    </div>
+                                }
+                                className="w-36 sm:w-48"
+                            >
+                                {poolData?.symbols[0]} -{" "}
+                                {poolData?.symbols[1]} LP
+                            </Button>
                             <BootstrapInput
-                                type="number"
+                                id="demo-customized-textbox"
+                                type="text"
                                 value={numFormat(stakeVal)}
                                 inputProps={{ min: 0, max: mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.pendingReward) }}
                                 onChange={(e) => handleStakeVal(e)}
                                 onKeyUp={(e) => handleStakeVal(e)}
                                 style={{
                                     color: "#FFFFFF",
-                                    maxWidth: "70%",
-                                    minWidth: "50%",
+                                    width: isMobile ? "50%" : "60%",
                                     float: "left",
-                                    borderRadius: "6px"
+                                    borderLeft: "1px solid white",
+                                    borderRadius: "14px",
                                 }}
                             />
-                            <Typography sx={{ fontSize: "0.9rem", fontWeight: "bold" }}>
-                                {poolData?.symbols[0]}
-                                {"-"}
-                                {poolData?.symbols[1]}
-                                {" "}LP
-                            </Typography>
                         </div>
                         <div style={{ width: "100%", marginTop: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography sx={{ fontSize: 12 }}>
-                                ~{numFormat(poolData?.userSupplyUSD * stakeVal / (Number(poolData?.userlp) + 0.0000000000000001))}{" "}USD
+                            <Typography sx={{ color: "#6d6d7d", display: "flex", justifyContent: "left" }}>
+                                Balance: {mtype === 1 ? numFormat(poolData?.userlp) : numFormat(poolData?.stakedVal)}
                             </Typography>
                             <p style={{ display: "flex", color: "#6d6d7d" }}>
-                                <span style={{ cursor: "pointer", color: stakeVal * 4 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "", fontSize: 12 }}
+                                <span style={{ cursor: "pointer", color: stakeVal * 4 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "" }}
                                     onClick={() => setInLimit(mtype === 1 ? poolData?.userlp : poolData?.stakedVal, 4)}
                                 >
                                     25%
                                 </span>
                                 <span
-                                    style={{ paddingLeft: "5px", cursor: "pointer", color: stakeVal * 2 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "", fontSize: 12 }}
+                                    style={{
+                                        paddingLeft: "5px", cursor: "pointer",
+                                        color: stakeVal * 2 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : ""
+                                    }}
                                     onClick={() => setInLimit(mtype === 1 ? poolData?.userlp : poolData?.stakedVal, 2)}
                                 >
                                     50%
@@ -151,14 +182,17 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 <span
                                     style={{
                                         paddingLeft: "5px", cursor: "pointer",
-                                        color: stakeVal * 1.3333 == (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "", fontSize: 12
+                                        color: stakeVal * 1.3333 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : ""
                                     }}
                                     onClick={() => setInLimit(mtype === 1 ? poolData?.userlp : poolData?.stakedVal, 1.3333)}
                                 >
                                     75%
                                 </span>
                                 <span
-                                    style={{ paddingLeft: "5px", cursor: "pointer", color: stakeVal * 1 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "", fontSize: 12 }}
+                                    style={{
+                                        paddingLeft: "5px", cursor: "pointer",
+                                        color: stakeVal * 1 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : ""
+                                    }}
                                     onClick={() => setInLimit(mtype === 1 ? poolData?.userlp : poolData?.stakedVal, 1)}
                                 >
                                     100%
@@ -181,7 +215,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                             disabled={staking}
                             onClick={handleClose}
                         >
-                            {staking?"In Progress":"Cancel"}
+                            {staking ? "In Progress" : "Cancel"}
                         </Button>
                         {mtype === 1 &&
                             <Button
@@ -199,7 +233,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 }}
                                 onClick={() => executeStake(poolData?.farmingPoolAddress, stakeVal)}
                             >
-                                {staking?"In Progress":(Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.userlp) ? "Wrong Amount" : "Confirm"))}
+                                {staking ? "In Progress" : (Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.userlp) ? "Wrong Amount" : "Confirm"))}
                             </Button>
                         }
                         {mtype === 2 &&
@@ -218,7 +252,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 }}
                                 onClick={() => executeStake(poolData?.farmingPoolAddress, stakeVal)}
                             >
-                                {staking?"In Progress":(Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.stakedVal) ? "Wrong Amount" : "Confirm"))}
+                                {staking ? "In Progress" : (Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.stakedVal) ? "Wrong Amount" : "Confirm"))}
                             </Button>
                         }
                     </div>
