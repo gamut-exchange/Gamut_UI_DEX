@@ -211,7 +211,7 @@ export default function StackingPool() {
           <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
-              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 8px", minWidth:"180px" }}
+              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 18px", minWidth:"180px" }}
             >
               <Stack direction="row" spacing={1} alignItems="start">
                 <div className="flex flex-col">
