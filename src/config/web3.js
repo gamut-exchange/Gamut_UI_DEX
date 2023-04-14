@@ -962,8 +962,8 @@ export const getAllFarmPools = async (provider, account, farmList) => {
         const totallp = ethers.utils.formatEther(supply.toString());
         const stakedlp = ethers.utils.formatEther(totalStaked.toString());
         const userlp = ethers.utils.formatEther(lp_balance);
-        const userstakedlp = await ethers.utils.formatEther(stakedVal.amount);
-        const userreward = await ethers.utils.formatEther(pendingReward);
+        const userstakedlp = ethers.utils.formatEther(stakedVal.amount);
+        const userreward = ethers.utils.formatEther(pendingReward);
         if (Number(totallp) !== 0) {
             let apr = Number(totalStaked) !== 0?calcAPR(initialPoolData, totalStaked, poolTokenAndBalance, weight, decimal1, decimal2):0;
             await axios

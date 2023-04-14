@@ -80,6 +80,9 @@ const StyledSelect = styled(Select)`
   &:before, &:after {
     border-width:0px!important;
   },
+  & > svg {
+    top:0
+  }
 `;
 
 const StyledInput = styled(FilledInput)`
@@ -99,7 +102,7 @@ export const useStyles = makeStyles(() => ({
       backgroundColor: "#5e5e6b",
       color: "white",
       fontWeight: "bold"
-    }
+    },
   }
 }));
 
@@ -196,7 +199,7 @@ export default function StackingPool() {
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
-        sx={{ maxWidth: "1220px", justifyContent: "center", padding: isMobile?"0px 4px":"0px 16px" }}
+        sx={{ width: "1220px", justifyContent: "center", padding: isMobile?"0px 4px":"0px 8px" }}
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >

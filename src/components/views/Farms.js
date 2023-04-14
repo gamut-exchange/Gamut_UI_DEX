@@ -18,6 +18,16 @@ export const useStyles = makeStyles(() => ({
             backgroundColor: "#07071c",
             color: "white"
         }
+    },
+    accordion: {
+        "& > .MuiAccordionSummary-expandIconWrapper > svg": {
+            position: "relative",
+            top: "-15px"
+        },
+        "& > .MuiAccordionSummary-expandIconWrapper.Mui-expanded > svg": {
+            position: "relative",
+            top: "15px"
+        }
     }
 }));
 
@@ -102,7 +112,11 @@ function Farms(props) {
                             return (
                                 <Accordion
                                     key={item?.address}
-                                    sx={{ minHeight: "20px", pr: 0, pl: 0, width: "100%", backgroundColor: "#12122c", color: "white", boxShadow: "0px 0px 0px 0px" }}
+                                    sx={{
+                                        minHeight: "20px", pr: 0, pl: 0, width: "100%",
+                                        backgroundColor: "#12122c", color: "white",
+                                        boxShadow: "0px 0px 0px 0px"
+                                    }}
                                 >
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
@@ -110,9 +124,10 @@ function Farms(props) {
                                         id="panel1bh-header"
                                         style={{ marginTop: "0px" }}
                                         sx={{ m: 0, pb: 0, pr: 2, mt: 0, mb: 0, pt: 0, pl: 2 }}
+                                        className={classes.accordion}
                                     >
                                         <Grid container style={{ width: "100%", display: "flex", alignItems: "center" }}>
-                                            <Grid xs={12} sm={4} md={3} sx={{ float: "left", mb:1 }}>
+                                            <Grid xs={12} sm={4} md={3} sx={{ float: "left", mb: 1 }}>
                                                 <div className="relative flex gap-x-1">
                                                     <div className="relative flex">
                                                         <img
@@ -137,16 +152,16 @@ function Farms(props) {
                                                     </p>
                                                 </div>
                                             </Grid>
-                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                 <p style={{ fontSize: 13 }}>Earned</p>
                                                 <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.pendingReward)}</p>
                                             </Grid>
-                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                 <p style={{ fontSize: 13 }}>APR</p>
                                                 <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item.apr)}%</p>
                                             </Grid>
                                             {!item?.allowed &&
-                                                <Grid xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb:1 }}>
+                                                <Grid xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb: 1 }}>
                                                     <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
                                                         <p style={{ fontSize: 13 }}>
                                                             Liquidity
@@ -184,7 +199,7 @@ function Farms(props) {
                                             }
                                             {item?.allowed &&
                                                 <>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb:1 }}>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb: 1 }}>
                                                         <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
                                                             <p style={{ fontSize: 13 }}>Staked Liquidity
                                                                 <HelpOutline
@@ -218,11 +233,11 @@ function Farms(props) {
                                                             <Typography sx={{ p: 1, fontSize: 13 }}>Total active (in-range) liquidity staked <br />in the farm.</Typography>
                                                         </Popover>
                                                     </Grid>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                         <p style={{ fontSize: 13 }}>Available</p>
                                                         <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.userlp)} LP</p>
                                                     </Grid>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                         <p style={{ fontSize: 13 }}>Staked</p>
                                                         <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.stakedVal)} LP</p>
                                                     </Grid>
@@ -258,7 +273,7 @@ function Farms(props) {
                                                     <AssignmentOutlined sx={{ fontSize: 16 }} />
                                                 </Link>
                                             </Grid>
-                                            <Grid xs={12} md={6} lg={5} sx={{ pr: isMobile?0:1, pb:1 }}>
+                                            <Grid xs={12} md={6} lg={5} sx={{ pr: isMobile ? 0 : 1, pb: 1 }}>
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
@@ -280,7 +295,7 @@ function Farms(props) {
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
-                                            <Grid xs={12} md={6} lg={5} sx={{ pl: isMobile?0:1, pb:1 }} >
+                                            <Grid xs={12} md={6} lg={5} sx={{ pl: isMobile ? 0 : 1, pb: 1 }} >
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     {!item?.allowed && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Enable Farm</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) === 0) && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Stake Pool</Typography>}
@@ -388,8 +403,7 @@ function Farms(props) {
                     />
                 </>
             }
-            {
-                !props.pools.isLoad &&
+            {!props.pools.isLoad &&
                 <Box sx={{ width: "100%", mt: 1 }}>
                     <div style={{ minHeight: "170px", textAlign: "center" }}>
                         <CircularProgress style={{ marginTop: "65px" }} />
