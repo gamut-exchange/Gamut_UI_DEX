@@ -9,39 +9,36 @@ import RLiquidity from './components/views/RLiquidity';
 import PDashboard from './components/views/PlatformDashboard';
 import UDashboard from './components/views/UserDashboard';
 import StakingPool from './components/views/StakingPool';
-import {HashRouter, Route, Routes } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import { HashRouter, Route, Routes } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { useEffect } from 'react';
 import { TOKEN_LIST } from './redux/constants';
-import { tokenListLink } from './config/constants';
+import { tokenList } from './config/constants';
 
 function App() {
   const dispatch = useDispatch();
-
   useEffect(() => {
-    fetch(tokenListLink).then(response => response.json()).then(data => {
-      dispatch({
-        type: TOKEN_LIST,
-        payload: data,
-      });
-    })
+    dispatch({
+      type: TOKEN_LIST,
+      payload: tokenList,
+    });
   }, [dispatch])
 
   return (
-    <div className='Dark__Theme' style={{minHeight:"100vh", padding:"4px"}}>
+    <div className='Dark__Theme' style={{ minHeight: "100vh", padding: "4px" }}>
       <HashRouter>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Swap />} />
-        <Route path="/add_liquidity" element={<Liquidity />} />
-        <Route path="/create_liquidity" element={<CLiquidity />} />
-        <Route path="/remove_liquidity" element={<RLiquidity />} />
-        <Route path="/platform_dashboard" element={<PDashboard />} />
-        <Route path="/user_dashboard" element={<UDashboard />} />
-        <Route path="/staking_pool" element={<StakingPool />} />
-      </Routes>
-      <Footer />
-    </HashRouter>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Swap />} />
+          <Route path="/add_liquidity" element={<Liquidity />} />
+          <Route path="/create_liquidity" element={<CLiquidity />} />
+          <Route path="/remove_liquidity" element={<RLiquidity />} />
+          <Route path="/platform_dashboard" element={<PDashboard />} />
+          <Route path="/user_dashboard" element={<UDashboard />} />
+          <Route path="/staking_pool" element={<StakingPool />} />
+        </Routes>
+        <Footer />
+      </HashRouter>
     </div>
   );
 }

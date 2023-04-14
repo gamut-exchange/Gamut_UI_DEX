@@ -187,10 +187,6 @@ export default function StackingPool() {
     });
   };
 
-  const clickConWallet = () => {
-    document.getElementById("connect_wallet_btn").click();
-  }
-
   useEffect(() => {
     if (account)
       handlePoolData();
@@ -200,8 +196,7 @@ export default function StackingPool() {
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
       <Grid
-        container
-        sx={{ maxWidth: "1220px", justifyContent: "center" }}
+        sx={{ maxWidth: "1220px", justifyContent: "center", padding: isMobile?"0px 4px":"0px 16px" }}
         border={0}
         columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
       >
@@ -213,7 +208,7 @@ export default function StackingPool() {
           <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
-              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px" }}
+              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 8px", minWidth:"180px" }}
             >
               <Stack direction="row" spacing={1} alignItems="start">
                 <div className="flex flex-col">
@@ -230,7 +225,7 @@ export default function StackingPool() {
           <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
-              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px" }}
+              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", marginLeft:0, minWidth:"180px" }}
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
@@ -246,7 +241,7 @@ export default function StackingPool() {
           <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
-              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px" }}
+              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth:"180px" }}
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
@@ -278,13 +273,13 @@ export default function StackingPool() {
           <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
-              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px" }}
+              style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth:"180px" }}
             >
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
                   <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>SEARCH</FormLabel>
                   <Stack direction="row" spacing={1}>
-                    <FormControl sx={{ width: '160px', backgroundColor: "#5e5e6b", height: 30, borderRadius: 1 }} >
+                    <FormControl sx={{ width: '140px', backgroundColor: "#5e5e6b", height: 30, borderRadius: 1 }} >
                       <StyledInput placeholder="Search Farms" value={query} onChange={handleQuery} onKeyUp={handleQuery} />
                     </FormControl>
                   </Stack>
@@ -295,7 +290,7 @@ export default function StackingPool() {
         </Grid>
         <Grid
           container
-          sx={{ width: "100%", mt: 2, mb: 2, ml: 2, backgroundColor: "#12122c", borderRadius: "10px" }}
+          sx={{ width: "100%", mt: 2, mb: 2, backgroundColor: "#12122c", borderRadius: "10px" }}
         >
           <Farms pools={pools} filteredData={filteredData} />
         </Grid>

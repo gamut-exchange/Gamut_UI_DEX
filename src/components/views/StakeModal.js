@@ -39,7 +39,6 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
         position: "relative",
         backgroundColor: "#07071c",
         border: "0px solid #ced4da",
-        fontSize: 20,
         textAlign: "start",
         padding: "10px 16px 10px 12px",
         transition: theme.transitions.create(["border-color", "box-shadow"]),
@@ -107,22 +106,22 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
-            <StyledModal className="bg-modal">
+            <StyledModal className="bg-modal" style={{ paddingLeft:isMobile?"8px":"24px", paddingRight:isMobile?"8px":"24px" }}>
                 {mtype === 1 &&
-                    <h1 className="model-title mb-3 text-wight" style={{ color: "#fff", fontWeight: "bold", fontSize: "24px" }}>Stake LP tokens</h1>
+                    <Typography className="model-title mb-3 text-wight" sx={{ color: "#fff", fontWeight: "bold", fontSize: "24px" }}>Stake LP tokens</Typography>
                 }
                 {mtype === 2 &&
-                    <h1 className="model-title mb-3 text-wight" style={{ color: "#fff", fontWeight: "bold", fontSize: "24px" }}>Unstake LP tokens</h1>
+                    <Typography className="model-title mb-3 text-wight" sx={{ color: "#fff", fontWeight: "bold", fontSize: "24px" }}>Unstake LP tokens</Typography>
                 }
                 <hr />
                 <Grid sx={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", mt: 3, mb: 1 }}>
-                    <Item sx={{ pl: isMobile ? 0.5 : 3, pr: isMobile ? 0.5 : 3, pb: 2 }} style={{ backgroundColor: "transparent" }}>
-                        <Typography sx={{ color: "#6d6d7d", fontWeight:"bold", ml:isMobile?"51%":"41%", textAlign:"left" }}>
+                    <Item sx={{ pl:0, pr:0, pb: 2 }} style={{ backgroundColor: "transparent", boxShadow:"0px 0px 0px 0px" }}>
+                        <Typography sx={{ color: "#6d6d7d", fontWeight:"bold", ml:isMobile?"51%":"41%", textAlign:"left", fontSize: isMobile?13:16 }}>
                             ~{numFormat(poolData?.userSupplyUSD * stakeVal / (Number(poolData?.userlp) + 0.0000000000000001))}{" "}USD
                         </Typography>
                         <div style={{ backgroundColor: "#12122c" }}>
                             <Button
-                                style={{ width: isMobile ? "50%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: isMobile ? "9px" : "11px" }}
+                                style={{ width: isMobile ? "50%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: isMobile?"43px":"48px", fontSize: isMobile ? "9px" : "11px" }}
                                 startIcon={
                                     <div style={{ float: "left" }}>
                                         <img
@@ -157,14 +156,15 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                     float: "left",
                                     borderLeft: "1px solid white",
                                     borderRadius: "14px",
+                                    fontSize: isMobile ? 16:20,
                                 }}
                             />
                         </div>
                         <div style={{ width: "100%", marginTop: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography sx={{ color: "#6d6d7d", display: "flex", justifyContent: "left" }}>
+                            <Typography sx={{ color: "#6d6d7d", display: "flex", justifyContent: "left", fontSize: isMobile?13:16, mt:0.3 }}>
                                 Balance: {mtype === 1 ? numFormat(poolData?.userlp) : numFormat(poolData?.stakedVal)}
                             </Typography>
-                            <p style={{ display: "flex", color: "#6d6d7d" }}>
+                            <p style={{ display: "flex", color: "#6d6d7d", fontSize: isMobile?13:16 }}>
                                 <span style={{ cursor: "pointer", color: stakeVal * 4 === (mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal)) ? "lightblue" : "" }}
                                     onClick={() => setInLimit(mtype === 1 ? poolData?.userlp : poolData?.stakedVal, 4)}
                                 >
@@ -205,7 +205,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                             size="small"
                             variant="contained"
                             sx={{
-                                width: "35%",
+                                width: isMobile?"45%":"35%",
                                 padding: 1,
                                 fontWeight: "bold",
                                 background:
@@ -223,7 +223,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 variant="contained"
                                 disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)}
                                 sx={{
-                                    width: "35%",
+                                    width: isMobile?"45%":"35%",
                                     background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ?
                                         "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "",
                                     marginLeft: 2,
@@ -242,7 +242,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 variant="contained"
                                 disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)}
                                 sx={{
-                                    width: "35%",
+                                    width: isMobile?"45%":"35%",
                                     background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ?
                                         "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "",
                                     marginLeft: 2,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWeb3React } from "@web3-react/core";
-import { AccordionDetails, AccordionSummary, Accordion, Grid, Box, CircularProgress, Popover, Typography, Button } from '@mui/material'
+import { AccordionDetails, AccordionSummary, Accordion, Grid, Box, CircularProgress, Popover, Typography, Button, useMediaQuery } from '@mui/material'
 import { HelpOutline, DirectionsOutlined, AssignmentOutlined } from '@mui/icons-material';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@mui/styles";
@@ -33,6 +33,8 @@ function Farms(props) {
     const [mtype, setMtype] = useState(1);
     const [poolData, setPoolData] = useState(null);
 
+    const isMobile = useMediaQuery("(max-width:600px)");
+
     const handleClick1 = (event) => {
         setAnchorEl1(event.currentTarget);
     };
@@ -59,6 +61,10 @@ function Farms(props) {
         setMopen(false);
     }
 
+    const clickConWallet = () => {
+        document.getElementById("connect_wallet_btn").click();
+    }
+
     const handleApprovePool = async (poolAddr, farmingPoolAddr, userlp) => {
         if (account) {
             const provider = await connector.getProvider();
@@ -66,7 +72,7 @@ function Farms(props) {
                 account,
                 provider,
                 poolAddr,
-                userlp*10,
+                userlp * 10,
                 farmingPoolAddr
             )
         }
@@ -91,7 +97,7 @@ function Farms(props) {
         <>
             {props.pools.isLoad &&
                 <>
-                    {
+                    {account &&
                         props.filteredData.map((item, index) => {
                             return (
                                 <Accordion
@@ -106,7 +112,7 @@ function Farms(props) {
                                         sx={{ m: 0, pb: 0, pr: 2, mt: 0, mb: 0, pt: 0, pl: 2 }}
                                     >
                                         <Grid container style={{ width: "100%", display: "flex", alignItems: "center" }}>
-                                            <Grid xs={12} sm={6} md={3} style={{ float: "left" }}>
+                                            <Grid xs={12} sm={4} md={3} sx={{ float: "left", mb:1 }}>
                                                 <div className="relative flex gap-x-1">
                                                     <div className="relative flex">
                                                         <img
@@ -123,7 +129,7 @@ function Farms(props) {
                                                             alt=""
                                                         />
                                                     </div>
-                                                    <p className="text-lg font-bold" style={{ color:"#84b1e1" }}>
+                                                    <p className="text-lg font-bold" style={{ color: "#84b1e1" }}>
                                                         {item?.symbols[0]}
                                                         {"-"}
                                                         {item?.symbols[1]}
@@ -131,27 +137,29 @@ function Farms(props) {
                                                     </p>
                                                 </div>
                                             </Grid>
-                                            <Grid xs={4} sm={4} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                <p style={{ fontSize:13 }}>Earned</p>
-                                                <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.pendingReward)}</p>
+                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                <p style={{ fontSize: 13 }}>Earned</p>
+                                                <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.pendingReward)}</p>
                                             </Grid>
-                                            <Grid xs={4} sm={6} md={1} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                <p style={{ fontSize:13 }}>APR</p>
-                                                <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item.apr)}%</p>
+                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                <p style={{ fontSize: 13 }}>APR</p>
+                                                <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item.apr)}%</p>
                                             </Grid>
                                             {!item?.allowed &&
-                                                <Grid xs={4} sm={6} md={3} style={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                                    <div style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                        <p style={{ fontSize:13 }}>Liquidity</p>
-                                                        <p style={{ color:"lightgray", fontWeight:"bold" }}>${numFormat(item.totalSupplyUSD)}</p>
+                                                <Grid xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb:1 }}>
+                                                    <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
+                                                        <p style={{ fontSize: 13 }}>
+                                                            Liquidity
+                                                            <HelpOutline
+                                                                aria-owns={open1 ? 'mouse-over-popover' : undefined}
+                                                                aria-haspopup="true"
+                                                                sx={{ ml: 0.5, mt: 0.1, fontSize: 18 }}
+                                                                onMouseEnter={handleClick1}
+                                                                onMouseLeave={handleClose1}
+                                                            />
+                                                        </p>
+                                                        <p style={{ color: "lightgray", fontWeight: "bold" }}>${numFormat(item.totalSupplyUSD)}</p>
                                                     </div>
-                                                    <HelpOutline
-                                                        aria-owns={open1 ? 'mouse-over-popover' : undefined}
-                                                        aria-haspopup="true"
-                                                        sx={{ ml: 1 }}
-                                                        onMouseEnter={handleClick1}
-                                                        onMouseLeave={handleClose1}
-                                                    />
                                                     <Popover
                                                         sx={{
                                                             pointerEvents: 'none'
@@ -176,18 +184,19 @@ function Farms(props) {
                                             }
                                             {item?.allowed &&
                                                 <>
-                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                                        <div style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                            <p style={{ fontSize:13 }}>Staked Liquidity</p>
-                                                            <p style={{ color:"lightgray", fontWeight:"bold" }}>${numFormat(item.totalStakedUSD)}</p>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb:1 }}>
+                                                        <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
+                                                            <p style={{ fontSize: 13 }}>Staked Liquidity
+                                                                <HelpOutline
+                                                                    aria-owns={open2 ? 'mouse-over-popover' : undefined}
+                                                                    aria-haspopup="true"
+                                                                    sx={{ ml: 0.5, mt: 0.1, fontSize: 18 }}
+                                                                    onMouseEnter={handleClick2}
+                                                                    onMouseLeave={handleClose2}
+                                                                />
+                                                            </p>
+                                                            <span style={{ color: "lightgray", fontWeight: "bold" }}>${numFormat(item.totalStakedUSD)}</span>
                                                         </div>
-                                                        <HelpOutline
-                                                            aria-owns={open2 ? 'mouse-over-popover' : undefined}
-                                                            aria-haspopup="true"
-                                                            sx={{ ml: 1 }}
-                                                            onMouseEnter={handleClick2}
-                                                            onMouseLeave={handleClose2}
-                                                        />
                                                         <Popover
                                                             sx={{
                                                                 pointerEvents: 'none'
@@ -209,13 +218,13 @@ function Farms(props) {
                                                             <Typography sx={{ p: 1, fontSize: 13 }}>Total active (in-range) liquidity staked <br />in the farm.</Typography>
                                                         </Popover>
                                                     </Grid>
-                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                        <p style={{ fontSize:13 }}>Available</p>
-                                                        <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.userlp)} LP</p>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                        <p style={{ fontSize: 13 }}>Available</p>
+                                                        <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.userlp)} LP</p>
                                                     </Grid>
-                                                    <Grid xs={4} sm={6} md={2} style={{ float: "left", display: "flex", flexDirection: "column", color:"#84b1e1" }}>
-                                                        <p style={{ fontSize:13 }}>Staked</p>
-                                                        <p style={{ color:"lightgray", fontWeight:"bold" }}>{numFormat(item?.stakedVal)} LP</p>
+                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb:1 }}>
+                                                        <p style={{ fontSize: 13 }}>Staked</p>
+                                                        <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.stakedVal)} LP</p>
                                                     </Grid>
                                                 </>
                                             }
@@ -223,25 +232,33 @@ function Farms(props) {
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ pt: 0, pl: 0, display: "flex", justifyContent: "center", backgroundColor: "#1b1b3c" }}>
                                         <Grid container sx={{ width: "90%", display: "flex", alignItems: "center", pt: 2 }}>
-                                            <Grid xs={12} sm={4} md={2} style={{ float: "left", display: "flex", flexDirection: "column" }}>
-                                                <Link to={"/add_liquidity?pool="} style={{ color: "#13a8ff", fontSize: 13 }}>
+                                            <Grid xs={12} md={12} lg={2} sx={{ float: "left", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                                <Link to={"/add_liquidity?pool=" + item?.address} style={{ color: "#13a8ff", fontSize: 13 }}>
                                                     Get {" "}
                                                     {item?.symbols[0]}
                                                     {"-"}
                                                     {item?.symbols[1]}
-                                                    {" "}LP
+                                                    {" "}LP{" "}
                                                     <DirectionsOutlined sx={{ fontSize: 16 }} />
                                                 </Link>
-                                                <Link to={"/add_liquidity?pool="} style={{ color: "#13a8ff", fontSize: 13 }}>
+                                                {/* <Link to={"/add_liquidity?pool=" + item?.address} style={{ color: "#13a8ff", fontSize: 13, marginTop: "4px" }}>
                                                     See Pair Info{" "}
                                                     <DirectionsOutlined sx={{ fontSize: 16 }} />
-                                                </Link>
-                                                <Link to={"/add_liquidity?pool="} style={{ color: "#13a8ff", fontSize: 13 }}>
+                                                </Link> */}
+                                                <Link
+                                                    style={{ color: "#13a8ff", fontSize: 13, marginTop: "4px", marginBottom: "12px" }}
+                                                    onClick={() =>
+                                                        window.open(
+                                                            "https://explorer.kava.io/address/" +
+                                                            item?.farmingPoolAddress,
+                                                            "_blank"
+                                                        )}
+                                                >
                                                     View Contract{" "}
                                                     <AssignmentOutlined sx={{ fontSize: 16 }} />
                                                 </Link>
                                             </Grid>
-                                            <Grid xs={12} sm={4} md={5} sx={{ pr: 1 }}>
+                                            <Grid xs={12} md={6} lg={5} sx={{ pr: isMobile?0:1, pb:1 }}>
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
@@ -263,7 +280,7 @@ function Farms(props) {
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
-                                            <Grid xs={12} sm={4} md={5} sx={{ pl: 1 }} >
+                                            <Grid xs={12} md={6} lg={5} sx={{ pl: isMobile?0:1, pb:1 }} >
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     {!item?.allowed && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Enable Farm</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) === 0) && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Stake Pool</Typography>}
@@ -346,12 +363,33 @@ function Farms(props) {
                             )
                         })
                     }
+                    {!account &&
+                        <Grid md={12} sx={{ p: 1, textAlign: "center" }}>
+                            <Button
+                                size={"large"}
+                                variant="contained"
+                                sx={{ width: "70%", padding: 2, fontWeight: "bold", mt: 2 }}
+                                onClick={clickConWallet}
+                                style={{
+                                    background: "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                                    color: "#fff",
+                                    textAlign: "center",
+                                    marginRight: "8px",
+                                    maxHeight: 57
+                                }}
+                                className="btn-primary font-bold w-full dark:text-black flex-1"
+                            >
+                                {"Connect to Wallet"}
+                            </Button>
+                        </Grid>
+                    }
                     <StakeModal
                         mopen={mopen} handleClose={handleMClose} mtype={mtype} poolData={poolData}
                     />
                 </>
             }
-            {!props.pools.isLoad &&
+            {
+                !props.pools.isLoad &&
                 <Box sx={{ width: "100%", mt: 1 }}>
                     <div style={{ minHeight: "170px", textAlign: "center" }}>
                         <CircularProgress style={{ marginTop: "65px" }} />

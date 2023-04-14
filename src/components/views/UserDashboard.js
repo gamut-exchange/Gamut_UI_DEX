@@ -639,11 +639,8 @@ export default function UDashboard() {
                               TransitionComponent={Fade}
                               className={classes.menu}
                             >
-                              <Link to={"/add_liquidity?pool=" + popupPool}>
-                                <MenuItem onClick={handleClose}>Add Pool</MenuItem>
-                              </Link>
-                              <Link to={"/remove_liquidity?pool=" + popupPool}>
-                                <MenuItem onClick={handleClose}>Remove Pool</MenuItem>
+                              <Link to={"/staking_pool"}>
+                                <MenuItem onClick={handleClose}>Claim Reward</MenuItem>
                               </Link>
                             </Menu>
                           </TableCell>

@@ -26,7 +26,18 @@ export const chainIds = {
 export const userSettings = "Gamut_settings";
 export const customList = "customList";
 export const customPoolList = "customPoolList";
-export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmSxSrj95qFFr4JhUshYBa17wLR7XeXETE47xjEd8TcSU4";
+// export const tokenListLink = "https://gateway.pinata.cloud/ipfs/QmSxSrj95qFFr4JhUshYBa17wLR7XeXETE47xjEd8TcSU4";
+
+export const tokenList = { "kava": [
+	{"value":"wkava","chainId":2222,"address":"0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b","symbol":"WKAVA","name":"Wrapped KAVA","decimals":18,"logoURL":"https://assets-cdn.trustwallet.com/blockchains/kava/info/logo.png","tags":["Coin"]},
+	{"value":"kava","chainId":2222,"address":"0x0000000000000000000000000000000000000000","symbol":"KAVA","name":"KAVA Coin","decimals":18,"logoURL":"https://assets-cdn.trustwallet.com/blockchains/kava/info/logo.png","tags":["Coin"]},
+	{"value":"wbtc","chainId":2222,"address":"0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b","symbol":"WBTC","name":"Wrapped BTC","decimals":8,"logoURL":"https://cryptologos.cc/logos/bitcoin-btc-logo.svg","tags":["Coin"]},
+	{"value":"weth","chainId":2222,"address":"0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D","symbol":"ETH","name":"Ethereum","decimals":18,"logoURL":"https://cryptologos.cc/logos/ethereum-eth-logo.svg","tags":["Coin"]},
+	{"value":"dai","chainId":2222,"address":"0x765277EebeCA2e31912C9946eAe1021199B39C61","symbol":"DAI","name":"DAI Coin","decimals":18,"logoURL":"https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png","tags":["stablecoin"]},
+	{"value":"busd","chainId":2222,"address":"0x332730a4F6E03D9C55829435f10360E13cfA41Ff","symbol":"BUSD","name":"BUSD Coin","decimals":18,"logoURL":"https://cryptologos.cc/logos/binance-usd-busd-logo.png","tags":["stablecoin"]},
+	{"value":"usdc","chainId":2222,"address":"0xfA9343C3897324496A05fC75abeD6bAC29f8A40f","symbol":"USDC","name":"USD Coin","decimals":6,"logoURL":"\thttps://cryptologos.cc/logos/usd-coin-usdc-logo.svg","tags":["stablecoin"]},
+	{"value":"usdt","chainId":2222,"address":"0xB44a9B6905aF7c801311e8F4E76932ee959c663C","symbol":"USDT","name":"Tether USD","decimals":6,"logoURL":"https://cryptologos.cc/logos/tether-usdt-logo.svg","tags":["stablecoin"]} 
+]};
 
 export const poolList = {
 	'kava': [
