@@ -273,7 +273,7 @@ function Farms(props) {
                                                     <AssignmentOutlined sx={{ fontSize: 16 }} />
                                                 </Link>
                                             </Grid>
-                                            <Grid item={true} xs={12} md={6} lg={5} sx={{ pr: isMobile ? 0 : 1, pb: 1 }}>
+                                            <Grid item={true} xs={12} sm={6} lg={5} sx={{ pr: isMobile ? 0 : 1, pb: 1 }}>
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
@@ -295,7 +295,7 @@ function Farms(props) {
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
-                                            <Grid item={true} xs={12} md={6} lg={5} sx={{ pl: isMobile ? 0 : 1, pb: 1 }} >
+                                            <Grid item={true} xs={12} sm={6} lg={5} sx={{ pl: isMobile ? 0 : 1, pb: 1 }} >
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     {!item?.allowed && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Enable Farm</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) === 0) && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Stake Pool</Typography>}
