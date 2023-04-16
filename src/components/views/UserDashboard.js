@@ -74,9 +74,12 @@ export default function UDashboard() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [anchorEl1, setAnchorEl1] = React.useState(null);
   const [anchorEl2, setAnchorEl2] = React.useState(null);
+  const [anchorEl3, setAnchorEl3] = React.useState(null);
   const open = Boolean(anchorEl);
   const open1 = Boolean(anchorEl1);
   const open2 = Boolean(anchorEl2);
+  const open3 = Boolean(anchorEl3);
+  
   const classes = useStyles();
 
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -96,6 +99,10 @@ export default function UDashboard() {
     setAnchorEl2(event.currentTarget);
   }
 
+  const handleClick3 = (event) => {
+    setAnchorEl3(event.currentTarget);
+  }
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -106,6 +113,10 @@ export default function UDashboard() {
 
   const handleClose2 = () => {
     setAnchorEl2(null);
+  }
+
+  const handleClose3 = () => {
+    setAnchorEl3(null);
   }
 
   const fetchUserData = async () => {
@@ -624,7 +635,7 @@ export default function UDashboard() {
                               aria-controls={open ? 'long-menu' : undefined}
                               aria-expanded={open ? 'true' : undefined}
                               aria-haspopup="true"
-                              onClick={(e) => handleClick(e, farm.address.toLowerCase())}
+                              onClick={handleClick3}
                             >
                               <MoreVertIcon />
                             </IconButton>
@@ -633,14 +644,14 @@ export default function UDashboard() {
                               MenuListProps={{
                                 'aria-labelledby': 'fade-button',
                               }}
-                              anchorEl={anchorEl}
-                              open={open}
-                              onClose={handleClose}
+                              anchorEl={anchorEl3}
+                              open={open3}
+                              onClose={handleClose3}
                               TransitionComponent={Fade}
                               className={classes.menu}
                             >
                               <Link to={"/staking_pool"}>
-                                <MenuItem onClick={handleClose}>Claim Reward</MenuItem>
+                                <MenuItem onClick={handleClose3}>Claim Reward</MenuItem>
                               </Link>
                             </Menu>
                           </TableCell>
