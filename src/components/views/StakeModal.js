@@ -221,38 +221,38 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                             <Button
                                 size="small"
                                 variant="contained"
-                                disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)}
+                                disabled={staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)}
                                 sx={{
                                     width: isMobile?"45%":"35%",
-                                    background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ?
+                                    background: (staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)) ?
                                         "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "",
                                     marginLeft: 2,
                                     padding: 1,
-                                    color: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ? "#ddd!important" : "",
+                                    color: (staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)) ? "#ddd!important" : "",
                                     fontWeight: "bold",
                                 }}
                                 onClick={() => executeStake(poolData?.farmingPoolAddress, stakeVal)}
                             >
-                                {staking ? "In Progress" : (Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.userlp) ? "Wrong Amount" : "Confirm"))}
+                                {staking ? "In Progress" : (numFormat(stakeVal) === 0 ? "Set Amount" : (numFormat(stakeVal) > numFormat(poolData?.userlp) ? "Wrong Amount" : "Confirm"))}
                             </Button>
                         }
                         {mtype === 2 &&
                             <Button
                                 size="small"
                                 variant="contained"
-                                disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)}
+                                disabled={staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)}
                                 sx={{
                                     width: isMobile?"45%":"35%",
-                                    background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ?
+                                    background: (staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)) ?
                                         "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "",
                                     marginLeft: 2,
                                     padding: 1,
-                                    color: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ? "#ddd!important" : "",
+                                    color: (staking || numFormat(stakeVal) === 0 || numFormat(stakeVal) > numFormat(poolData?.userlp)) ? "#ddd!important" : "",
                                     fontWeight: "bold",
                                 }}
                                 onClick={() => executeStake(poolData?.farmingPoolAddress, stakeVal)}
                             >
-                                {staking ? "In Progress" : (Number(stakeVal) === 0 ? "Set Amount" : (Number(stakeVal) > Number(poolData?.stakedVal) ? "Wrong Amount" : "Confirm"))}
+                                {staking ? "In Progress" : (numFormat(stakeVal) === 0 ? "Set Amount" : (numFormat(stakeVal) > numFormat(poolData?.stakedVal) ? "Wrong Amount" : "Confirm"))}
                             </Button>
                         }
                     </div>
