@@ -26,7 +26,7 @@ function LiquidityCmp() {
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" , padding:"0px 0px 8px 0px"  }}
           >
-            <Stack spacing={2} direction="row">
+            <Stack spacing={2} direction="row" className="swap_bh">
               <Link to="/add_liquidity" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
@@ -107,7 +107,7 @@ function LiquidityCmp() {
 
             style={{ backgroundColor: "transparent", color: darkFontColor }} className="swap_b"
           >
-            <Stack spacing={2} className="swap_b" style={{flexDirection:isMobile ? "column" : "row"}} >
+            <Stack spacing={2} className="swap_bh" style={{flexDirection:isMobile ? "column" : "row"}} >
               <Link to="/add_liquidity" style={{ textDecoration: "none", marginLeft:isMobile ? "0px" : "auto", marginBottom: isMobile?"4px":"0px" }}>
                 <Button
                   size={isMobile ? "small" : "large"}

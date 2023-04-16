@@ -36,7 +36,7 @@ function DashboardCmp() {
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" , padding:"0px 0px 8px 0px"  }}
           >
-            <Stack direction="row">
+            <Stack direction="row" className="swap_bh">
               <Link to="/staking_pool" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"

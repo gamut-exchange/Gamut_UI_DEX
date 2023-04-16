@@ -127,7 +127,7 @@ function Farms(props) {
                                         className={classes.accordion}
                                     >
                                         <Grid container style={{ width: "100%", display: "flex", alignItems: "center" }}>
-                                            <Grid xs={12} sm={4} md={3} sx={{ float: "left", mb: 1 }}>
+                                            <Grid item={true} xs={12} sm={4} md={3} sx={{ float: "left", mb: 1 }}>
                                                 <div className="relative flex gap-x-1">
                                                     <div className="relative flex">
                                                         <img
@@ -152,16 +152,16 @@ function Farms(props) {
                                                     </p>
                                                 </div>
                                             </Grid>
-                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
+                                            <Grid item={true} xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                 <p style={{ fontSize: 13 }}>Earned</p>
                                                 <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.pendingReward)}</p>
                                             </Grid>
-                                            <Grid xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
+                                            <Grid item={true} xs={6} sm={4} md={1} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                 <p style={{ fontSize: 13 }}>APR</p>
                                                 <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item.apr)}%</p>
                                             </Grid>
                                             {!item?.allowed &&
-                                                <Grid xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb: 1 }}>
+                                                <Grid item={true} xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb: 1 }}>
                                                     <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
                                                         <p style={{ fontSize: 13 }}>
                                                             Liquidity
@@ -199,7 +199,7 @@ function Farms(props) {
                                             }
                                             {item?.allowed &&
                                                 <>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb: 1 }}>
+                                                    <Grid item={true} xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb: 1 }}>
                                                         <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
                                                             <p style={{ fontSize: 13 }}>Staked Liquidity
                                                                 <HelpOutline
@@ -233,11 +233,11 @@ function Farms(props) {
                                                             <Typography sx={{ p: 1, fontSize: 13 }}>Total active (in-range) liquidity staked <br />in the farm.</Typography>
                                                         </Popover>
                                                     </Grid>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
+                                                    <Grid item={true} xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                         <p style={{ fontSize: 13 }}>Available</p>
                                                         <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.userlp)} LP</p>
                                                     </Grid>
-                                                    <Grid xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
+                                                    <Grid item={true} xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1", mb: 1 }}>
                                                         <p style={{ fontSize: 13 }}>Staked</p>
                                                         <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item?.stakedVal)} LP</p>
                                                     </Grid>
@@ -247,7 +247,7 @@ function Farms(props) {
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ pt: 0, pl: 0, display: "flex", justifyContent: "center", backgroundColor: "#1b1b3c" }}>
                                         <Grid container sx={{ width: "90%", display: "flex", alignItems: "center", pt: 2 }}>
-                                            <Grid xs={12} md={12} lg={2} sx={{ float: "left", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                            <Grid item={true} xs={12} md={12} lg={2} sx={{ float: "left", display: "flex", flexDirection: "column", alignItems: "center" }}>
                                                 <Link to={"/add_liquidity?pool=" + item?.address} style={{ color: "#13a8ff", fontSize: 13 }}>
                                                     Get {" "}
                                                     {item?.symbols[0]}
@@ -273,7 +273,7 @@ function Farms(props) {
                                                     <AssignmentOutlined sx={{ fontSize: 16 }} />
                                                 </Link>
                                             </Grid>
-                                            <Grid xs={12} md={6} lg={5} sx={{ pr: isMobile ? 0 : 1, pb: 1 }}>
+                                            <Grid item={true} xs={12} md={6} lg={5} sx={{ pr: isMobile ? 0 : 1, pb: 1 }}>
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
@@ -295,7 +295,7 @@ function Farms(props) {
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
-                                            <Grid xs={12} md={6} lg={5} sx={{ pl: isMobile ? 0 : 1, pb: 1 }} >
+                                            <Grid item={true} xs={12} md={6} lg={5} sx={{ pl: isMobile ? 0 : 1, pb: 1 }} >
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     {!item?.allowed && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Enable Farm</Typography>}
                                                     {(item?.allowed && Number(item?.stakedVal) === 0) && <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Stake Pool</Typography>}

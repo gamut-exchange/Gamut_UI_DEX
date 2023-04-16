@@ -33,8 +33,8 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 const AntSwitch = styled(Switch)(({ theme }) => ({
-  width: 48,
-  height: 30,
+  width: 44,
+  height: 24,
   padding: 0,
   display: 'flex',
   '&:active': {
@@ -58,8 +58,8 @@ const AntSwitch = styled(Switch)(({ theme }) => ({
   },
   '& .MuiSwitch-thumb': {
     boxShadow: '0 2px 4px 0 rgb(0 35 11 / 20%)',
-    width: 34,
-    height: 28,
+    width: 30,
+    height: 22,
     borderRadius: 3,
     transition: theme.transitions.create(['width'], {
       duration: 200,
@@ -82,7 +82,7 @@ const StyledSelect = styled(Select)`
     border-width:0px!important;
   },
   & > svg {
-    top:0
+    top:3px
   }
 `;
 
@@ -217,7 +217,7 @@ export default function StackingPool() {
               <Stack direction="row" spacing={1} alignItems="start">
                 <div className="flex flex-col">
                   <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>FILTER BY</FormLabel>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Stack direction="row" spacing={1} sx={{ mt:0.4 }}>
                     <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Finished</Typography>
                     <AntSwitch defaultChecked onChange={handleStatus} inputProps={{ 'aria-label': 'ant design' }} />
                     <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Live</Typography>
@@ -226,7 +226,7 @@ export default function StackingPool() {
               </Stack>
             </Item>
           </Grid>
-          <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+          <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
               style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", marginLeft: 0, minWidth: "180px" }}
@@ -234,15 +234,15 @@ export default function StackingPool() {
               <Stack direction="row" spacing={1} alignItems="center">
                 <div className="flex flex-col">
                   <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>FILTER BY</FormLabel>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Stack direction="row" spacing={1} sx={{ mt:0.4 }}>
                     <AntSwitch onChange={handleStaked} inputProps={{ 'aria-label': 'ant design' }} />
-                    <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Stacked only</Typography>
+                    <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Stacked Only</Typography>
                   </Stack>
                 </div>
               </Stack>
             </Item>
           </Grid>
-          <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+          <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
               style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth: "180px" }}
@@ -276,7 +276,7 @@ export default function StackingPool() {
               </Stack>
             </Item>
           </Grid>
-          <Grid xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+          <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
             <Item
               elevation={1}
               style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth: "180px" }}
