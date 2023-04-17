@@ -85,6 +85,7 @@ function Farms(props) {
                 userlp * 10,
                 farmingPoolAddr
             )
+            props.handlePoolData();
         }
     }
 
@@ -96,6 +97,7 @@ function Farms(props) {
                 provider,
                 farmingPoolAddr
             );
+            props.handlePoolData();
         }
     }
 
@@ -108,7 +110,7 @@ function Farms(props) {
             {props.pools.isLoad &&
                 <>
                     {account &&
-                        props.filteredData.map((item, index) => {
+                        props.filteredData.map((item) => {
                             return (
                                 <Accordion
                                     key={item?.address}
@@ -247,7 +249,7 @@ function Farms(props) {
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ pt: 0, pl: 0, display: "flex", justifyContent: "center", backgroundColor: "#1b1b3c" }}>
                                         <Grid container sx={{ width: "90%", display: "flex", alignItems: "center", pt: 2 }}>
-                                            <Grid item={true} xs={12} md={12} lg={2} sx={{ float: "left", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                            <Grid item={true} xs={12} sm={12} lg={2} sx={{ float: "left", display: "flex", flexDirection: "column", alignItems: "center" }}>
                                                 <Link to={"/add_liquidity?pool=" + item?.address} style={{ color: "#13a8ff", fontSize: 13 }}>
                                                     Get {" "}
                                                     {item?.symbols[0]}

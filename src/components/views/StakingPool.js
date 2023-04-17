@@ -298,7 +298,7 @@ export default function StackingPool() {
           container
           sx={{ width: "100%", mt: 2, mb: 2, backgroundColor: "#12122c", borderRadius: "10px" }}
         >
-          <Farms pools={pools} filteredData={filteredData} />
+          <Farms pools={pools} filteredData={filteredData} handlePoolData={handlePoolData}  />
         </Grid>
       </Grid>
     </div>
