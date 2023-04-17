@@ -82,14 +82,29 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
             e_val = e_val.substr(1);
         e_val = Number(e_val) > 10 ** -8 ? Number(e_val) : toLongNum(e_val);
         setStakeVal(e_val);
-        if (Number(poolData?.userlp) === Number(e_val))
+        if(mtype === 1) {
+            if (Number(poolData?.userlp) === Number(e_val))
             setLimitFlag(1);
         else if (poolData?.userlp / 1.3333 === Number(e_val))
             setLimitFlag(1.3333);
         else if ((poolData?.userlp / 2 === Number(e_val)))
-            setLimitFlag(2)
+            setLimitFlag(2);
         else if ((poolData?.userlp / 4 === Number(e_val)))
-            setLimitFlag(4)
+            setLimitFlag(4);
+        else
+            setLimitFlag(0);
+        } else {
+            if (Number(poolData?.stakedVal) === Number(e_val))
+            setLimitFlag(1);
+        else if (poolData?.stakedVal / 1.3333 === Number(e_val))
+            setLimitFlag(1.3333);
+        else if ((poolData?.stakedVal / 2 === Number(e_val)))
+            setLimitFlag(2);
+        else if ((poolData?.stakedVal / 4 === Number(e_val)))
+            setLimitFlag(4);
+        else
+            setLimitFlag(0);
+        }
     }
 
     const setInLimit = (userlp, position) => {
@@ -138,20 +153,20 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                         </Typography>
                         <div style={{ backgroundColor: "#12122c" }}>
                             <Button
-                                style={{ width: isMobile ? "50%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: isMobile ? "43px" : "48px", fontSize: isMobile ? "9px" : "11px" }}
+                                style={{ width: isMobile ? "50%" : "40%", float: "left", border: "0px", padding: "9px 8px", backgroundColor: "#07071c", minHeight: isMobile ? "43px" : "48px", fontSize: isMobile ? "8px" : "10px" }}
                                 startIcon={
                                     <div style={{ float: "left" }}>
                                         <img
                                             src={poolData?.logoURLs[0]}
                                             alt=""
                                             style={{ float: "left" }}
-                                            className="w-4 md:w-6"
+                                            className="w-3 md:w-5"
                                         />
                                         <img
                                             src={poolData?.logoURLs[1]}
                                             alt=""
                                             style={{ float: "left", marginLeft: -5 }}
-                                            className="w-4 md:w-6"
+                                            className="w-3 md:w-5"
                                         />
                                     </div>
                                 }
@@ -164,7 +179,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                                 id="demo-customized-textbox"
                                 type="text"
                                 value={stakeVal}
-                                inputProps={{ min: 0, max: mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.pendingReward) }}
+                                inputProps={{ min: 0, max: mtype === 1 ? Number(poolData?.userlp) : Number(poolData?.stakedVal) }}
                                 onChange={(e) => handleStakeVal(e)}
                                 onKeyUp={(e) => handleStakeVal(e)}
                                 style={{
@@ -178,7 +193,7 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                             />
                         </div>
                         <div style={{ width: "100%", marginTop: "5px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography sx={{ color: "#6d6d7d", display: "flex", justifyContent: "left", fontSize: isMobile ? 13 : 16, mt: 0.3 }}>
+                            <Typography sx={{ color: "#6d6d7d", display: "flex", justifyContent: "left", fontSize: isMobile ? 13 : 14, mt: 0.3 }}>
                                 Balance: {mtype === 1 ? numFormat(poolData?.userlp) : numFormat(poolData?.stakedVal)}
                             </Typography>
                             <p style={{ display: "flex", color: "#6d6d7d", fontSize: isMobile ? 13 : 16 }}>
@@ -257,14 +272,14 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
                             <Button
                                 size="small"
                                 variant="contained"
-                                disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)}
+                                disabled={staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.stakedVal)}
                                 sx={{
                                     width: isMobile ? "45%" : "35%",
-                                    background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ?
+                                    background: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.stakedVal)) ?
                                         "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)" : "",
                                     marginLeft: 2,
                                     padding: 1,
-                                    color: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.userlp)) ? "#ddd!important" : "",
+                                    color: (staking || Number(stakeVal) === 0 || Number(stakeVal) > Number(poolData?.stakedVal)) ? "#ddd!important" : "",
                                     fontWeight: "bold",
                                 }}
                                 onClick={() => executeStake(poolData?.farmingPoolAddress, stakeVal)}
