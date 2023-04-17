@@ -20,7 +20,7 @@ const StyledModal = tw.div`
   p-4
   min-h-min
   transform -translate-x-1/2 -translate-y-1/2
-  md:w-1/3 w-10/12
+  lg:w-2/5 md:w-2/3 w-10/12
 `;
 
 const Item = styled(Paper)(() => ({
@@ -82,28 +82,28 @@ export default function StakeModal({ mopen, handleClose, mtype, poolData }) {
             e_val = e_val.substr(1);
         e_val = Number(e_val) > 10 ** -8 ? Number(e_val) : toLongNum(e_val);
         setStakeVal(e_val);
-        if(mtype === 1) {
+        if (mtype === 1) {
             if (Number(poolData?.userlp) === Number(e_val))
-            setLimitFlag(1);
-        else if (poolData?.userlp / 1.3333 === Number(e_val))
-            setLimitFlag(1.3333);
-        else if ((poolData?.userlp / 2 === Number(e_val)))
-            setLimitFlag(2);
-        else if ((poolData?.userlp / 4 === Number(e_val)))
-            setLimitFlag(4);
-        else
-            setLimitFlag(0);
+                setLimitFlag(1);
+            else if (poolData?.userlp / 1.3333 === Number(e_val))
+                setLimitFlag(1.3333);
+            else if ((poolData?.userlp / 2 === Number(e_val)))
+                setLimitFlag(2);
+            else if ((poolData?.userlp / 4 === Number(e_val)))
+                setLimitFlag(4);
+            else
+                setLimitFlag(0);
         } else {
             if (Number(poolData?.stakedVal) === Number(e_val))
-            setLimitFlag(1);
-        else if (poolData?.stakedVal / 1.3333 === Number(e_val))
-            setLimitFlag(1.3333);
-        else if ((poolData?.stakedVal / 2 === Number(e_val)))
-            setLimitFlag(2);
-        else if ((poolData?.stakedVal / 4 === Number(e_val)))
-            setLimitFlag(4);
-        else
-            setLimitFlag(0);
+                setLimitFlag(1);
+            else if (poolData?.stakedVal / 1.3333 === Number(e_val))
+                setLimitFlag(1.3333);
+            else if ((poolData?.stakedVal / 2 === Number(e_val)))
+                setLimitFlag(2);
+            else if ((poolData?.stakedVal / 4 === Number(e_val)))
+                setLimitFlag(4);
+            else
+                setLimitFlag(0);
         }
     }
 
