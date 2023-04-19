@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { useSearchParams } from "react-router-dom";
@@ -16,9 +17,9 @@ import {
   Typography,
   Slider,
   InputBase,
-  CircularProgress
+  CircularProgress,
+  Stack
 } from "@mui/material";
-import { Stack } from "@mui/system";
 import {
   ArrowCircleDownRounded,
   Settings,
@@ -102,7 +103,7 @@ export default function Swap() {
   const dispatch = useDispatch();
   const darkFontColor = "#FFFFFF";
   const grayColor = "#6d6d7d";
-  
+
   const [setting, setSetting] = useState(false);
   const [mopen, setMopen] = useState(false);
   const [inValue, setInValue] = useState(0);
@@ -132,7 +133,7 @@ export default function Swap() {
   const [priceDirection, setPriceDirection] = useState(true);
   const [finding, setFinding] = useState(false);
   const [priceImpact, setPriceImpact] = useState(0);
-  const [userERC20Transactions, setUserERC20Transactions] = useState({isLoad: false, data: []});
+  const [userERC20Transactions, setUserERC20Transactions] = useState({ isLoad: false, data: [] });
 
   const pricesData = useTokenPricesData(poolAddress);
   const chartRef = useRef();
@@ -301,7 +302,7 @@ export default function Swap() {
           contractAddresses[selected_chain]["router"]
         );
       setSwapping(false);
-      await setTimeout(function() {
+      await setTimeout(function () {
         fetchUserData();
       }, 10000);
       let inBal = await getTokenBalance(
@@ -516,21 +517,21 @@ export default function Swap() {
           setIsExist(false);
         }
       }
-    // } else if (inToken !== outToken) {
-    //   for (var i = 0; i < poolList[selected_chain].length; i++) {
-    //     if (
-    //       (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
-    //         poolList[selected_chain][i]["symbols"][1] === outToken["symbol"]) ||
-    //       (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
-    //         poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
-    //     ) {
-    //       setIsExist(true);
-    //       setPoolAddress([
-    //         poolList[selected_chain][i]["address"].toLowerCase(),
-    //       ]);
-    //       break;
-    //     }
-    //   }
+      // } else if (inToken !== outToken) {
+      //   for (var i = 0; i < poolList[selected_chain].length; i++) {
+      //     if (
+      //       (poolList[selected_chain][i]["symbols"][0] === inToken["symbol"] &&
+      //         poolList[selected_chain][i]["symbols"][1] === outToken["symbol"]) ||
+      //       (poolList[selected_chain][i]["symbols"][1] === inToken["symbol"] &&
+      //         poolList[selected_chain][i]["symbols"][0] === outToken["symbol"])
+      //     ) {
+      //       setIsExist(true);
+      //       setPoolAddress([
+      //         poolList[selected_chain][i]["address"].toLowerCase(),
+      //       ]);
+      //       break;
+      //     }
+      //   }
     } else {
       setIsExist(false);
       setPoolAddress([]);
@@ -727,7 +728,7 @@ export default function Swap() {
       });
 
       filteredThx.map(async (item) => {
-        if(item.raw_input.name === "swap") {
+        if (item.raw_input.name === "swap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();
           });
@@ -738,10 +739,10 @@ export default function Swap() {
             item.action_type = 0;
             item.token1_symbol = item_token1[0].symbol;
             item.token2_symbol = item_token2[0].symbol;
-            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            web3.eth.getTransactionReceipt(item.hash, function (e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
-              item.amount2 = numFormat(decodedLogs[0].events[3].value/10**item_token2[0].decimals);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[0].events[3].value / 10 ** item_token2[0].decimals);
             });
           } else {
             item.action_type = 0;
@@ -750,21 +751,21 @@ export default function Swap() {
             item.amount1 = 0;
             item.amount2 = 0;
           }
-        } else if(item.raw_input.name === "batchSwap") {
+        } else if (item.raw_input.name === "batchSwap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value[0].toLowerCase();
           });
           let item_token2 = uniList[selected_chain].filter((unit) => {
-            return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length-1].toLowerCase();
+            return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length - 1].toLowerCase();
           });
           if (item_token1 && item_token2) {
             item.action_type = 0;
             item.token1_symbol = item_token1[0].symbol;
             item.token2_symbol = item_token2[0].symbol;
-            web3.eth.getTransactionReceipt(item.hash, function(e, receipt) {
+            web3.eth.getTransactionReceipt(item.hash, function (e, receipt) {
               const decodedLogs = abiDecoder.decodeLogs(receipt.logs);
-              item.amount1 = numFormat(decodedLogs[0].events[2].value/10**item_token1[0].decimals);
-              item.amount2 = numFormat(decodedLogs[decodedLogs.length-1].events[3].value/10**item_token2[0].decimals);
+              item.amount1 = numFormat(decodedLogs[0].events[2].value / 10 ** item_token1[0].decimals);
+              item.amount2 = numFormat(decodedLogs[decodedLogs.length - 1].events[3].value / 10 ** item_token2[0].decimals);
             });
           } else {
             item.action_type = 0;
@@ -775,13 +776,13 @@ export default function Swap() {
           }
         }
       });
-      setUserERC20Transactions({isLoad: true, data: filteredThx})
+      setUserERC20Transactions({ isLoad: true, data: filteredThx })
     });
   };
 
   const setInitialTokens = () => {
     const token_addr = searchParams.get("token");
-    if(token_addr) {
+    if (token_addr) {
 
       let token_item1 = uniList[selected_chain].filter((unit) => {
         return unit.address.toLowerCase() === "0x0000000000000000000000000000000000000000";
@@ -876,32 +877,35 @@ export default function Swap() {
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding: "0px 0px 8px 0px" }}
           >
-            <Stack spacing={2} direction="row" className="swap_bh">
-              <Button
-                size="large"
-                variant="contained"
-                sx={{ width: 200, padding: 2, fontWeight: "bold" }}
-                style={{
-                  background:
-                    "linear-gradient(to right bottom, #13a8ff, #0074f0)",
-                }}
-              >
-                ON-CHAIN
-              </Button>
-              {/* <Button
-                size="large"
-                variant="contained"
-                sx={{
-                  width: 200,
-                  padding: 2,
-                  fontWeight: "bold",
-
-                  backgroundColor:
-                    "#12122c"
-                }}
-              >
-                CROSS CHAIN
-              </Button> */}
+            <Stack spacing={2} direction={isMobile?"column":"row"} className="swap_bh">
+              <Link to="/swap">
+                <Button
+                  size="large"
+                  variant="contained"
+                  sx={{ width: 200, padding: 2, fontWeight: "bold" }}
+                  style={{
+                    background:
+                      "linear-gradient(to right bottom, #13a8ff, #0074f0)",
+                  }}
+                >
+                  ON-CHAIN
+                </Button>
+              </Link>
+              <Link to="/ramp" style={{ textDecoration: "none" }}>
+                <Button
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    width: 200,
+                    padding: 2,
+                    fontWeight: "bold",
+                    backgroundColor:
+                      "#12122c!important"
+                  }}
+                >
+                  ON-OFF-RAMP
+                </Button>
+              </Link>
             </Stack>
           </Item>
         </Grid>

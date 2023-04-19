@@ -2,6 +2,7 @@ import './App.css';
 import "./style/global.css";
 import Header from './components/views/Header';
 import Swap from './components/views/Swap';
+import Ramp from './components/views/Ramp';
 import Footer from './components/views/Footer';
 import CLiquidity from './components/views/CLiquidity';
 import Liquidity from './components/views/Liquidity';
@@ -30,6 +31,7 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Swap />} />
+          <Route path="/ramp" element={<Ramp />} />
           <Route path="/add_liquidity" element={<Liquidity />} />
           <Route path="/create_liquidity" element={<CLiquidity />} />
           <Route path="/remove_liquidity" element={<RLiquidity />} />
