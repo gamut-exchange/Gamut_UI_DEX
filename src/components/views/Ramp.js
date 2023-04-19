@@ -68,20 +68,16 @@ export default function Ramp() {
                     </Item>
                 </Grid>
                 <Grid item={true} xs={12} sx={{ p: 1, display: "flex", justifyContent: "center" }}>
-                    {!process.env.REACT_APP_DEVELOPMENT_MODE &&
-                        <iframe height="755" title="Transak On/Off Ramp Widget"
-                            src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&defaultCryptoCurrency=KAVA"}
-                            frameBorder="no" allowTransparency="true" allowFullScreen=""
-                            style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
-                        </iframe>
-                    }
-                    {process.env.REACT_APP_DEVELOPMENT_MODE &&
-                        <iframe height="755" title="Transak On/Off Ramp Widget"
-                            src={"https://global-stg.transak.com?apiKey=cf5868eb-a8bb-45c8-a2db-4309e5f8b412&defaultCryptoCurrency=KAVA"}
-                            frameBorder="no" allowTransparency="true" allowFullScreen=""
-                            style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
-                        </iframe>
-                    }
+                    <iframe height="755" title="Transak On/Off Ramp Widget"
+                        src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&defaultCryptoCurrency=KAVA"}
+                        frameBorder="no" allowTransparency="true" allowFullScreen=""
+                        style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
+                    </iframe>
+                    {/* <iframe height="755" title="Transak On/Off Ramp Widget"
+                        src={"https://global-stg.transak.com?apiKey=cf5868eb-a8bb-45c8-a2db-4309e5f8b412&defaultCryptoCurrency=KAVA"}
+                        frameBorder="no" allowTransparency="true" allowFullScreen=""
+                        style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
+                    </iframe> */}
                 </Grid>
             </Grid>
         </div>
