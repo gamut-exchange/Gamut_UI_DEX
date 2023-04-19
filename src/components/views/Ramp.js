@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useWeb3React } from "@web3-react/core";
 import {
     Grid,
     useMediaQuery,
     Paper,
     Button,
     Stack,
-    Typography,
-    Box
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Link } from "react-router-dom";
-import { openTransak } from "../../config/openTransak";
+
+// Import ethers and bech32
+import { ethers } from 'ethers';
+import bech32 from 'bech32';
+
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -21,8 +24,30 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 export default function Ramp() {
+    const { account } = useWeb3React();
+
     const isMobile = useMediaQuery("(max-width:600px)");
     const darkFontColor = "#FFFFFF";
+    const [kavaAddress, setKavaAddress] = useState("");
+
+    const ethToKavaAddress = (ethereumAddress) => {
+        try {
+            return bech32.encode(
+                'kava',
+                bech32.toWords(
+                    ethers.utils.arrayify(ethers.utils.getAddress(ethereumAddress))
+                )
+            );
+        } catch (err) {
+            return '';
+        };
+
+    };
+
+    useEffect(() => {
+        let kavaAddr = ethToKavaAddress(account);
+        setKavaAddress(kavaAddr);
+    }, [account]);
 
     return (
         <div style={{ display: "flex", justifyContent: "center" }}>
@@ -69,13 +94,13 @@ export default function Ramp() {
                 </Grid>
                 <Grid item={true} xs={12} sx={{ p: 1, display: "flex", justifyContent: "center" }}>
                     <iframe height="755" title="Transak On/Off Ramp Widget"
-                        src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&defaultCryptoCurrency=KAVA"}
-                        frameBorder="no" allowTransparency="true" allowFullScreen=""
+                        src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&cryptoCurrencyCode=KAVA&walletAddress="+kavaAddress}
+                        frameBorder="no" allowtransparency="true" allowFullScreen=""
                         style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
                     </iframe>
                     {/* <iframe height="755" title="Transak On/Off Ramp Widget"
                         src={"https://global-stg.transak.com?apiKey=cf5868eb-a8bb-45c8-a2db-4309e5f8b412&defaultCryptoCurrency=KAVA"}
-                        frameBorder="no" allowTransparency="true" allowFullScreen=""
+                        frameBorder="no" allowtransparency="true" allowFullScreen=""
                         style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
                     </iframe> */}
                 </Grid>

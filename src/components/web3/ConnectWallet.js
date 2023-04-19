@@ -149,16 +149,6 @@ const ConnectWallet = ({
         await changeChain(chain);
     };
 
-    const kavaToEthAddress = (kavaAddress) => {
-        try {
-          return ethers.utils.getAddress(
-            ethers.utils.hexlify(bech32.fromWords(bech32.decode(kavaAddress).words))
-          );
-        } catch (err) {
-          return '';
-        }
-    };
-
     const ethToKavaAddress = (ethereumAddress) => {
         try {
           return bech32.encode(
