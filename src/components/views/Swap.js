@@ -828,8 +828,6 @@ export default function Swap() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  // let handleValueTimer;
-
   useEffect(() => {
     getStatusData(inValue);
     const intervalId = setInterval(() => {

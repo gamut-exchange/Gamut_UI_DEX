@@ -161,6 +161,10 @@ export default function RLiquidity() {
     await calculateOutput(totalLPTokens, value, weight1, tokenA, tokenB);
   };
 
+  const handleValue = (event) => {
+    setValue(toLongNum(event.target.value));
+  } 
+
   const calculateOutput = async (totalLkTk, inValue, weight1, token1, token2) => {
     const poolData = await getPoolData(
       provider,
@@ -720,7 +724,7 @@ export default function RLiquidity() {
                 <BootstrapInput
                   id="demo-customized-textbox"
                   type="text"
-                  value={numFormat(value)}
+                  value={value}
                   min={0}
                   style={{
                     color: "#FFFFFF",
@@ -729,7 +733,8 @@ export default function RLiquidity() {
                     borderLeft: "1px solid white",
                     borderRadius: "14px",
                   }}
-                  readOnly={true}
+                  onChange={handleValue}
+                  onKeyUp={handleValue}
                 />
               </div>
             </FormControl>
