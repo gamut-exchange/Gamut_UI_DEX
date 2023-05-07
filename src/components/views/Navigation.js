@@ -98,17 +98,17 @@ function Navigation() {
                 Dashboard
               </Button>
             </Link>
-            <Link to="/staking_pool" style={{ textDecoration: "none" }}>
+            {/* <Link to="/staking_pool" style={{ textDecoration: "none" }}>
               <Button
                 // key={item}
                 sx={{ color: active === "staking" ? menuColor : "white", pr: 5 }}
                 style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
                 onClick={() => setActive("staking")}
               >
-                {/* {item} */}
+                {/* {item} 
                 Earn
               </Button>
-            </Link>
+            </Link> */}
           </Box>
         </Toolbar>
       </AppBar>
