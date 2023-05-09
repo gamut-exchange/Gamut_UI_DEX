@@ -44,7 +44,7 @@ export const poolList = {
 		{ value: "other", address: "0x12cf7f580C82329851c9F122be72cD6a26e030ff", symbols: ["axlUSDC", "WBTC"], logoURLs: ["/icons/usdc.svg", "/icons/wbtc.png"] },
 		{ value: "other", address: "0xdf8D9C2eE3dd09e9D420C4384400Adc29b799545", symbols: ["axlUSDC", "ETH"], logoURLs: ["/icons/usdc.svg", "/icons/eth.png"] },
 		{ value: "other", address: "0x6B4F8d7d330F71a7B4fd706E11a974e9D8B25239", symbols: ["axlUSDC", "ELK"], logoURLs: ["/icons/usdc.svg", "/icons/elk.png"] },
-		{ value: "other", address: "0x31D97cad1Ab7aAA4Db9b2C7562948D9C244a5171", symbols: ["axlUSDC", "AXL"], logoURLs: ["/icons/usdc.svg", "/icons/axl.png"] },
+		{ value: "other", address: "0x31D97cad1Ab7aAA4Db9b2C7562948D9C244a5171", symbols: ["axlUSDC", "AXL"], logoURLs: ["/icons/usdc.svg", "/icons/axl.svg"] },
 		{ value: "other", address: "0xe5a3Af14Cdf4D7CE495650c7E9Fc35bd29A277A3", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.svg", "/icons/eth.png"] },
 		{ value: "other", address: "0x0E916a0D53a6D5E38A8F80bA59204Fcadecf1D44", symbols: ["WKAVA", "WBTC"], logoURLs: ["/icons/wkava.svg", "/icons/wbtc.png"] },
 		{ value: "other", address: "0x69F85DB1E51154Ae6B2803D5292c692d9598FF57", symbols: ["WBTC", "ETH"], logoURLs: ["/icons/wbtc.svg", "/icons/eth.png"] },

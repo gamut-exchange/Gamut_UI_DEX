@@ -875,7 +875,7 @@ export default function Swap() {
             elevation={1}
             style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px", padding: "0px 0px 8px 0px" }}
           >
-            <Stack spacing={2} direction={isMobile?"column":"row"} className="swap_bh">
+            <Stack spacing={2} direction={isMobile ? "column" : "row"} className="swap_bh">
               <Link to="/swap">
                 <Button
                   size="large"
@@ -902,6 +902,21 @@ export default function Swap() {
                   }}
                 >
                   ON-OFF-RAMP
+                </Button>
+              </Link>
+              <Link to="/cross_chain" style={{ textDecoration: "none" }}>
+                <Button
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    width: 200,
+                    padding: 2,
+                    fontWeight: "bold",
+                    backgroundColor:
+                      "#12122c!important"
+                  }}
+                >
+                  CROSS-CHAIN
                 </Button>
               </Link>
             </Stack>

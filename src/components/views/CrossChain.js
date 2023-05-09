@@ -1,3 +1,5 @@
+
+import { SquidWidget } from "@0xsquid/widget";
 import React, { useEffect, useState } from "react";
 import { useWeb3React } from "@web3-react/core";
 import {
@@ -8,6 +10,7 @@ import {
     Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import logo from "../../images/logo.svg";
 import { Link } from "react-router-dom";
 
 // Import ethers and bech32
@@ -23,7 +26,7 @@ const Item = styled(Paper)(({ theme }) => ({
     color: "theme.palette.text.secondary",
 }));
 
-export default function Ramp() {
+export default function CrossChain() {
     const { account } = useWeb3React();
 
     const isMobile = useMediaQuery("(max-width:600px)");
@@ -72,7 +75,16 @@ export default function Ramp() {
                                     ON-CHAIN
                                 </Button>
                             </Link>
-                            <Link to="/ramp" style={{ textDecoration: "none" }}>
+                            <Link to="/ramp">
+                                <Button
+                                    size="large"
+                                    variant="contained"
+                                    sx={{ width: 200, padding: 2, fontWeight: "bold", backgroundColor: "#12122c!important" }}
+                                >
+                                    ON-OFF-RAMP
+                                </Button>
+                            </Link>
+                            <Link to="/cross_chain" style={{ textDecoration: "none" }}>
                                 <Button
                                     size="large"
                                     variant="contained"
@@ -86,15 +98,6 @@ export default function Ramp() {
                                             "linear-gradient(to right bottom, #13a8ff, #0074f0)",
                                     }}
                                 >
-                                    ON-OFF-RAMP
-                                </Button>
-                            </Link>
-                            <Link to="/cross_chain">
-                                <Button
-                                    size="large"
-                                    variant="contained"
-                                    sx={{ width: 200, padding: 2, fontWeight: "bold", backgroundColor: "#12122c!important" }}
-                                >
                                     CROSS-CHAIN
                                 </Button>
                             </Link>
@@ -102,16 +105,56 @@ export default function Ramp() {
                     </Item>
                 </Grid>
                 <Grid item={true} xs={12} sx={{ p: 1, display: "flex", justifyContent: "center" }}>
-                    <iframe height="755" title="Transak On/Off Ramp Widget"
-                        src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&cryptoCurrencyCode=KAVA&walletAddress="+kavaAddress}
-                        frameBorder="no" allowtransparency="true" allowFullScreen=""
-                        style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
-                    </iframe>
-                    {/* <iframe height="755" title="Transak On/Off Ramp Widget"
-                        src={"https://global-stg.transak.com?apiKey=cf5868eb-a8bb-45c8-a2db-4309e5f8b412&defaultCryptoCurrency=KAVA"}
-                        frameBorder="no" allowtransparency="true" allowFullScreen=""
-                        style={{ display: "block", width: "100%", maxHeight: "755px", maxWidth: "500px" }}>
-                    </iframe> */}
+                    <SquidWidget style={{ display:"flex", justifyContent:"center" }} config={
+                        {
+                            "companyName": "Gamut",
+                            "style": {
+                                "neutralContent": "#959BB2",
+                                "baseContent": "#E8ECF2",
+                                "base100": "#10151B",
+                                "base200": "#272D3D",
+                                "base300": "#171D2B",
+                                "error": "#ED6A5E",
+                                "warning": "#FFB155",
+                                "success": "#62C555",
+                                "primary": "#0583f4",
+                                "secondary": "#0583f4",
+                                "secondaryContent": "#191C29",
+                                "neutral": "#191C29",
+                                "roundedBtn": "5px",
+                                "roundedBox": "5px",
+                                "roundedDropDown": "7px",
+                                "displayDivider": true
+                            },
+                            "mainLogoUrl": "/logo-bow.svg",
+                            "slippage": 1.5,
+                            "infiniteApproval": false,
+                            "enableExpress": false,
+                            "apiUrl": "https://api.squidrouter.com",
+                            "comingSoonChainIds": [
+                                "cosmoshub-4",
+                                "injective-1",
+                                "axelar-dojo-1",
+                                "kichain-2"
+                            ],
+                            "titles": {
+                                "swap": "Convert",
+                                "settings": "Settings",
+                                "wallets": "Wallets",
+                                "tokens": "Tokens",
+                                "chains": "Chains",
+                                "history": "History",
+                                "transaction": "Transaction",
+                                "allTokens": "Tokens",
+                                "destination": "Destination address"
+                            },
+                            "priceImpactWarnings": {
+                                "warning": 3,
+                                "critical": 5
+                            }
+                        }
+                    } />
+
                 </Grid>
             </Grid>
         </div>
