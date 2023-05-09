@@ -101,7 +101,7 @@ export default function Ramp() {
                         </Stack>
                     </Item>
                 </Grid>
-                <Grid item={true} xs={12} sx={{ p: 1, display: "flex", justifyContent: "center" }}>
+                <Grid item={true} xs={12} sx={{ p: 1 }}>
                     <iframe height="755" title="Transak On/Off Ramp Widget"
                         src={"https://global.transak.com?apiKey=b4a16117-a759-43c5-a95e-6f4832ebd835&cryptoCurrencyCode=KAVA&walletAddress="+kavaAddress}
                         frameBorder="no" allowtransparency="true" allowFullScreen=""
