@@ -1,6 +1,6 @@
 
-import { SquidWidget } from "@0xsquid/widget";
 import React, { useEffect, useState } from "react";
+import { SquidWidget } from "@0xsquid/widget";
 import { useWeb3React } from "@web3-react/core";
 import {
     Grid,
@@ -10,7 +10,6 @@ import {
     Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import logo from "../../images/logo.svg";
 import { Link } from "react-router-dom";
 
 // Import ethers and bech32

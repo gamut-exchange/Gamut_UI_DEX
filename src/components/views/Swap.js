@@ -758,7 +758,7 @@ export default function Swap() {
           let item_token2 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[1].value[item.raw_input.params[1].value.length - 1].toLowerCase();
           });
-          if (item_token1 && item_token2) {
+          if (item_token1.length !== 0 && item_token2.length !== 0) {
             item.action_type = 0;
             item.token1_symbol = item_token1[0].symbol;
             item.token2_symbol = item_token2[0].symbol;
