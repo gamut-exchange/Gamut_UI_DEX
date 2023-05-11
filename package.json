@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@0xsquid/widget": "^1.4.76-beta.0",
     "@apollo/client": "3.3.15",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
