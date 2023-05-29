@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWeb3React } from "@web3-react/core";
-import { AccordionDetails, AccordionSummary, Accordion, Grid, Box, CircularProgress, Popover, Typography, Button, useMediaQuery } from '@mui/material'
+import { AccordionDetails, AccordionSummary, Accordion, Grid, Box, CircularProgress, Popover, Typography, Button, useMediaQuery } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import { HelpOutline, DirectionsOutlined, AssignmentOutlined } from '@mui/icons-material';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@mui/styles";
@@ -42,6 +43,7 @@ function Farms(props) {
     const [mopen, setMopen] = useState(false);
     const [mtype, setMtype] = useState(1);
     const [poolData, setPoolData] = useState(null);
+    const [withdrawEnable, setWithdrawEnable] = useState(false);
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -100,6 +102,13 @@ function Farms(props) {
             props.handlePoolData();
         }
     }
+
+    useEffect(() => {
+        const startTimestamp = 1699653600000;
+        const currentTimestamp = (new Date()).getTime();
+        if (Number(currentTimestamp) > startTimestamp)
+            setWithdrawEnable(true);
+    }, []);
 
     // const viewBlockUrl = (hash) => {
     //     window.open(`https://explorer.kava.io/tx/${hash}`);
@@ -280,20 +289,39 @@ function Farms(props) {
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
                                                         <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>{numFormat(item?.pendingReward)}</Typography>
-                                                        <Button
-                                                            size="small"
-                                                            variant="contained"
-                                                            disabled={!item?.allowed}
-                                                            sx={{
-                                                                color: "white!important",
-                                                                width: 150,
-                                                                padding: 1,
-                                                                fontWeight: "bold",
-                                                            }}
-                                                            onClick={() => executeHarvest(item?.farmingPoolAddress)}
-                                                        >
-                                                            Harvest
-                                                        </Button>
+                                                        {withdrawEnable &&
+                                                            <Button
+                                                                size="small"
+                                                                variant="contained"
+                                                                disabled={!item?.allowed}
+                                                                sx={{
+                                                                    color: "white!important",
+                                                                    width: 150,
+                                                                    padding: 1,
+                                                                    fontWeight: "bold",
+                                                                }}
+                                                                onClick={() => executeHarvest(item?.farmingPoolAddress)}
+                                                            >
+                                                                Harvest
+                                                            </Button>
+                                                        }
+                                                        {!withdrawEnable &&
+                                                            <Tooltip title="Claim on Nov.11" placement="top" arrow>
+                                                                <Button
+                                                                    size="small"
+                                                                    variant="contained"
+                                                                    sx={{
+                                                                        color: "white!important",
+                                                                        background:"linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                                                                        width: 150,
+                                                                        padding: 1,
+                                                                        fontWeight: "bold",
+                                                                    }}
+                                                                >
+                                                                    Harvest
+                                                                </Button>
+                                                            </Tooltip>
+                                                        }
                                                     </Grid>
                                                 </Grid>
                                             </Grid>

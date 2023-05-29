@@ -52,5 +52,9 @@ export const poolList = {
 }
 
 export const farmingPoolList = {
-	'kava': []
+	'kava': [
+		{ value: "other", address: "0x25bcA9E2B311dE3611627b0953A69A6e646968e1", farmingPoolAddress: "0x49D1b387E1388B921cf5C9fc988aFB53A1DD4AE6", symbols: ["axlUSDC", "WKAVA"], logoURLs: ["/icons/usdc.svg", "/icons/wkava.png"] },
+		{ value: "other", address: "0xe5a3Af14Cdf4D7CE495650c7E9Fc35bd29A277A3", farmingPoolAddress: "0x2e783f58299d0b0bf48d971639fe084bd255294e", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.png", "/icons/eth.png"] },
+		{ value: "other", address: "0x0E916a0D53a6D5E38A8F80bA59204Fcadecf1D44", farmingPoolAddress: "0x726614ccaf5745195d906ea2e4b564dfdac518ef", symbols: ["WKAVA", "WBTC"], logoURLs: ["/icons/wkava.png", "/icons/wbtc.png"] },
+	]
 }
