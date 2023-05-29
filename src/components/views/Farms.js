@@ -145,7 +145,7 @@ function Farms(props) {
                                                             src={
                                                                 item?.logoURLs[0]
                                                             }
-                                                            alt="" className="w-[16px] h-[16px]"
+                                                            alt="" className="w-[32px] h-[32px]"
                                                         />
                                                         <img
                                                             className="z-10 relative right-2 w-[32px] h-[32px]"
@@ -288,7 +288,7 @@ function Farms(props) {
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
-                                                        <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>{numFormat(item?.pendingReward)}</Typography>
+                                                        <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>{numFormat(item?.pendingReward)+" GAM"}</Typography>
                                                         {withdrawEnable &&
                                                             <Button
                                                                 size="small"
