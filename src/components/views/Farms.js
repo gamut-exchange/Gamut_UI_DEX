@@ -145,7 +145,7 @@ function Farms(props) {
                                                             src={
                                                                 item?.logoURLs[0]
                                                             }
-                                                            alt="" className="w-[32px] h-[32px]"
+                                                            alt="" className="w-[16px] h-[16px]"
                                                         />
                                                         <img
                                                             className="z-10 relative right-2 w-[32px] h-[32px]"

@@ -953,6 +953,7 @@ export const getAllFarmPools = async (provider, account, farmList) => {
         const totalStaked = await poolContract.methods["balanceOf"](farmList[i].farmingPoolAddress).call();
         const lp_balance = await poolContract.methods["balanceOf"](account).call();
         const stakedVal = await farmContract.methods["userInfo"](account).call();
+        const rewardPerBlock = await farmContract.methods["rewardPerBlock"]().call();
         const pendingReward = await farmContract.methods["pendingReward"](account).call();
         const startBlock = await farmContract.methods["startBlock"]().call();
         const endBlock = await farmContract.methods["bonusEndBlock"]().call();
@@ -965,7 +966,7 @@ export const getAllFarmPools = async (provider, account, farmList) => {
         const userstakedlp = ethers.utils.formatEther(stakedVal.amount);
         const userreward = ethers.utils.formatEther(pendingReward);
         if (Number(totallp) !== 0) {
-            let apr = Number(totalStaked) !== 0?calcAPR(initialPoolData, totalStaked, poolTokenAndBalance, weight, decimal1, decimal2):0;
+            let apr1 = Number(totalStaked) !== 0 ? calcAPR(initialPoolData, totalStaked, poolTokenAndBalance, weight, decimal1, decimal2) : 0;
             await axios
                 .get(
                     `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
@@ -975,9 +976,10 @@ export const getAllFarmPools = async (provider, account, farmList) => {
                         if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
                             let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                                 response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                            let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
                             pools.push({
                                 ...farmList[i],
-                                apr: apr * 1,
+                                apr: (apr1 * 1 + apr2 * 1),
                                 userlp: userlp * 1,
                                 totalStakedUSD: (lp * stakedlp),
                                 totalSupplyUSD: (lp * totallp),
@@ -991,9 +993,10 @@ export const getAllFarmPools = async (provider, account, farmList) => {
                         } else {
                             let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                                 response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                            let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
                             pools.push({
                                 ...farmList[i],
-                                apr: apr * 1,
+                                apr: (apr1 * 1 + apr2 * 1),
                                 userlp: userlp * 1,
                                 totalStakedUSD: (lp * stakedlp),
                                 totalSupplyUSD: (lp * totallp),
@@ -1008,7 +1011,7 @@ export const getAllFarmPools = async (provider, account, farmList) => {
                     } else {
                         pools.push({
                             ...farmList[i],
-                            apr: apr,
+                            apr: apr1 * 1,
                             userlp: 0,
                             totalStakedUSD: 0,
                             totalSupplyUSD: 0,
@@ -1055,6 +1058,16 @@ const calcAPR = (initialPoolData, supply, poolTokenAndBalance, weights, decimal1
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         let apy = (apr_yield / diffDays) * 365;
         let apr = ((apy + 1) ** (1 / 52) - 1) * 52;
+        return apr;
+    } else {
+        return 0;
+    }
+}
+
+const calcStakingAPR = (rewardPerBlock, startBlock, endBlock, stakedlpusd) => {
+    if (stakedlpusd !== 0) {
+        const rewardusd = (Number(endBlock) - Number(startBlock)) * (rewardPerBlock / 10 ** 18) * 0.25;
+        let apr = (rewardusd / stakedlpusd) * 100;
         return apr;
     } else {
         return 0;
