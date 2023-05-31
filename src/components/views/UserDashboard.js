@@ -150,7 +150,6 @@ export default function UDashboard() {
         )
         .then(async (response) => {
           totalTokemAmount += response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * coinAmount;
-          console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * coinAmount);
         });
       setUserERC20({ isLoad: true, data: filteredTokens, total: numFormat(totalTokemAmount) });
     });
@@ -273,7 +272,7 @@ export default function UDashboard() {
       });
       filteredThx.filter((item) => {
         return item.action_type !== 3;
-      });
+      });      
       await setUserERC20Transactions({ isLoad: true, data: filteredThx })
     });
   };

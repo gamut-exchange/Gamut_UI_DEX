@@ -673,7 +673,7 @@ export const stakePool = async (
     setStaking
 ) => {
     let web3 = new Web3(provider);
-    let depositAmount = web3.utils.toWei(numFormat(value));
+    let depositAmount = web3.utils.toWei(numFormat(value).toString());
     let contract = new web3.eth.Contract(farmABI, farmingPoolAddress);
     try {
         await contract.methods["deposit"](depositAmount).send({ from: account });
@@ -690,7 +690,7 @@ export const unStakePool = async (
     setStaking
 ) => {
     let web3 = new Web3(provider);
-    let withdrawAmount = web3.utils.toWei(numFormat(value));
+    let withdrawAmount = web3.utils.toWei(numFormat(value).toString());
     let contract = new web3.eth.Contract(farmABI, farmingPoolAddress);
     try {
         await contract.methods["withdraw"](withdrawAmount).send({ from: account });
@@ -822,6 +822,10 @@ export const getHoldingInLP = async (provider, account, poolList) => {
                             if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
                                 let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                                     response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                                console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price);
+                                console.log((poolTokenAndBalance?.balances[0] / 10 ** decimal1));
+                                console.log(response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price);
+                                console.log(poolTokenAndBalance?.balances[1] / 10 ** decimal2);
                                 LPHolding.push({
                                     ...poolList[i],
                                     apr: apr,
@@ -977,6 +981,8 @@ export const getAllFarmPools = async (provider, account, farmList) => {
                             let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                                 response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
                             let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
+                            console.log(apr1);
+                            console.log(apr2);
                             pools.push({
                                 ...farmList[i],
                                 apr: (apr1 * 1 + apr2 * 1),
@@ -994,6 +1000,8 @@ export const getAllFarmPools = async (provider, account, farmList) => {
                             let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
                                 response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
                             let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
+                            console.log(apr1);
+                            console.log(apr2);
                             pools.push({
                                 ...farmList[i],
                                 apr: (apr1 * 1 + apr2 * 1),
@@ -1067,7 +1075,9 @@ const calcAPR = (initialPoolData, supply, poolTokenAndBalance, weights, decimal1
 const calcStakingAPR = (rewardPerBlock, startBlock, endBlock, stakedlpusd) => {
     if (stakedlpusd !== 0) {
         const rewardusd = (Number(endBlock) - Number(startBlock)) * (rewardPerBlock / 10 ** 18) * 0.25;
-        let apr = (rewardusd / stakedlpusd) * 100;
+        console.log((Number(endBlock) - Number(startBlock)));
+        console.log(rewardPerBlock / 10 ** 18);
+        let apr = (rewardusd / stakedlpusd);
         return apr;
     } else {
         return 0;

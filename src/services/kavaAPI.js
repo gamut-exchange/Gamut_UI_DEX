@@ -33,7 +33,7 @@ export const getKavaTx = (address, limit) => {
     params: {
       module: "account",
       action: "txlist",
-      startblock: "4656916",
+      startblock: "4667864",
       offset: limit,
       page: 1,
     },
