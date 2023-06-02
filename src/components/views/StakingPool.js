@@ -20,7 +20,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   getAllFarmPools
 } from "../../config/web3";
-import { farmingPoolList } from "../../config/constants";
+import { contractAddresses, farmingPoolList } from "../../config/constants";
 import StakingCmp from "./StakingCmp";
 import Farms from "./Farms";
 
@@ -178,7 +178,8 @@ export default function StackingPool() {
     getAllFarmPools(
       provider,
       account,
-      farmingPoolListData
+      farmingPoolListData,
+      contractAddresses[selected_chain]["hedgeFactory"]
     ).then((response) => {
       setPools({
         isLoad: true,

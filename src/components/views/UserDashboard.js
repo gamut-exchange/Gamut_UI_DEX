@@ -31,7 +31,7 @@ import { Link } from "react-router-dom";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardCmp from "./DashboardCmp";
 import { getKavaERC20, getKavaTx } from "../../services/kavaAPI";
-import { poolList, farmingPoolList } from "../../config/constants";
+import { contractAddresses, poolList, farmingPoolList } from "../../config/constants";
 import { getHoldingInLP, getHoldingInFarms } from "../../config/web3";
 import routerABI from "../../assets/abi/router";
 import abiDecoder from "../../config/abiDecoder";
@@ -282,13 +282,15 @@ export default function UDashboard() {
     const UserLPTokens = await getHoldingInLP(
       provider,
       account,
-      poolList[selected_chain]
+      poolList[selected_chain],
+      contractAddresses[selected_chain]["hedgeFactory"]
     );
 
     const userStakedLPTokens = await getHoldingInFarms(
       provider,
       account,
-      farmingPoolList[selected_chain]
+      farmingPoolList[selected_chain],
+      contractAddresses[selected_chain]["hedgeFactory"]
     );
 
     let totalLP = 0;

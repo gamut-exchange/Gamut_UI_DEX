@@ -171,7 +171,7 @@ function Farms(props) {
                                                 <p style={{ fontSize: 13 }}>APR</p>
                                                 <p style={{ color: "lightgray", fontWeight: "bold" }}>{numFormat(item.apr)}%</p>
                                             </Grid>
-                                            {!item?.allowed &&
+                                            {(!item?.allowed || Number(item?.userlp) === 0) &&
                                                 <Grid item={true} xs={6} sm={6} md={3} sx={{ float: "left", display: "flex", flexDirection: "row", mb: 1 }}>
                                                     <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
                                                         <p style={{ fontSize: 13 }}>
@@ -208,7 +208,7 @@ function Farms(props) {
                                                     </Popover>
                                                 </Grid>
                                             }
-                                            {item?.allowed &&
+                                            {(item?.allowed && Number(item?.userlp) !== 0) &&
                                                 <>
                                                     <Grid item={true} xs={6} sm={4} md={2} sx={{ float: "left", display: "flex", flexDirection: "row", alignItems: "center", mb: 1 }}>
                                                         <div style={{ float: "left", display: "flex", flexDirection: "column", color: "#84b1e1" }}>
@@ -288,7 +288,7 @@ function Farms(props) {
                                                 <Grid item={true} sx={{ border: "1px solid lightgray", borderRadius: "4px", p: 2 }}>
                                                     <Typography sx={{ fontWeight: "bold", fontSize: 12 }}>Earned</Typography>
                                                     <Grid item={true} sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
-                                                        <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>{numFormat(item?.pendingReward)+" GAM"}</Typography>
+                                                        <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>{numFormat(item?.pendingReward) + " GAM"}</Typography>
                                                         {withdrawEnable &&
                                                             <Button
                                                                 size="small"
@@ -312,7 +312,7 @@ function Farms(props) {
                                                                     variant="contained"
                                                                     sx={{
                                                                         color: "white!important",
-                                                                        background:"linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
+                                                                        background: "linear-gradient(to right bottom, #5e5c5c, #5f6a9d)",
                                                                         width: 150,
                                                                         padding: 1,
                                                                         fontWeight: "bold",
@@ -340,7 +340,7 @@ function Farms(props) {
                                                         </Typography>}
                                                     {Number(item?.stakedVal) === 0 &&
                                                         <Grid sx={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", mt: 1 }}>
-                                                            {!item?.allowed &&
+                                                            {(!item?.allowed && Number(item?.userlp) !== 0) &&
                                                                 <Button
                                                                     size="small"
                                                                     variant="contained"
@@ -354,7 +354,7 @@ function Farms(props) {
                                                                     Enable
                                                                 </Button>
                                                             }
-                                                            {(item?.allowed && Number(item?.stakedVal) === 0) &&
+                                                            {(item?.allowed && Number(item?.userlp) !== 0) &&
                                                                 <Button
                                                                     size="small"
                                                                     variant="contained"
@@ -367,6 +367,22 @@ function Farms(props) {
                                                                 >
                                                                     Stake
                                                                 </Button>
+                                                            }
+                                                            {(Number(item?.userlp) === 0) &&
+                                                                <Link to={"/add_liquidity?pool=" + item?.address} style={{ width: "100%", display:"block" }}>
+                                                                    <Button
+                                                                        type
+                                                                        size="small"
+                                                                        variant="contained"
+                                                                        sx={{
+                                                                            width: "100%",
+                                                                            padding: 1,
+                                                                            fontWeight: "bold",
+                                                                        }}
+                                                                    >
+                                                                        Add Liquidity
+                                                                    </Button>
+                                                                </Link>
                                                             }
                                                         </Grid>
                                                     }

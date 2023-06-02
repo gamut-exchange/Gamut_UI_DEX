@@ -6,7 +6,7 @@ import poolABI from "../assets/abi/pool";
 import farmABI from "../assets/abi/farm";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
-import { chainIds } from "./constants";
+import { chainIds, contractAddresses } from "./constants";
 import { getInitialPoolData } from "./seedData";
 import axios from "axios";
 
@@ -788,7 +788,7 @@ export const getAllPools = async (provider, account, contractAddr) => {
 };
 
 // User Holding in All Pools ----------------------------------------------------------------------
-export const getHoldingInLP = async (provider, account, poolList) => {
+export const getHoldingInLP = async (provider, account, poolList, factoryContract) => {
     let web3 = new Web3(provider);
     const tokenAbi = erc20ABI;
     const pAbi = poolABI;
@@ -813,43 +813,31 @@ export const getHoldingInLP = async (provider, account, poolList) => {
             let userlp = ethers.utils.formatEther(lp_balance);
             if (Number(userlp) !== 0) {
                 let apr = calcAPR(initialPoolData, supply, poolTokenAndBalance, weight, decimal1, decimal2);
-                await axios
-                    .get(
-                        `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-                    )
-                    .then(async (response) => {
-                        if (Object.keys(response?.data?.coins)[0]) {
-                            if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
-                                let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                    response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                                console.log(response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price);
-                                console.log((poolTokenAndBalance?.balances[0] / 10 ** decimal1));
-                                console.log(response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price);
-                                console.log(poolTokenAndBalance?.balances[1] / 10 ** decimal2);
-                                LPHolding.push({
-                                    ...poolList[i],
-                                    apr: apr,
-                                    totalSupply: (lp * userlp),
-                                });
-                            } else {
-                                let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                    response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                                LPHolding.push({
-                                    ...poolList[i],
-                                    address: poolAddress,
-                                    apr: apr,
-                                    totalSupply: (lp * userlp),
-                                });
-                            }
-                        } else {
-                            LPHolding.push({
-                                ...poolList[i],
-                                address: poolAddress,
-                                apr: apr,
-                                totalSupply: 0,
-                            });
-                        }
-                    });
+                let price1 = 0;
+                let price2 = 0;
+                if (poolTokenAndBalance?.tokens[0].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                    let poolAddress1 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[0], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                    let poolData1 = await getPoolData(provider, poolAddress1);
+                    price1 = await calculateSwap(poolTokenAndBalance?.tokens[0], poolData1, 1);
+                } else {
+                    price1 = 1;
+                }
+
+                if (poolTokenAndBalance?.tokens[1].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                    let poolAddress2 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[1], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                    let poolData2 = await getPoolData(provider, poolAddress2);
+                    price2 = await calculateSwap(poolTokenAndBalance?.tokens[1], poolData2, 1);
+                } else {
+                    price2 = 1;
+                }
+                let lp = (price1 * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                    price2 * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+                LPHolding.push({
+                    ...poolList[i],
+                    address: poolAddress,
+                    apr: apr,
+                    totalSupply: (lp * userlp),
+                });
             }
         } catch (e) {
             console.log(e.message);
@@ -860,7 +848,7 @@ export const getHoldingInLP = async (provider, account, poolList) => {
 };
 
 // Get My Farming Pools
-export const getHoldingInFarms = async (provider, account, farmList) => {
+export const getHoldingInFarms = async (provider, account, farmList, factoryContract) => {
     let web3 = new Web3(provider);
     const tokenAbi = erc20ABI;
     const pAbi = poolABI;
@@ -880,60 +868,45 @@ export const getHoldingInFarms = async (provider, account, farmList) => {
         const decimal1 = await tokenContract1.methods["decimals"]().call();
         const decimal2 = await tokenContract2.methods["decimals"]().call();
         const supply = await poolContract.methods["totalSupply"]().call();
-        // const totalStaked = await poolContract.methods["balanceOf"](farmList[i].farmingPoolAddress).call();
-        // const lp_balance = await poolContract.methods["balanceOf"](account).call();
         const stakedVal = await farmContract.methods["userInfo"](account).call();
         const pendingReward = await farmContract.methods["pendingReward"](account).call();
-        const rewardToken = await farmContract.methods["rewardToken"]().call();
-        // const endBlock = await farmContract.methods["bonusEndBlock"]().call();
-        // const currentBlock = web3.eth.getBlockNumber();
-        // const initialPoolData = await getInitialPoolData(poolAddress.toLowerCase());
-        // const remain = await poolApproval(account, provider, poolAddress, farmList[i].farmingPoolAddress);
-        const totallp = ethers.utils.formatEther(supply.toString());
+        // const rewardToken = await farmContract.methods["rewardToken"]().call();
+        // const totallp = ethers.utils.formatEther(supply.toString());
         const userstakedlp = await ethers.utils.formatEther(stakedVal.amount);
         const userreward = await ethers.utils.formatEther(pendingReward);
         if (Number(userstakedlp) !== 0) {
-            await axios
-                .get(
-                    `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-                )
-                .then(async (response) => {
-                    if (Object.keys(response?.data?.coins)[0]) {
-                        let rewardTokenPrice = Object.keys(response?.data?.coins)[0].toLowerCase() === rewardToken.toLowerCase()
-                            ? response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price
-                            : response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price;
-                        if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
-                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / totallp;
-                            pools.push({
-                                ...farmList[i],
-                                stakedValUSD: (lp * userstakedlp),
-                                pendingRewardUSD: (userreward * rewardTokenPrice)
-                            });
-                        } else {
-                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / totallp;
-                            pools.push({
-                                ...farmList[i],
-                                stakedValUSD: (lp * userstakedlp),
-                                pendingRewardUSD: (userreward * rewardTokenPrice)
-                            });
-                        }
-                    } else {
-                        pools.push({
-                            ...farmList[i],
-                            stakedValUSD: 0,
-                            pendingRewardUSD: 0
-                        });
-                    }
-                });
+            let rewardTokenPrice = 0.25;
+            let price1 = 0;
+            let price2 = 0;
+            if (poolTokenAndBalance?.tokens[0].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                let poolAddress1 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[0], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                let poolData1 = await getPoolData(provider, poolAddress1);
+                price1 = await calculateSwap(poolTokenAndBalance?.tokens[0], poolData1, 1);
+            } else {
+                price1 = 1;
+            }
+
+            if (poolTokenAndBalance?.tokens[1].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                let poolAddress2 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[1], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                let poolData2 = await getPoolData(provider, poolAddress2);
+                price2 = await calculateSwap(poolTokenAndBalance?.tokens[1], poolData2, 1);
+            } else {
+                price2 = 1;
+            }
+            let lp = (price1 * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                price2 * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+            pools.push({
+                ...farmList[i],
+                stakedValUSD: (lp * userstakedlp),
+                pendingRewardUSD: (userreward * rewardTokenPrice)
+            });
         }
     }
     return pools;
 }
 
 // Get All Farming Pools
-export const getAllFarmPools = async (provider, account, farmList) => {
+export const getAllFarmPools = async (provider, account, farmList, factoryContract) => {
     let web3 = new Web3(provider);
     const tokenAbi = erc20ABI;
     const pAbi = poolABI;
@@ -971,67 +944,39 @@ export const getAllFarmPools = async (provider, account, farmList) => {
         const userreward = ethers.utils.formatEther(pendingReward);
         if (Number(totallp) !== 0) {
             let apr1 = Number(totalStaked) !== 0 ? calcAPR(initialPoolData, totalStaked, poolTokenAndBalance, weight, decimal1, decimal2) : 0;
-            await axios
-                .get(
-                    `https://coins.llama.fi/prices/current/kava:${poolTokenAndBalance?.tokens[0]},kava:${poolTokenAndBalance?.tokens[1]}?searchWidth=6h`
-                )
-                .then(async (response) => {
-                    if (Object.keys(response?.data?.coins)[0]) {
-                        if ("kava:" + poolTokenAndBalance?.tokens[0].toLowerCase() === Object.keys(response?.data?.coins)[0].toLowerCase()) {
-                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                            let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
-                            console.log(apr1);
-                            console.log(apr2);
-                            pools.push({
-                                ...farmList[i],
-                                apr: (apr1 * 1 + apr2 * 1),
-                                userlp: userlp * 1,
-                                totalStakedUSD: (lp * stakedlp),
-                                totalSupplyUSD: (lp * totallp),
-                                userSupplyUSD: (lp * userlp),
-                                stakedVal: userstakedlp * 1,
-                                pendingReward: userreward * 1,
-                                startBlock: startBlock * 1,
-                                finished: Number(endBlock) < Number(currentBlock),
-                                allowed: remain < userlp ? false : true
-                            });
-                        } else {
-                            let lp = (response?.data?.coins[Object.keys(response?.data?.coins)[1]]?.price * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
-                                response?.data?.coins[Object.keys(response?.data?.coins)[0]]?.price * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
-                            let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * stakedlp);
-                            console.log(apr1);
-                            console.log(apr2);
-                            pools.push({
-                                ...farmList[i],
-                                apr: (apr1 * 1 + apr2 * 1),
-                                userlp: userlp * 1,
-                                totalStakedUSD: (lp * stakedlp),
-                                totalSupplyUSD: (lp * totallp),
-                                userSupplyUSD: (lp * userlp),
-                                stakedVal: userstakedlp * 1,
-                                pendingReward: userreward * 1,
-                                startBlock: startBlock * 1,
-                                finished: Number(endBlock) < Number(currentBlock),
-                                allowed: remain < userlp ? false : true
-                            });
-                        }
-                    } else {
-                        pools.push({
-                            ...farmList[i],
-                            apr: apr1 * 1,
-                            userlp: 0,
-                            totalStakedUSD: 0,
-                            totalSupplyUSD: 0,
-                            userSupplyUSD: 0,
-                            stakedVal: 0,
-                            pendingReward: 0,
-                            startBlock: -1,
-                            finished: Number(endBlock) < Number(currentBlock),
-                            allowed: remain < userlp ? false : true
-                        });
-                    }
-                });
+            let price1 = 0;
+            let price2 = 0;
+            if (poolTokenAndBalance?.tokens[0].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                let poolAddress1 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[0], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                let poolData1 = await getPoolData(provider, poolAddress1);
+                price1 = await calculateSwap(poolTokenAndBalance?.tokens[0], poolData1, 1);
+            } else {
+                price1 = 1;
+            }
+
+            if (poolTokenAndBalance?.tokens[1].toLowerCase() !== "0xeb466342c4d449bc9f53a865d5cb90586f405215".toLowerCase()) {
+                let poolAddress2 = await getPoolAddress(provider, poolTokenAndBalance?.tokens[1], "0xeb466342c4d449bc9f53a865d5cb90586f405215", factoryContract);
+                let poolData2 = await getPoolData(provider, poolAddress2);
+                price2 = await calculateSwap(poolTokenAndBalance?.tokens[1], poolData2, 1);
+            } else {
+                price2 = 1;
+            }
+            let lp = (price1 * (poolTokenAndBalance?.balances[0] / 10 ** decimal1) +
+                price2 * (poolTokenAndBalance?.balances[1] / 10 ** decimal2)) / (supply / 10 ** 18);
+            let apr2 = calcStakingAPR(rewardPerBlock, startBlock, endBlock, lp * userstakedlp);
+            pools.push({
+                ...farmList[i],
+                apr: (apr1 * 1 + apr2 * 1),
+                userlp: userlp * 1,
+                totalStakedUSD: (lp * stakedlp),
+                totalSupplyUSD: (lp * totallp),
+                userSupplyUSD: (lp * userlp),
+                stakedVal: userstakedlp * 1,
+                pendingReward: userreward,
+                startBlock: startBlock * 1,
+                finished: Number(endBlock) < Number(currentBlock),
+                allowed: remain < userlp ? false : true
+            });
         } else {
             pools.push({
                 ...farmList[i],
@@ -1075,9 +1020,7 @@ const calcAPR = (initialPoolData, supply, poolTokenAndBalance, weights, decimal1
 const calcStakingAPR = (rewardPerBlock, startBlock, endBlock, stakedlpusd) => {
     if (stakedlpusd !== 0) {
         const rewardusd = (Number(endBlock) - Number(startBlock)) * (rewardPerBlock / 10 ** 18) * 0.25;
-        console.log((Number(endBlock) - Number(startBlock)));
-        console.log(rewardPerBlock / 10 ** 18);
-        let apr = (rewardusd / stakedlpusd);
+        let apr = ((rewardusd / stakedlpusd) / (60 * 365)) * 100;
         return apr;
     } else {
         return 0;
