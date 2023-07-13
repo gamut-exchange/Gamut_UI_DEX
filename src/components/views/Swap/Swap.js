@@ -5,9 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { useSearchParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import History from "./History";
-import TokenList from "./TokenList";
-import './Navigation.css'
+import History from "../Parts/History";
+import TokenList from "../Parts/TokenList";
 import {
   Grid,
   Paper,
@@ -40,13 +39,13 @@ import {
   calcOutput,
   getMiddleToken,
   numFormat
-} from "../../config/web3";
-import { useTokenPricesData } from "../../config/chartData";
-import { getKavaTx } from "../../services/kavaAPI";
-import { defaultProvider, poolList } from "../../config/constants";
-import { contractAddresses } from "../../config/constants";
-import routerABI from "../../assets/abi/router";
-import abiDecoder from "../../config/abiDecoder";
+} from "../../../config/web3";
+import { useTokenPricesData } from "../../../config/chartData";
+import { getKavaTx } from "../../../services/kavaAPI";
+import { defaultProvider, poolList } from "../../../config/constants";
+import { contractAddresses } from "../../../config/constants";
+import routerABI from "../../../assets/abi/router";
+import abiDecoder from "../../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",

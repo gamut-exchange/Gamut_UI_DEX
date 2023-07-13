@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import { useSearchParams } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import History from './History';
+import History from '../Parts/History';
 import {
   Paper,
   Grid,
@@ -23,8 +23,8 @@ import {
 } from "@mui/icons-material";
 import tw from "twin.macro";
 import LiquidityCmp from "./LiquidityCmp";
-import { useWeightsData } from "../../config/chartData";
-import { getKavaTx } from "../../services/kavaAPI";
+import { useWeightsData } from "../../../config/chartData";
+import { getKavaTx } from "../../../services/kavaAPI";
 import {
   getPoolData,
   getPoolBalance,
@@ -35,9 +35,9 @@ import {
   getPoolList,
   toLongNum,
   numFormat
-} from "../../config/web3";
-import { customPoolList, defaultProvider, userSettings } from "../../config/constants";
-import { contractAddresses } from "../../config/constants";
+} from "../../../config/web3";
+import { customPoolList, defaultProvider, userSettings } from "../../../config/constants";
+import { contractAddresses } from "../../../config/constants";
 import {
   LineChart,
   Line,
@@ -46,9 +46,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ADD_POOL, REMOVE_POOL } from "../../redux/constants";
-import routerABI from "../../assets/abi/router";
-import abiDecoder from "../../config/abiDecoder";
+import { ADD_POOL, REMOVE_POOL } from "../../../redux/constants";
+import routerABI from "../../../assets/abi/router";
+import abiDecoder from "../../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",

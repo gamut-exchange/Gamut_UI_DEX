@@ -1,16 +1,17 @@
 import './App.css';
 import "./style/global.css";
-import Header from './components/views/Header';
-import Swap from './components/views/Swap';
-import Ramp from './components/views/Ramp';
-import CrossChain from './components/views/CrossChain';
-import Footer from './components/views/Footer';
-import CLiquidity from './components/views/CLiquidity';
-import Liquidity from './components/views/Liquidity';
-import RLiquidity from './components/views/RLiquidity';
-import PDashboard from './components/views/PlatformDashboard';
-import UDashboard from './components/views/UserDashboard';
-import StakingPool from './components/views/StakingPool';
+import Header from './components/views/Parts/Header';
+import Swap from './components/views/Swap/Swap';
+import Ramp from './components/views/Swap/Ramp';
+import CrossChain from './components/views/Swap/CrossChain';
+import Footer from './components/views/Parts/Footer';
+import CLiquidity from './components/views/Liquidity/CLiquidity';
+import Liquidity from './components/views/Liquidity/Liquidity';
+import RLiquidity from './components/views/Liquidity/RLiquidity';
+import PDashboard from './components/views/Dashboard/PlatformDashboard';
+import UDashboard from './components/views/Dashboard/UserDashboard';
+import StakingPool from './components/views/Earn/StakingPool';
+import NftStaking from './components/views/GamutNFT/NftStaking';
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useEffect } from 'react';
@@ -40,6 +41,7 @@ function App() {
           <Route path="/platform_dashboard" element={<PDashboard />} />
           <Route path="/user_dashboard" element={<UDashboard />} />
           <Route path="/staking_pool" element={<StakingPool />} />
+          <Route path="/nft_staking" element={<NftStaking />} />
         </Routes>
         <Footer />
       </HashRouter>

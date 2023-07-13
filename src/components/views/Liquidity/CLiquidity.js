@@ -28,10 +28,10 @@ import {
   createPool,
   initAddPool,
   numFormat
-} from "../../config/web3";
+} from "../../../config/web3";
 import LiquidityCmp from "./LiquidityCmp";
-import { contractAddresses } from "../../config/constants";
-import TokenList from "./TokenList";
+import { contractAddresses } from "../../../config/constants";
+import TokenList from "../Parts/TokenList";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",

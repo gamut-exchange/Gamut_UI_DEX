@@ -7,9 +7,8 @@ import { styled } from "@mui/material/styles";
 import { Grid, Paper, CircularProgress } from "@mui/material";
 import { createChart } from "lightweight-charts";
 import DashboardCmp from "./DashboardCmp";
-import { poolList, contractAddresses } from "../../config/constants";
-import { getAllPools } from "../../config/web3";
-import "./Navigation.css";
+import { poolList, contractAddresses } from "../../../config/constants";
+import { getAllPools } from "../../../config/web3";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",

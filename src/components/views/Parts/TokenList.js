@@ -5,10 +5,10 @@ import {
 } from "@mui/material";
 import tw from "twin.macro";
 import Web3 from "web3";
-import { getERC20TokenData } from "../../config/web3";
-import { customList, defaultProvider, userSettings } from "../../config/constants";
+import { getERC20TokenData } from "../../../config/web3";
+import { customList, defaultProvider, userSettings } from "../../../config/constants";
 import { useDispatch } from "react-redux";
-import { ADD_TOKEN, REMOVE_TOKEN } from "../../redux/constants";
+import { ADD_TOKEN, REMOVE_TOKEN } from "../../../redux/constants";
 
 const StyledModal = tw.div`
   flex

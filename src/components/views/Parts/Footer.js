@@ -1,6 +1,6 @@
 import { Grid, Paper, styled } from '@mui/material'
 import React from 'react'
-import logo from "../../images/logo.svg";
+import logo from "../../../images/logo.svg";
 
 
 function Footer() {
@@ -41,7 +41,7 @@ function Footer() {
 
       </Grid>
     </div>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

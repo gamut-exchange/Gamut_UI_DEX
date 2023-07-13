@@ -20,8 +20,8 @@ import {
   AddCircleOutline,
   Settings,
 } from "@mui/icons-material";
-import { useWeightsData } from "../../config/chartData";
-import { getKavaTx } from "../../services/kavaAPI";
+import { useWeightsData } from "../../../config/chartData";
+import { getKavaTx } from "../../../services/kavaAPI";
 import {
   getTokenBalance,
   getPoolAddress,
@@ -32,11 +32,11 @@ import {
   approveToken,
   calculateSwap,
   numFormat
-} from "../../config/web3";
-import { poolList } from "../../config/constants";
-import { contractAddresses } from "../../config/constants";
-import History from './History';
-import TokenList from "./TokenList";
+} from "../../../config/web3";
+import { poolList } from "../../../config/constants";
+import { contractAddresses } from "../../../config/constants";
+import History from '../Parts/History';
+import TokenList from "../Parts/TokenList";
 import {
   LineChart,
   Line,
@@ -46,8 +46,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import LiquidityCmp from "./LiquidityCmp";
-import routerABI from "../../assets/abi/router";
-import abiDecoder from "../../config/abiDecoder";
+import routerABI from "../../../assets/abi/router";
+import abiDecoder from "../../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",

@@ -4,7 +4,6 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
-import './Navigation.css'
 import { Link, useLocation } from "react-router-dom";
 
 function Navigation() {
@@ -16,14 +15,12 @@ function Navigation() {
   useEffect(() => {
     if (location.pathname === "/add_liquidity" || location.pathname === "/remove_liquidity" || location.pathname === "/create_liquidity")
       setActive('liquidity');
-    else if(location.pathname === "/user_dashboard")
+    else if (location.pathname === "/user_dashboard")
       setActive('dashboard');
-    else if(location.pathname === "/staking_pool")
+    else if (location.pathname === "/staking_pool")
       setActive('staking');
-    else if (location.pathname === "/about")
-      setActive('about');
-    else if (location.pathname === "/contact")
-      setActive('contact');
+    else if (location.pathname === "/nft_staking")
+      setActive('nft');
     else
       setActive('home');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,6 +104,17 @@ function Navigation() {
               >
                 {/* {item} */}
                 Earn
+              </Button>
+            </Link>
+            <Link to="/nft_staking" style={{ textDecoration: "none" }}>
+              <Button
+                // key={item}
+                sx={{ color: active === "nft" ? menuColor : "white", pr: 5 }}
+                style={{ fontSize: 20, fontWeight: "600", padding: "6px 20px" }}
+                onClick={() => setActive("nft")}
+              >
+                {/* {item} */}
+                NFT Staking
               </Button>
             </Link>
           </Box>

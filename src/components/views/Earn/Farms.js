@@ -10,7 +10,7 @@ import {
     numFormat,
     approvePool,
     harvestReward
-} from "../../config/web3";
+} from "../../../config/web3";
 import StakeModal from "./StakeModal";
 
 export const useStyles = makeStyles(() => ({

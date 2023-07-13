@@ -19,8 +19,8 @@ import { makeStyles } from "@mui/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   getAllFarmPools
-} from "../../config/web3";
-import { contractAddresses, farmingPoolList } from "../../config/constants";
+} from "../../../config/web3";
+import { contractAddresses, farmingPoolList } from "../../../config/constants";
 import StakingCmp from "./StakingCmp";
 import Farms from "./Farms";
 

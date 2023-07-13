@@ -1,7 +1,6 @@
 import { Button, Grid, Stack, Paper, styled, Hidden, useMediaQuery } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import "./Navigation.css"
 
 function LiquidityCmp() {
   const darkFontColor = "#FFF";

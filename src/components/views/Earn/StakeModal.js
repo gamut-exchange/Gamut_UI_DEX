@@ -8,7 +8,7 @@ import {
     toLongNum,
     stakePool,
     unStakePool
-} from "../../config/web3";
+} from "../../../config/web3";
 
 
 const StyledModal = tw.div`

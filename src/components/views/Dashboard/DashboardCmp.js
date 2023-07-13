@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import "./Navigation.css";
 
 function DashboardCmp() {
   const darkFontColor = "#FFF";
@@ -37,7 +36,7 @@ function DashboardCmp() {
             style={{ backgroundColor: "transparent", color: darkFontColor, boxShadow: "0px 0px 0px 0px" , padding:"0px 0px 8px 0px"  }}
           >
             <Stack direction="row" className="swap_bh">
-              <Link to="/staking_pool" style={{ textDecoration: "none" }}>
+              <Link to="/user_dashboard" style={{ textDecoration: "none" }}>
                 <Button
                   size="large"
                   variant="contained"
@@ -46,13 +45,13 @@ function DashboardCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname === "/staking_pool"
+                      location.pathname === "/user_dashboard"
                         ? activeSwapColor
                         : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/staking_pool")}
+                  onClick={() => setActiveSwapColor("/user_dashboard")}
                 >
-                  Staking
+                  User Stats
                 </Button>
               </Link>
             </Stack>
@@ -60,7 +59,7 @@ function DashboardCmp() {
         </Grid>
       </Hidden>
 
-      <Hidden smUp={true}> 
+      <Hidden smUp={true}>
         <Grid sx={{ overflowX: "scroll" }} item xs={12} sm={12} md={9} lg={8}>
           <Item
             elevation={1}
@@ -73,7 +72,7 @@ function DashboardCmp() {
               style={{ flexDirection: isMobile ? "column" : "row" }}
             >
               <Link
-                to="/staking_pool"
+                to="/user_dashboard"
                 style={{
                   textDecoration: "none",
                   marginLeft: isMobile ? "0px" : "auto",
@@ -88,13 +87,13 @@ function DashboardCmp() {
                     padding: 2,
                     fontWeight: "bold",
                     background:
-                      location.pathname === "/staking_pool"
+                      location.pathname === "/user_dashboard"
                         ? activeSwapColor
                         : "#12122c",
                   }}
-                  onClick={() => setActiveSwapColor("/staking_pool")}
+                  onClick={() => setActiveSwapColor("/user_dashboard")}
                 >
-                  Staking
+                  User Dashboard
                 </Button>
               </Link>
             </Stack>

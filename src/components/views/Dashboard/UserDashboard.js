@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { useWeb3React } from "@web3-react/core";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
-import "./Navigation.css";
 import {
   Grid,
   Paper,
@@ -30,11 +29,11 @@ import { makeStyles } from "@mui/styles";
 import { Link } from "react-router-dom";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardCmp from "./DashboardCmp";
-import { getKavaERC20, getKavaTx } from "../../services/kavaAPI";
-import { contractAddresses, poolList, farmingPoolList } from "../../config/constants";
-import { getHoldingInLP, getHoldingInFarms } from "../../config/web3";
-import routerABI from "../../assets/abi/router";
-import abiDecoder from "../../config/abiDecoder";
+import { getKavaERC20, getKavaTx } from "../../../services/kavaAPI";
+import { contractAddresses, poolList, farmingPoolList } from "../../../config/constants";
+import { getHoldingInLP, getHoldingInFarms } from "../../../config/web3";
+import routerABI from "../../../assets/abi/router";
+import abiDecoder from "../../../config/abiDecoder";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -548,7 +547,7 @@ export default function UDashboard() {
                   </TableBody>
                 }
               </Table>
-            </TableContainer >
+            </TableContainer>
           </Item>
           <div style={{ width: "100%" }}>
             <h3 className="text-white text-xl text-left font-semibold mb-2 ml-2 mt-5">

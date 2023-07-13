@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import WalletConnectors from "../../config/connectors";
+import WalletConnectors from "../../../config/connectors";
 import { useWeb3React } from "@web3-react/core";
 import {
   Grid,
@@ -22,13 +22,13 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { Stack } from "@mui/system";
 import { Link } from "react-router-dom";
-import logo from "../../images/logo.svg";
-import useStyles from "../../assets/styles";
+import logo from "../../../images/logo.svg";
+import useStyles from "../../../assets/styles";
 import Navigation from "./Navigation";
 
-import ConnectWallet from "../web3/ConnectWallet";
-import { ConnectedWallet } from "../../config/wallets";
-import { SELECT_CHAIN } from "../../redux/constants";
+import ConnectWallet from "../../web3/ConnectWallet";
+import { ConnectedWallet } from "../../../config/wallets";
+import { SELECT_CHAIN } from "../../../redux/constants";
 
 function Header(props) {
   const { window } = props;
