@@ -20,7 +20,8 @@ import {
     TableBody,
     TableRow,
     TableHead,
-    TableCell
+    TableCell,
+    Divider
 } from "@mui/material";
 import {
     KeyboardArrowRight,
@@ -313,7 +314,7 @@ export default function NftStaking() {
                                                 APR
                                             </TableCell>
                                             <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
-                                                Reward
+                                                Your Stake
                                             </TableCell>
                                             <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
                                                 Details
@@ -343,7 +344,7 @@ export default function NftStaking() {
                                             </TableCell>
                                             <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
                                                 <Button>
-                                                    <KeyboardArrowRight />
+                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
@@ -369,7 +370,7 @@ export default function NftStaking() {
                                             </TableCell>
                                             <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
                                                 <Button>
-                                                    <KeyboardArrowRight />
+                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
@@ -395,7 +396,7 @@ export default function NftStaking() {
                                             </TableCell>
                                             <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
                                                 <Button>
-                                                    <KeyboardArrowRight />
+                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
@@ -460,13 +461,260 @@ export default function NftStaking() {
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, flexDirection: "row" }}>
-                            <img src="/samples/nft1.png" alt="nft image" width={isMobile?140:180} style={{ borderRadius: 8 }}></img>
-                            <Paper sx={{ background:"transparent", ml:3 }}>
-                                <Typography variant="h4" sx={{ color:"white", fontSize:"18px", mb:1 }}>NFT ID: 001</Typography>
-                                <Typography variant="h4" sx={{ color:"white", fontSize:"18px", mb:1 }}>NFT Group: A</Typography>
-                                <Typography variant="h4" sx={{ color:"white", fontSize:"18px", mb:1 }}>Mint Date: 07/23/2023</Typography>
-                                <Typography variant="h4" sx={{ color:"white", fontSize:"18px", mb:1 }}>Owner: 0x294052....</Typography>
+                            <img src="/samples/nft1.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
+                            <Paper sx={{ background: "transparent", ml: 3 }}>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT ID: 001</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT Group: A</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Mint Date: 07/23/2023</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Owner: 0x294052....</Typography>
                             </Paper>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            }
+            {pageFlag === 3 &&
+                <Grid
+                    sx={{ width: "1220px", justifyContent: "center", padding: isMobile ? "0px 4px" : "0px 8px" }}
+                    border={0}
+                    columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
+                >
+                    <Grid
+                        container
+                        sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
+                    >
+                        <Grid item md={2} sx={{ alignItems: "left" }}>
+                            <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
+                        </Grid>
+                        <Grid item md={10} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
+                            <Typography variant="h5" sx={{ color: "white" }}>Staking Pool 1, 20%(APR), Your Stake: $20</Typography>
+                        </Grid>
+                        <Divider sx={{ width: "100%", borderColor: "#76769066", mt: 2, mb: 2 }} />
+                        <Grid item md={12} sx={{ alignItems: "center", mb: 2 }}>
+                            <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
+                                <Button variant="contained" color="success" >stake</Button>
+                                <Button variant="contained" color="error" sx={{ ml: 2 }}>unstake</Button>
+                            </Grid>
+                            <Item
+                                sx={{ pt: 2, pl: 1, pr: 1, pb: 2 }}
+                                style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
+                            >
+                                <TableContainer component={Paper} style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px" }}>
+                                    <Table sx={{ minWidth: 550 }} aria-label="simple table">
+                                        <TableHead>
+                                            <TableRow style={{ color: "white" }}>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Epoch
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Boost
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Reward Token
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Outstanding Reward
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    <Button variant="outlined" color="warning" size="small">Claim All</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            <TableRow
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    Epoch 1
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                        <Typography>Your Boost</Typography>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            color="secondary"
+                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
+                                                            onClick={() => setPageFlag(4)}
+                                                        >
+                                                            More
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <h3 className="font-medium">
+                                                        BTC
+                                                    </h3>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    YES
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                            <TableRow
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    Epoch 2
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                        <Typography>Your Boost</Typography>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            color="secondary"
+                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
+                                                            onClick={() => setPageFlag(4)}
+                                                        >
+                                                            More
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <h3 className="font-medium">
+                                                        BTC
+                                                    </h3>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    YES
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                            <TableRow
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    Epoch 3
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                        <Typography>Your Boost</Typography>
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            color="secondary"
+                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
+                                                            onClick={() => setPageFlag(4)}
+                                                        >More</Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <h3 className="font-medium">
+                                                        BTC
+                                                    </h3>
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    YES
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            </Item>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            }
+            {pageFlag === 4 &&
+                <Grid
+                    sx={{ width: "1220px", justifyContent: "center", padding: isMobile ? "0px 4px" : "0px 8px" }}
+                    border={0}
+                    columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
+                >
+                    <Grid
+                        container
+                        sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
+                    >
+                        <Grid item md={2} sm={12} sx={{ alignItems: "left" }}>
+                            <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
+                        </Grid>
+                        <Grid item={true} md={3} sm={4} sx={{ mt: 0.7 }} className="home__mainC">
+                            <Item
+                                elevation={1}
+                                style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 18px", minWidth: "180px" }}
+                            >
+                                <Stack direction="row" spacing={1}>
+                                    <AntSwitch onChange={handleStaked} inputProps={{ 'aria-label': 'ant design' }} />
+                                    <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Minted Only</Typography>
+                                </Stack>
+                            </Item>
+                        </Grid>
+                        <Grid item md={7} sm={8} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
+                            <Typography variant="h5" sx={{ color: "white" }}>StakingPool: Staking Pool 1, Epoch: Epoch 1</Typography>
+                        </Grid>
+                        <Divider sx={{ width: "100%", borderColor: "#76769066", mt: 2, mb: 2 }} />
+                        <Grid
+                            container
+                            sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
+                        >
+                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
+                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
+                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
+                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #2</Typography>
+                                    <Typography sx={{ color: "white" }}>10%</Typography>
+                                </Item>
+                            </Grid>
+                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
+                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
+                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
+                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #3</Typography>
+                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
+                                </Item>
+                            </Grid>
+                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
+                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
+                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
+                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupC #1</Typography>
+                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
+                                </Item>
+                            </Grid>
+                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
+                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
+                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
+                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupC #23</Typography>
+                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
+                                </Item>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            }
+            {pageFlag === 5 &&
+                <Grid
+                    sx={{ width: "1220px", justifyContent: "center", padding: isMobile ? "0px 4px" : "0px 8px" }}
+                    border={0}
+                    columnSpacing={{ xs: 0, sm: 0, md: 2, lg: 2 }}
+                >
+                    <Grid
+                        container
+                        sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
+                    >
+                        <Grid item md={2} sx={{ alignItems: "left", mb: 2 }}>
+                            <Button variant="contained" color="primary" onClick={() => setPageFlag(4)}><ArrowBack fontSize="medium" /></Button>
+                        </Grid>
+                        <Grid item md={10} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
+                            <Typography variant="h5" sx={{ color: "white" }}>Boost #003</Typography>
+                        </Grid>
+                        <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, mt:2, flexDirection: "row" }}>
+                            <img src="/samples/nft1.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
+                            <Paper sx={{ background: "transparent", ml: 3 }}>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost ID: 003</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost Token: NFT</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Access: 07/23/2023 - 09/21/2023</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Max Boost: 20%</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Your Boost: 0%</Typography>
+                            </Paper>
+                        </Grid>
+                        <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
+                            <Button variant="contained" color="success" >Increase Boost</Button>
+                            <Button variant="contained" color="error" sx={{ ml: 2 }}>Decrease Boost</Button>
                         </Grid>
                     </Grid>
                 </Grid>
