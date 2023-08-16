@@ -21,7 +21,8 @@ import {
     TableRow,
     TableHead,
     TableCell,
-    Divider
+    Divider,
+    Pagination
 } from "@mui/material";
 import {
     KeyboardArrowRight,
@@ -30,6 +31,13 @@ import {
 } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
+    getAllNfts,
+    getPoolEpochs,
+    mintNft,
+} from "../../../config/web3";
+import { boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
+import GStakeModal from "./GStakeModal";
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: "#12122c",
@@ -117,12 +125,26 @@ export const useStyles = makeStyles(() => ({
 export default function NftStaking() {
 
     const selected_chain = useSelector((state) => state.selectedChain);
+    const { account, connector } = useWeb3React();
     const classes = useStyles();
     const [pageFlag, setPageFlag] = useState(0);
     const [statusFlag, setStatusFlag] = useState(false);
     const [stakedFlag, setStakedFlag] = useState(false);
     const [sortBy, setSortBy] = useState(1);
     const [query, setQuery] = useState("");
+    const [unMintedNfts, setUnMitedNfts] = useState([]);
+    const [mintedNfts, setMintedNfts] = useState([]);
+    const [allStakes, setAllStakes] = useState([]);
+    const [activatedNft, setActivatedNft] = useState({});
+    const [count1, setCount1] = useState(0);
+    const [displayData1, setDisplayData1] = useState([]);
+    const [count2, setCount2] = useState(0);
+    const [displayData2, setDisplayData2] = useState([]);
+    const [count3, setCount3] = useState(0);
+    const [displayData3, setDisplayData3] = useState([]);
+    const [sPoolInfo, setSPoolInfo] = useState({});
+    const [sEpochs, setSEpochs] = useState([]);
+    const [mopen1, setMopen1] = useState(false);
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -148,6 +170,72 @@ export default function NftStaking() {
         // filteringData(statusFlag, stakedFlag, sortBy, new_query);
     }
 
+    const handlePChange1 = (e, p) => {
+        setDisplayData1(unMintedNfts.slice((p - 1) * 4, (p - 1) * 4 + 4));
+    }
+
+    const handlePChange2 = (e, p) => {
+        setDisplayData2(mintedNfts.slice((p - 1) * 4, (p - 1) * 4 + 4));
+    }
+
+    const handleClose1 = () => {
+        setMopen1(false);
+    }
+
+    const handleGNftMint = async (name, id, price, tokenAddr) => {
+        const provider = await connector.getProvider();
+        await mintNft(provider, name, id, price, tokenAddr, contractAddresses[selected_chain]["gamutNFT"], account);
+    }
+
+    const handleGStake = () => {
+        setMopen1(true);
+    }
+
+    const activateNft = (unit) => {
+        setActivatedNft(unit);
+    }
+
+    const handleStakeDetail = async (flag, unit) => {
+        const provider = await connector.getProvider();
+        setPageFlag(flag);
+        setSPoolInfo(unit);
+        console.log(unit);
+        const epochs = await getPoolEpochs(provider, boostToEpochList[selected_chain], unit.poolId, contractAddresses[selected_chain]["gamutNFT"]);
+        setSEpochs(epochs);
+    }
+
+    const getInfo = async () => {
+        const provider = await connector.getProvider();
+        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+        if (allNfts) {
+            setUnMitedNfts(allNfts[0]);
+            setMintedNfts(allNfts[1]);
+            setAllStakes(allNfts[2]);
+            setDisplayData1(allNfts[0].slice(0, 4));
+            setDisplayData2(allNfts[1].slice(0, 4));
+            setDisplayData3(allNfts[2].slice(0, 4));
+            if (allNfts[1].length !== 0) {
+                setActivatedNft(allNfts[1][0]);
+            }
+            let cnt1 = allNfts[0].length / 4;
+            cnt1 = Number(cnt1.toFixed(0));
+            setCount1(cnt1);
+            let cnt2 = allNfts[1].length / 4;
+            cnt2 = Number(cnt2.toFixed(0));
+            setCount2(cnt2);
+            let cnt3 = allNfts[2].length / 4;
+            cnt3 = Number(cnt3.toFixed(0));
+            setCount2(cnt3);
+        }
+
+    }
+
+    useEffect(() => {
+        if (account) {
+            getInfo();
+        }
+    }, [account, selected_chain]);
+
     return (
         <div style={{ display: "flex", justifyContent: "center" }}>
             {pageFlag === 0 &&
@@ -158,44 +246,21 @@ export default function NftStaking() {
                 >
                     <Grid
                         container
-                        sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
                     >
-                        <Grid item md={2} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(2)}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #1</Typography>
-                                <Button size="small" variant="contained" color="primary">Mint</Button>
-                            </Item>
+                        <Grid md={10} sm={12} container sx={{ display: "flex", justifyContent: "center" }}>
+                            {displayData1.map(unit => {
+                                return (
+                                    <Grid item md={3} sm={6} sx={{ alignItems: "center", mb: 2 }}>
+                                        <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
+                                            <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                                            <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.gName + " #" + unit.tokenId}</Typography>
+                                            <Button size="small" variant="contained" color="primary" onClick={() => handleGNftMint(unit.gName, unit.tokenId, unit.price, unit.tokenAddr)}>Mint</Button>
+                                        </Item>
+                                    </Grid>
+                                )
+                            })}
                         </Grid>
-                        <Grid item md={2} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(2)}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #2</Typography>
-                                <Button size="small" variant="contained" color="primary">Mint</Button>
-                            </Item>
-                        </Grid>
-                        <Grid item md={2} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(2)}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #3</Typography>
-                                <Button size="small" variant="contained" color="primary">Mint</Button>
-                            </Item>
-                        </Grid>
-                        <Grid item md={2} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(2)}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #4</Typography>
-                                <Button size="small" variant="contained" color="primary">Mint</Button>
-                            </Item>
-                        </Grid>
-                        <Grid item md={2} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(2)}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #5</Typography>
-                                <Button size="small" variant="contained" color="primary">Mint</Button>
-                            </Item>
-                        </Grid>
-                        <Grid item md={2} sm={6} xs={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", mb: 2 }}>
+                        <Grid item md={2} sm={12} sx={{ display: "flex", justifyContent: "center", alignItems: "center", mb: 2 }}>
                             <Button
                                 size="large"
                                 sx={{ backgroundColor: "#12122c" }}
@@ -205,9 +270,14 @@ export default function NftStaking() {
                             </Button>
                         </Grid>
                     </Grid>
+                    {unMintedNfts.length !== 0 &&
+                        <Grid container sx={{ justifyContent: "center" }}>
+                            <Pagination count={count1} sx={{ button: { color: '#ffffff' }, marginTop: "6px", marginBottom: "6px" }} color="primary" shape="rounded" onChange={handlePChange1} />
+                        </Grid>
+                    }
                     <Grid
                         container
-                        sx={{ pl: 0 }}
+                        sx={{ pl: 0, borderTop: "1px solid rgba(118, 118, 144, 0.4)", paddingTop: "1rem", marginTop: "0.5rem" }}
                     >
                         <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
                             <Item
@@ -322,84 +392,37 @@ export default function NftStaking() {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        <TableRow
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                1
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <Typography>BTC/ETH</Typography>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <h3 className="font-medium">
-                                                    GroupA #1
-                                                </h3>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                23.22%
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                1.4
-                                            </TableCell>
-                                            <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
-                                                <Button>
-                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                2
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <Typography>BTC/ETH</Typography>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <h3 className="font-medium">
-                                                    GroupA #2
-                                                </h3>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                23.22%
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                1.4
-                                            </TableCell>
-                                            <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
-                                                <Button>
-                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                        >
-                                            <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                3
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <Typography>BTC/ETH</Typography>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                <h3 className="font-medium">
-                                                    GroupA #3
-                                                </h3>
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                23.22%
-                                            </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                1.4
-                                            </TableCell>
-                                            <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
-                                                <Button>
-                                                    <KeyboardArrowRight onClick={() => setPageFlag(3)} />
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
+                                        {displayData3.map((unit, index) => {
+                                            return (
+                                                <TableRow
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                    key={"stake_" + index}
+                                                >
+                                                    <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                        {index + 1}
+                                                    </TableCell>
+                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                        <Typography>{unit.stakingToken.substr(0, 16) + "..."}</Typography>
+                                                    </TableCell>
+                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                        <h3 className="font-medium">
+                                                            {unit.isStaked ? unit.tokenId : "no stake"}
+                                                        </h3>
+                                                    </TableCell>
+                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                        {unit.isStaked ? unit.apr : "no stake"}
+                                                    </TableCell>
+                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                        {unit.isStaked ? unit.tokenId : "no stake"}
+                                                    </TableCell>
+                                                    <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+                                                        <Button>
+                                                            <KeyboardArrowRight onClick={() => handleStakeDetail(3, { ...unit, sIndex: index })} />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
@@ -420,30 +443,36 @@ export default function NftStaking() {
                         <Grid item md={12} sx={{ alignItems: "left", mb: 2 }}>
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
-                        <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #1</Typography>
-                            </Item>
+                        <Grid item md={12} sx={{ display: "flex", justifyContent: "center", flexDirection: "row", alignItems: "center", marginBottom: "12px" }}>
+                            {displayData2.length == 0 &&
+                                <Grid>
+                                    <Typography variant="h6" sx={{ color: "white" }}>There are no minted NFTs.</Typography>
+                                </Grid>
+                            }
+                            {displayData2.length != 0 &&
+                                displayData2.map(unit => {
+                                    return (
+                                        <Grid item md={2} sm={6} sx={{ alignItems: "center", mb: 2 }}>
+                                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
+                                                <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                                                <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.gName + " #" + unit.tokenId}</Typography>
+                                                {activatedNft.tokenId === unit.tokenId &&
+                                                    <Typography sx={{ color: "gold", mt: 0.5 }}>Activated</Typography>
+                                                }
+                                                {activatedNft.tokenId !== unit.tokenId &&
+                                                    <Button variant="contained" size="small" color="success" onClick={() => activateNft(unit)}>Activate</Button>
+                                                }
+                                            </Item>
+                                        </Grid>
+                                    )
+                                })
+                            }
                         </Grid>
-                        <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #23</Typography>
-                            </Item>
-                        </Grid>
-                        <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupC #291</Typography>
-                            </Item>
-                        </Grid>
-                        <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                <Typography sx={{ color: "white", mt: 0.5 }}>GroupD #452</Typography>
-                            </Item>
-                        </Grid>
+                        {displayData2.length != 0 &&
+                            <Grid container sx={{ alignItems: "center", justifyContent: "center" }}>
+                                <Pagination count={count2} sx={{ button: { color: '#ffffff' }, marginTop: "6px", marginBottom: "6px" }} color="primary" shape="rounded" onChange={handlePChange2} />
+                            </Grid>
+                        }
                     </Grid>
                 </Grid>
             }
@@ -486,14 +515,21 @@ export default function NftStaking() {
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
                         <Grid item md={10} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
-                            <Typography variant="h5" sx={{ color: "white" }}>Staking Pool 1, 20%(APR), Your Stake: $20</Typography>
+                            <Typography variant="h5" sx={{ color: "white" }}>Staking Pool #{sPoolInfo.sIndex + 1}</Typography>
                         </Grid>
                         <Divider sx={{ width: "100%", borderColor: "#76769066", mt: 2, mb: 2 }} />
                         <Grid item md={12} sx={{ alignItems: "center", mb: 2 }}>
-                            <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                                <Button variant="contained" color="success" >stake</Button>
-                                <Button variant="contained" color="error" sx={{ ml: 2 }}>unstake</Button>
-                            </Grid>
+                            {!sPoolInfo.isStaked &&
+                                <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
+                                    <Button variant="contained" color="success" onClick={handleGStake} >stake</Button>
+                                </Grid>
+                            }
+                            {(sPoolInfo.isStaked && sPoolInfo.tokenId === activatedNft.tokenId) &&
+                                <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
+                                    <Button variant="contained" color="success" onClick={handleGStake}>stake</Button>
+                                    <Button variant="contained" color="error" sx={{ ml: 2 }}>unstake</Button>
+                                </Grid>
+                            }
                             <Item
                                 sx={{ pt: 2, pl: 1, pr: 1, pb: 2 }}
                                 style={{ backgroundColor: "#12122c", borderRadius: "10px" }}
@@ -514,106 +550,63 @@ export default function NftStaking() {
                                                 <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
                                                     Outstanding Reward
                                                 </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
-                                                    <Button variant="outlined" color="warning" size="small">Claim All</Button>
-                                                </TableCell>
+                                                {sPoolInfo.isStaked &&
+                                                    <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                        <Button variant="outlined" color="warning" size="small">Claim All</Button>
+                                                    </TableCell>
+                                                }
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            <TableRow
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            >
-                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    Epoch 1
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                        <Typography>Your Boost</Typography>
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            color="secondary"
-                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
-                                                            onClick={() => setPageFlag(4)}
+                                            {sEpochs.length === 0 &&
+                                                <TableRow
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                >
+                                                    <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                        There are no epochs for this staking pool.
+                                                    </TableCell>
+                                                </TableRow>
+                                            }
+                                            {sEpochs.length !== 0 &&
+                                                sEpochs.map((item) => {
+                                                    return (
+                                                        <TableRow
+                                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                         >
-                                                            More
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <h3 className="font-medium">
-                                                        BTC
-                                                    </h3>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    YES
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            >
-                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    Epoch 2
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                        <Typography>Your Boost</Typography>
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            color="secondary"
-                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
-                                                            onClick={() => setPageFlag(4)}
-                                                        >
-                                                            More
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <h3 className="font-medium">
-                                                        BTC
-                                                    </h3>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    YES
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
-                                                </TableCell>
-                                            </TableRow>
-                                            <TableRow
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            >
-                                                <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    Epoch 3
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                        <Typography>Your Boost</Typography>
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            color="secondary"
-                                                            sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
-                                                            onClick={() => setPageFlag(4)}
-                                                        >More</Button>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <h3 className="font-medium">
-                                                        BTC
-                                                    </h3>
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    YES
-                                                </TableCell>
-                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
-                                                </TableCell>
-                                            </TableRow>
+                                                            <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                Epoch #{item.epochId}
+                                                            </TableCell>
+                                                            <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                                    <Typography>Your Boost</Typography>
+                                                                    <Button
+                                                                        variant="outlined"
+                                                                        size="small"
+                                                                        color="secondary"
+                                                                        sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
+                                                                        onClick={() => setPageFlag(4)}
+                                                                    >
+                                                                        More
+                                                                    </Button>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                <h3 className="font-medium">
+                                                                    {item.rewardToken.substr(0, 16)} ...
+                                                                </h3>
+                                                            </TableCell>
+                                                            <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                YES
+                                                            </TableCell>
+                                                            {sPoolInfo.isStaked &&
+                                                                <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
+                                                                </TableCell>
+                                                            }
+                                                        </TableRow>
+                                                    )
+                                                })
+                                            }
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
@@ -702,7 +695,7 @@ export default function NftStaking() {
                         <Grid item md={10} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
                             <Typography variant="h5" sx={{ color: "white" }}>Boost #003</Typography>
                         </Grid>
-                        <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, mt:2, flexDirection: "row" }}>
+                        <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, mt: 2, flexDirection: "row" }}>
                             <img src="/samples/nft1.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
                             <Paper sx={{ background: "transparent", ml: 3 }}>
                                 <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost ID: 003</Typography>
@@ -719,6 +712,12 @@ export default function NftStaking() {
                     </Grid>
                 </Grid>
             }
+            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto", position: "fixed", left: 10, top: "35%" }}>
+                <Typography sx={{ color: "gold", mb: 1 }}>Activated NFT</Typography>
+                <img src={"https://gateway.pinata.cloud/ipfs/" + activatedNft.url + "/" + activatedNft.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
+            </Item>
+            <GStakeModal mopen={mopen1} handleClose={handleClose1} activatedNft={activatedNft} sPoolInfo={sPoolInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
         </div>
     );
 }

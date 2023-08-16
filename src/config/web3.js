@@ -6,7 +6,8 @@ import poolABI from "../assets/abi/pool";
 import farmABI from "../assets/abi/farm";
 import routerABI from "../assets/abi/router";
 import faucetABI from "../assets/abi/faucet";
-import { chainIds, contractAddresses } from "./constants";
+import nftABI from "../assets/abi/nft";
+import { boostToEpochList, chainIds } from "./constants";
 import { getInitialPoolData } from "./seedData";
 import axios from "axios";
 
@@ -1070,7 +1071,6 @@ export const toLongNum = (x) => {
     return x;
 }
 
-
 // getting faucet tokens part
 
 export const requestToken = async (account, provider, faucetAddr) => {
@@ -1375,6 +1375,101 @@ export const getPoolList = async (provider, poolAddress, tokenList, selected_cha
     catch (e) {
         return [];
     }
+}
+
+export const getAllNfts = async (provider, groupList, boostToEpochList, contractAddr) => {
+    let web3 = new Web3(provider);
+    let nftContract = new web3.eth.Contract(nftABI, contractAddr);
+    let availableNfts = [];
+    let mintedNfts = [];
+    for (let i = 0; i < groupList.length; i++) {
+        for (let j = groupList[i].startTokenId; j <= groupList[i].lastTokenId; j++) {
+            let isExist = await nftContract.methods["_gnftExists"](j).call();
+            if (!isExist) {
+                availableNfts[availableNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl, price: groupList[i].mintPrice, tokenAddr: groupList[i].mintToken };
+            } else {
+                let isOwner = await nftContract.methods["ownerOf"](j).call();
+                if (isOwner) {
+                    mintedNfts[mintedNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl };
+
+                }
+            }
+        }
+    }
+
+    let stakingInfos = [];
+
+    mintedNfts.map(async (unit) => {
+        let item = await nftContract.methods["stakingInfo"](unit.tokenId).call();
+        if (item.tokenId === unit.tokenId)
+            stakingInfos[stakingInfos.length] = item;
+    });
+
+    let allStakes = [];
+
+    for (let i = 0; i < boostToEpochList.length; i++) {
+        let item = await nftContract.methods["stakingPools"](boostToEpochList[i].pool_id).call();
+        if (stakingInfos.length !== 0) {
+            let matchedInfo = stakingInfos.filter((piece) => {
+                return piece.boostToEpochId === boostToEpochList[i].id;
+            });
+
+            if (matchedInfo) {
+                item.isStaked = true;
+                allStakes[allStakes.length] = { ...item, matchedInfo };
+            } else {
+                allStakes[allStakes.length] = {
+                    accTokenPerShare: item.accTokenPerShare, groupMultiplier: item.groupMultiplier,
+                    maxTimeBoost: item.maxTimeBoost, poolId: item.poolId, stakingToken: item.stakingToken, timeBoostLength: item.timeBoostLength,
+                    timeMultiplier: item.timeMultiplier, totalBoostStake: item.totalBoostStake, totalStake: item.totalStake, isStaked: false
+                };
+            }
+        } else {
+            allStakes[allStakes.length] = {
+                accTokenPerShare: item.accTokenPerShare, groupMultiplier: item.groupMultiplier,
+                maxTimeBoost: item.maxTimeBoost, poolId: item.poolId, stakingToken: item.stakingToken, timeBoostLength: item.timeBoostLength,
+                timeMultiplier: item.timeMultiplier, totalBoostStake: item.totalBoostStake, totalStake: item.totalStake, isStaked: false
+            };
+        }
+    }
+
+    return [availableNfts, mintedNfts, allStakes];
+}
+
+export const getPoolEpochs = async (provider, boostToEpochList, poolId, contractAddr) => {
+    let web3 = new Web3(provider);
+    let nftContract = new web3.eth.Contract(nftABI, contractAddr);
+    let result = [];
+    let myEpochs = boostToEpochList.filter((item) => {
+        return Number(item.pool_id) === Number(poolId);
+    });
+    
+    for(let i=0; i<myEpochs.length; i++) {
+        let epochInfo = await nftContract.methods["stakingEpochs"](myEpochs[i].epoch_id).call();
+        result.push({ epochId:epochInfo.epochId, decimal:epochInfo.decimal, precisionFactor:epochInfo.precisionFactor, rewardStartBlock:epochInfo.rewardStartBlock, rewardEndBlock:epochInfo.rewardEndBlock, 
+        rewardPerBlock:epochInfo.rewardPerBlock, rewardToken:epochInfo.rewardToken, totalReward:epochInfo.totalReward });
+    }
+
+    return result;
+}
+
+export const mintNft = async (provider, groupName, tokenId, mintPrice, tokenAddr, contractAddr, account) => {
+    let web3 = new Web3(provider);
+    let tokenContract = new web3.eth.Contract(erc20ABI, tokenAddr);
+    let nftContract = new web3.eth.Contract(nftABI, contractAddr);
+    let weiVal = await toWeiVal(provider, tokenAddr, mintPrice);
+    await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
+    await nftContract.methods["mintNFT"](groupName, tokenId, weiVal).send({ from: account });
+}
+
+export const executeStaking = async (provider, poolId, amount, tokenId, tokenAddr, contractAddr, account) => {
+    let web3 = new Web3(provider);
+    let tokenContract = new web3.eth.Contract(erc20ABI, tokenAddr);
+    let nftContract = new web3.eth.Contract(nftABI, contractAddr);
+    let weiVal = await toWeiVal(provider, tokenAddr, amount);
+    console.log(poolId, weiVal, tokenId);
+    await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
+    await nftContract.methods["stake"](poolId, weiVal, tokenId).send({ from: account });
 }
 
 export const numFormat = (val) => {

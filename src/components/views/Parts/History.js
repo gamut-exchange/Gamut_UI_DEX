@@ -5,7 +5,6 @@ import Pagination from '@mui/material/Pagination';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 function History(props) {
-  let web3 = new Web3();
   const grayColor = "#6d6d7d";
   const darkFontColorSec = "#13a8ff";
   const [count, setCount] = useState(0);
@@ -26,9 +25,8 @@ function History(props) {
     window.open(`https://explorer.kava.io/tx/${hash}`);
   };
 
-  const handleChange = (e) => {
-    const c_page = Number(e.target.innerText);
-    setDisplayData(props.data.data.slice((c_page-1)*5, (c_page-1)*5+5))
+  const handleChange = (e, p) => {
+    setDisplayData(props.data.data.slice((p-1)*5, (p-1)*5+5))
   }
 
   useEffect(() => {

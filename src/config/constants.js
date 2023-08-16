@@ -3,7 +3,8 @@ export const handleValueTime = 500 // 0.5s
 export const contractAddresses = {
 	'kava': {
 		'router': '0xC04bf3d7f99DeADF808EB9095bf46dBc387EA34c',
-		'hedgeFactory': '0xdd05Ab7bFFA6929BA7Dd1571f3e8982D0CFb6469'
+		'hedgeFactory': '0xdd05Ab7bFFA6929BA7Dd1571f3e8982D0CFb6469',
+		'gamutNFT': '0x2E98532Be96cdfC888a5D128650E7A573cB448ab'
 	}
 }
 
@@ -56,5 +57,18 @@ export const farmingPoolList = {
 		{ value: "other", address: "0x25bcA9E2B311dE3611627b0953A69A6e646968e1", farmingPoolAddress: "0x49D1b387E1388B921cf5C9fc988aFB53A1DD4AE6", symbols: ["axlUSDC", "WKAVA"], logoURLs: ["/icons/usdc.svg", "/icons/wkava.png"] },
 		{ value: "other", address: "0xe5a3Af14Cdf4D7CE495650c7E9Fc35bd29A277A3", farmingPoolAddress: "0x2e783f58299d0b0bf48d971639fe084bd255294e", symbols: ["WKAVA", "ETH"], logoURLs: ["/icons/wkava.png", "/icons/eth.png"] },
 		{ value: "other", address: "0x0E916a0D53a6D5E38A8F80bA59204Fcadecf1D44", farmingPoolAddress: "0x726614ccaf5745195d906ea2e4b564dfdac518ef", symbols: ["WKAVA", "WBTC"], logoURLs: ["/icons/wkava.png", "/icons/wbtc.png"] },
+	]
+}
+
+export const nftGroupList = {
+	'kava': [
+		{name:"A", startTokenId:1, lastTokenId:12, mintPrice:0.01, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'QmeeNib5pgJKSrC1tKhUpFCYdLnmGb2iUp8VVPmMq5RLgG', backingValue: '5000000000000000', backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1693287293, multiplier: 100000}
+	]
+}
+
+
+export const boostToEpochList = {
+	'kava': [
+		{id:1, pool_id:1, epoch_id:1, boost_id:1}
 	]
 }
