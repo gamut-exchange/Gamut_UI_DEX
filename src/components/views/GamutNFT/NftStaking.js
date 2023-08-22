@@ -33,11 +33,13 @@ import { makeStyles } from "@mui/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
     getAllNfts,
+    getAllStakingPools,
     getPoolEpochs,
     mintNft,
 } from "../../../config/web3";
-import { boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
+import { tokenList, poolList, boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
 import GStakeModal from "./GStakeModal";
+import GBoostMintModal from "./GBoostMintModal";
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: "#12122c",
@@ -125,6 +127,7 @@ export const useStyles = makeStyles(() => ({
 export default function NftStaking() {
 
     const selected_chain = useSelector((state) => state.selectedChain);
+    const uniList = useSelector((state) => state.tokenList);
     const { account, connector } = useWeb3React();
     const classes = useStyles();
     const [pageFlag, setPageFlag] = useState(0);
@@ -144,7 +147,9 @@ export default function NftStaking() {
     const [displayData3, setDisplayData3] = useState([]);
     const [sPoolInfo, setSPoolInfo] = useState({});
     const [sEpochs, setSEpochs] = useState([]);
+    const [sEpochInfo, setSEpochInfo] = useState([]);
     const [mopen1, setMopen1] = useState(false);
+    const [mopen2, setMopen2] = useState(false);
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -182,52 +187,122 @@ export default function NftStaking() {
         setMopen1(false);
     }
 
+    const handleClose2 = () => {
+        setMopen2(false);
+    }
+
     const handleGNftMint = async (name, id, price, tokenAddr) => {
         const provider = await connector.getProvider();
         await mintNft(provider, name, id, price, tokenAddr, contractAddresses[selected_chain]["gamutNFT"], account);
-    }
-
-    const handleGStake = () => {
-        setMopen1(true);
     }
 
     const activateNft = (unit) => {
         setActivatedNft(unit);
     }
 
+    const createTokenDom = (address) => {
+        let tokenItem = uniList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
+        let poolItem = poolList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
+        if (tokenItem.length != 0) {
+            return (
+                <div className="relative flex justify-center">
+                    <div className="relative flex">
+                        <img
+                            src={
+                                tokenItem[0]?.logoURL
+                            }
+                            alt="" className="w-[32px] h-[32px]"
+                        />
+                    </div>
+                    <p className="text-lg font-bold" style={{ color: "#84b1e1", marginLeft: "5px", marginTop: "3px" }}>
+                        {tokenItem[0]?.symbol}
+                    </p>
+                </div>
+            );
+        } else if (poolItem.length != 0) {
+            return (
+                <div className="relative flex justify-center">
+                    <div className="relative flex">
+                        <img
+                            src={
+                                poolItem[0]?.logoURLs[0]
+                            }
+                            alt="" className="w-[32px] h-[32px]"
+                        />
+                        <img
+                            className="z-10 relative right-2 w-[32px] h-[32px]"
+                            src={
+                                poolItem[0]?.logoURLs[1]
+                            }
+                            alt=""
+                        />
+                    </div>
+                    <p className="text-lg font-bold" style={{ color: "#84b1e1" }}>
+                        {poolItem[0]?.symbols[0]}
+                        {"-"}
+                        {poolItem[0]?.symbols[1]}
+                        {" "}LP
+                    </p>
+                </div>
+            );
+        } else {
+            return (
+                <Typography>Unknown</Typography>
+            );
+        }
+    }
+
+    const getTokenInfo = (address) => {
+        let result = {};
+        let tokenItem = uniList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
+        let poolItem = poolList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
+        if (tokenItem.length !== 0) {
+            result = tokenItem[0];
+            result.tokenType = 0;
+        } else if (poolItem.length !== 0) {
+            result = poolItem[0];
+            result.tokenType = 1;
+        }
+        return result;
+    }
+
     const handleStakeDetail = async (flag, unit) => {
         const provider = await connector.getProvider();
         setPageFlag(flag);
         setSPoolInfo(unit);
-        console.log(unit);
-        const epochs = await getPoolEpochs(provider, boostToEpochList[selected_chain], unit.poolId, contractAddresses[selected_chain]["gamutNFT"]);
+        const epochs = await getPoolEpochs(provider, boostToEpochList[selected_chain], unit.nftId, unit.poolId, contractAddresses[selected_chain]["gamutNFT"]);
         setSEpochs(epochs);
+    }
+
+    const moreBoostInfo = (epochInfo) => {
+        setPageFlag(4);
+        setSEpochInfo(epochInfo);
     }
 
     const getInfo = async () => {
         const provider = await connector.getProvider();
-        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
         if (allNfts) {
             setUnMitedNfts(allNfts[0]);
             setMintedNfts(allNfts[1]);
-            setAllStakes(allNfts[2]);
             setDisplayData1(allNfts[0].slice(0, 4));
             setDisplayData2(allNfts[1].slice(0, 4));
-            setDisplayData3(allNfts[2].slice(0, 4));
-            if (allNfts[1].length !== 0) {
-                setActivatedNft(allNfts[1][0]);
-            }
             let cnt1 = allNfts[0].length / 4;
             cnt1 = Number(cnt1.toFixed(0));
             setCount1(cnt1);
             let cnt2 = allNfts[1].length / 4;
             cnt2 = Number(cnt2.toFixed(0));
             setCount2(cnt2);
-            let cnt3 = allNfts[2].length / 4;
-            cnt3 = Number(cnt3.toFixed(0));
-            setCount2(cnt3);
+            if (allNfts[1].length !== 0) {
+                setActivatedNft(allNfts[1][0]);
+                const allStakingPools = await getAllStakingPools(provider, allNfts[1][0].tokenId, boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+                setAllStakes(allStakingPools);
+                setDisplayData3(allStakingPools.slice(0, 4));
+                let cnt3 = allStakingPools.length / 4;
+                cnt3 = Number(cnt3.toFixed(0));
+                setCount2(cnt3);
+            }
         }
-
     }
 
     useEffect(() => {
@@ -375,7 +450,7 @@ export default function NftStaking() {
                                                 #
                                             </TableCell>
                                             <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
-                                                Name
+                                                Staking Token
                                             </TableCell>
                                             <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
                                                 NFT
@@ -392,37 +467,43 @@ export default function NftStaking() {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {displayData3.map((unit, index) => {
-                                            return (
-                                                <TableRow
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                    key={"stake_" + index}
-                                                >
-                                                    <TableCell component="th" scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                        {index + 1}
-                                                    </TableCell>
-                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                        <Typography>{unit.stakingToken.substr(0, 16) + "..."}</Typography>
-                                                    </TableCell>
-                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                        <h3 className="font-medium">
-                                                            {unit.isStaked ? unit.tokenId : "no stake"}
-                                                        </h3>
-                                                    </TableCell>
-                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                        {unit.isStaked ? unit.apr : "no stake"}
-                                                    </TableCell>
-                                                    <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                        {unit.isStaked ? unit.tokenId : "no stake"}
-                                                    </TableCell>
-                                                    <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
-                                                        <Button>
-                                                            <KeyboardArrowRight onClick={() => handleStakeDetail(3, { ...unit, sIndex: index })} />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )
-                                        })}
+                                        {allStakes.length !== 0 &&
+                                            displayData3.map((unit, index) => {
+                                                return (
+                                                    <TableRow
+                                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                        key={"stake_" + index}
+                                                    >
+                                                        <TableCell scope="row" align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                            <h3 className="font-medium text-lg">
+                                                                Staking {index + 1}
+                                                            </h3>
+                                                        </TableCell>
+                                                        <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                            {unit.isStaked ? createTokenDom(unit?.address) : "no stake"}
+                                                        </TableCell>
+                                                        <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                            <h3 className="font-medium text-lg">
+                                                                {unit.isStaked ? "#" + unit.nftId : "no stake"}
+                                                            </h3>
+                                                        </TableCell>
+                                                        <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                            {unit.isStaked ? unit.apr : "no stake"}
+                                                        </TableCell>
+                                                        <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
+                                                            <h3 className="font-medium text-lg">
+                                                                {unit.isStaked ? unit.amount : "no stake"}
+                                                            </h3>
+                                                        </TableCell>
+                                                        <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+                                                            <Button>
+                                                                <KeyboardArrowRight onClick={() => handleStakeDetail(3, { ...unit, sIndex: index })} />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
+                                            })
+                                        }
                                     </TableBody>
                                 </Table>
                             </TableContainer>
@@ -521,12 +602,12 @@ export default function NftStaking() {
                         <Grid item md={12} sx={{ alignItems: "center", mb: 2 }}>
                             {!sPoolInfo.isStaked &&
                                 <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                                    <Button variant="contained" color="success" onClick={handleGStake} >stake</Button>
+                                    <Button variant="contained" color="success" onClick={() => setMopen1(true)} >stake</Button>
                                 </Grid>
                             }
-                            {(sPoolInfo.isStaked && sPoolInfo.tokenId === activatedNft.tokenId) &&
+                            {(sPoolInfo.isStaked && sPoolInfo.nftId === activatedNft.tokenId) &&
                                 <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                                    <Button variant="contained" color="success" onClick={handleGStake}>stake</Button>
+                                    <Button variant="contained" color="success" onClick={() => setMopen1(true)}>stake</Button>
                                     <Button variant="contained" color="error" sx={{ ml: 2 }}>unstake</Button>
                                 </Grid>
                             }
@@ -584,19 +665,17 @@ export default function NftStaking() {
                                                                         size="small"
                                                                         color="secondary"
                                                                         sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}
-                                                                        onClick={() => setPageFlag(4)}
+                                                                        onClick={() => moreBoostInfo(item)}
                                                                     >
                                                                         More
                                                                     </Button>
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                                <h3 className="font-medium">
-                                                                    {item.rewardToken.substr(0, 16)} ...
-                                                                </h3>
+                                                                {createTokenDom(item?.rewardToken)}
                                                             </TableCell>
                                                             <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                                YES
+                                                                {Number(item.boost2) === 0 ? "NO" : "YES"}
                                                             </TableCell>
                                                             {sPoolInfo.isStaked &&
                                                                 <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
@@ -628,7 +707,7 @@ export default function NftStaking() {
                         <Grid item md={2} sm={12} sx={{ alignItems: "left" }}>
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
-                        <Grid item={true} md={3} sm={4} sx={{ mt: 0.7 }} className="home__mainC">
+                        {/* <Grid item={true} md={3} sm={4} sx={{ mt: 0.7 }} className="home__mainC">
                             <Item
                                 elevation={1}
                                 style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 18px", minWidth: "180px" }}
@@ -638,41 +717,21 @@ export default function NftStaking() {
                                     <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Minted Only</Typography>
                                 </Stack>
                             </Item>
-                        </Grid>
+                        </Grid> */}
                         <Grid item md={7} sm={8} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
-                            <Typography variant="h5" sx={{ color: "white" }}>StakingPool: Staking Pool 1, Epoch: Epoch 1</Typography>
+                            <Typography variant="h5" sx={{ color: "white" }}>StakingPool: #{sPoolInfo?.sIndex + 1}, Epoch: #{sEpochInfo.epochId}</Typography>
                         </Grid>
                         <Divider sx={{ width: "100%", borderColor: "#76769066", mt: 2, mb: 2 }} />
                         <Grid
                             container
                             sx={{ pl: 0, borderBottom: "1px solid rgba(118, 118, 144, 0.4)" }}
                         >
-                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
+                            <Grid item xs={12} sx={{ alignItems: "center", mb: 2 }}>
                                 <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
-                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #2</Typography>
-                                    <Typography sx={{ color: "white" }}>10%</Typography>
-                                </Item>
-                            </Grid>
-                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
-                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupA #3</Typography>
-                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
-                                </Item>
-                            </Grid>
-                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
-                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupC #1</Typography>
-                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
-                                </Item>
-                            </Grid>
-                            <Grid item md={3} sm={6} xs={12} sx={{ alignItems: "center", mb: 2 }}>
-                                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }} onClick={() => setPageFlag(5)}>
-                                    <img src="/samples/nft1.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>
-                                    <Typography sx={{ color: "white", mt: 0.5 }}>GroupC #23</Typography>
-                                    <Typography sx={{ color: "white" }}>Not Minted</Typography>
+                                    {Number(sEpochInfo.boostType) === 0 && <img src="/samples/nft_token.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>}
+                                    {Number(sEpochInfo.boostType) === 1 && <img src="/samples/ft_token.png" alt="nft image" width={130} style={{ borderRadius: 8 }}></img>}
+                                    <Typography sx={{ color: "white", mt: 0.5 }}>Boost #{sEpochInfo.boostId}</Typography>
+                                    <Typography sx={{ color: "white" }}>{(Number(sEpochInfo.boost2) / 10000).toFixed(2)}%</Typography>
                                 </Item>
                             </Grid>
                         </Grid>
@@ -693,31 +752,39 @@ export default function NftStaking() {
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(4)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
                         <Grid item md={10} sx={{ alignItems: "left", display: "flex", alignItems: "center" }}>
-                            <Typography variant="h5" sx={{ color: "white" }}>Boost #003</Typography>
+                            <Typography variant="h5" sx={{ color: "white" }}>Boost #{sEpochInfo.boostId}</Typography>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, mt: 2, flexDirection: "row" }}>
-                            <img src="/samples/nft1.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
-                            <Paper sx={{ background: "transparent", ml: 3 }}>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost ID: 003</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost Token: NFT</Typography>
+                            {Number(sEpochInfo.boostType) === 0 && <img src="/samples/nft_token.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>}
+                            {Number(sEpochInfo.boostType) === 1 && <img src="/samples/ft_token.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>}
+                            <Paper sx={{ background: "transparent", ml: 3, boxShadow: "0px 0px 0px 0px" }}>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost ID: {sEpochInfo.boostId}</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Boost Token:
+                                    {Number(sEpochInfo.boostType) === 0 ? "NFT(" + sEpochInfo.tStakingToken.substr(0, 18) + "...)"
+                                        :
+                                        (getTokenInfo(sEpochInfo.tStakingToken).symbol ? getTokenInfo(sEpochInfo.tStakingToken).symbol : getTokenInfo(sEpochInfo.tStakingToken).symbols[0] + " " + getTokenInfo(sEpochInfo.tStakingToken).symbol[1] + " LP")}
+                                </Typography>
                                 <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Access: 07/23/2023 - 09/21/2023</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Max Boost: 20%</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Your Boost: 0%</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Max Boost: {sEpochInfo.maxBoost / 10000}%</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Your Boost: {(Number(sEpochInfo.boost2) / 10000).toFixed(2)}%</Typography>
                             </Paper>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                            <Button variant="contained" color="success" >Increase Boost</Button>
-                            <Button variant="contained" color="error" sx={{ ml: 2 }}>Decrease Boost</Button>
+                            <Button variant="contained" color="success" onClick={() => setMopen2(true)} >Increase Boost</Button>
+                            {Number(sEpochInfo.boost2) !== 0 && <Button variant="contained" color="error" sx={{ ml: 2 }}>Decrease Boost</Button>}
                         </Grid>
                     </Grid>
                 </Grid>
             }
-            <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto", position: "fixed", left: 10, top: "35%" }}>
-                <Typography sx={{ color: "gold", mb: 1 }}>Activated NFT</Typography>
-                <img src={"https://gateway.pinata.cloud/ipfs/" + activatedNft.url + "/" + activatedNft.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
-                <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
-            </Item>
+            {activatedNft.tokenId &&
+                <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto", position: "fixed", left: 10, top: "35%" }}>
+                    <Typography sx={{ color: "gold", mb: 1 }}>Activated NFT</Typography>
+                    <img src={"https://gateway.pinata.cloud/ipfs/" + activatedNft.url + "/" + activatedNft.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                    <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
+                </Item>
+            }
             <GStakeModal mopen={mopen1} handleClose={handleClose1} activatedNft={activatedNft} sPoolInfo={sPoolInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
+            <GBoostMintModal mopen={mopen2} handleClose={handleClose2} activatedNft={activatedNft} sEpochInfo={sEpochInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
         </div>
     );
 }

@@ -4,7 +4,7 @@ export const contractAddresses = {
 	'kava': {
 		'router': '0xC04bf3d7f99DeADF808EB9095bf46dBc387EA34c',
 		'hedgeFactory': '0xdd05Ab7bFFA6929BA7Dd1571f3e8982D0CFb6469',
-		'gamutNFT': '0x2E98532Be96cdfC888a5D128650E7A573cB448ab'
+		'gamutNFT': '0x3832E4f76fA989e439CF0f3117517424E47fb4cF'
 	}
 }
 
@@ -62,13 +62,13 @@ export const farmingPoolList = {
 
 export const nftGroupList = {
 	'kava': [
-		{name:"A", startTokenId:1, lastTokenId:12, mintPrice:0.01, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'QmeeNib5pgJKSrC1tKhUpFCYdLnmGb2iUp8VVPmMq5RLgG', backingValue: '5000000000000000', backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1693287293, multiplier: 100000}
+		{name:"A", startTokenId:1, lastTokenId:12, mintPrice:0.01, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'QmeeNib5pgJKSrC1tKhUpFCYdLnmGb2iUp8VVPmMq5RLgG', backingValue: 0.005, backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1692950579, multiplier: 100000}
 	]
 }
 
 
 export const boostToEpochList = {
 	'kava': [
-		{id:1, pool_id:1, epoch_id:1, boost_id:1}
+		{id:1, pool_id:1, epoch_id:1, boost_id:1},
 	]
 }

@@ -12,7 +12,7 @@ import {
 import { styled } from "@mui/material/styles";
 import tw from "twin.macro";
 import {
-    executeStaking
+    executeBMint
 } from "../../../config/web3";
 import { poolList } from "../../../config/constants";
 
@@ -74,13 +74,12 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInfo, contractAddr }) {
+export default function GBoostMintModal({ mopen, handleClose, activatedNft, sEpochInfo, contractAddr }) {
 
     const selected_chain = useSelector((state) => state.selectedChain);
     const uniList = useSelector((state) => state.tokenList);
     const { account, connector } = useWeb3React();
-    // const dispatch = useDispatch();
-    // const provider = defaultProvider[selected_chain];
+    const { nftId, setNftId } = useState("");
     const [amount, setAmount] = useState(0);
 
     const createTokenDom = (address) => {
@@ -89,19 +88,22 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
             let poolItem = poolList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
             if (tokenItem.length != 0) {
                 return (
-                    <div className="relative flex justify-center">
-                        <div className="relative flex">
-                            <img
-                                src={
-                                    tokenItem[0]?.logoURL
-                                }
-                                alt="" className="w-[32px] h-[32px]"
-                            />
-                        </div>
-                        <p className="text-lg font-bold" style={{ color: "#84b1e1", marginLeft: "5px", marginTop: "3px" }}>
-                            {tokenItem[0]?.symbol}
-                        </p>
-                    </div>
+                    <Button
+                        style={{ width: "35%", float: "left", border: "0px", padding: "10px 8px", backgroundColor: "#07071c", minHeight: "48px", fontSize: "12px" }}
+                        startIcon={
+                            <div style={{ float: "left" }}>
+                                <img
+                                    src={tokenItem[0]?.logoURL}
+                                    alt=""
+                                    style={{ float: "left" }}
+                                    className="w-6 md:w-7"
+                                />
+                            </div>
+                        }
+                        className="w-36 sm:w-48"
+                    >
+                        {tokenItem[0]?.symbol}
+                    </Button>
                 );
             } else if (poolItem.length != 0) {
                 return (
@@ -137,13 +139,23 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
         }
     }
 
-    const handleChange = (e) => {
+    const handleChange1 = (e) => {
+        setNftId(e.target.value);
+    }
+
+    const handleChange2 = (e) => {
         setAmount(e.target.value);
     }
 
-    const confirmStaking = async () => {
+    const confirmBMint = async () => {
         const provider = await connector.getProvider();
-        executeStaking(provider, sPoolInfo.poolId, amount, activatedNft.tokenId, sPoolInfo.address, contractAddr, account);
+        if (Number(sEpochInfo.boostType) === 0) {
+            if (nftId.length !== 0)
+                executeBMint(provider, sEpochInfo.boostId, nftId, 0, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
+        } else if (Number(sEpochInfo.boostType) === 1) {
+            if (Number(amount) !== 0)
+                executeBMint(provider, sEpochInfo.boostId, 0, amount, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
+        }
     }
 
     return (
@@ -154,7 +166,7 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
             aria-describedby="modal-modal-description"
         >
             <StyledModal className="bg-modal">
-                <Typography variant="h6" sx={{ color: "white" }}>Staking Pool #{sPoolInfo?.sIndex + 1}</Typography>
+                <Typography variant="h6" sx={{ color: "white" }}>Boost #{sEpochInfo.boostId}</Typography>
                 <Grid container sx={{ justifyContent: "center" }}>
                     <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
                         <Typography sx={{ color: "gold", mb: 1 }}>Activated NFT</Typography>
@@ -162,26 +174,46 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
                         <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
                     </Item>
                 </Grid>
-                <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
-                    {createTokenDom(sPoolInfo?.address)}
-                    <BootstrapInput
-                        id="demo-customized-textbox"
-                        type="text"
-                        value={amount}
-                        min={0}
-                        style={{
-                            color: "#FFFFFF",
-                            width: "65%",
-                            float: "left",
-                            borderLeft: "1px solid white",
-                            borderRadius: "14px",
-                        }}
-                        onChange={handleChange}
-                        onKeyUp={handleChange}
-                    />
-                </div>
+                {Number(sEpochInfo.boostType) == 0 &&
+                    <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
+                        <Typography variant="h6">{sEpochInfo.tStakingToken.substr(0, 16)}...</Typography>
+                        <BootstrapInput
+                            id="demo-customized-textbox"
+                            type="text"
+                            value={nftId}
+                            style={{
+                                color: "#FFFFFF",
+                                width: "100%",
+                                float: "left",
+                                borderLeft: "1px solid white",
+                                borderRadius: "14px",
+                            }}
+                            onChange={handleChange1}
+                        />
+                    </div>
+                }
+                {Number(sEpochInfo.boostType) == 1 &&
+                    <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
+                        {createTokenDom(sEpochInfo?.tStakingToken)}
+                        <BootstrapInput
+                            id="demo-customized-textbox"
+                            type="text"
+                            value={amount}
+                            min={0}
+                            style={{
+                                color: "#FFFFFF",
+                                width: "65%",
+                                float: "left",
+                                borderLeft: "1px solid white",
+                                borderRadius: "14px",
+                            }}
+                            onChange={handleChange2}
+                            onKeyUp={handleChange2}
+                        />
+                    </div>
+                }
                 <Grid container sx={{ justifyContent: "end", mt: 2 }}>
-                    <Button variant="contained" onClick={confirmStaking}>Confirm</Button>
+                    <Button variant="contained" onClick={confirmBMint}>Confirm</Button>
                 </Grid>
             </StyledModal>
         </Modal>
