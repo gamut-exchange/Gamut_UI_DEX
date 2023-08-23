@@ -37,7 +37,7 @@ import {
     getPoolEpochs,
     mintNft,
 } from "../../../config/web3";
-import { tokenList, poolList, boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
+import { poolList, boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
 import GStakeModal from "./GStakeModal";
 import GBoostMintModal from "./GBoostMintModal";
 
@@ -145,6 +145,7 @@ export default function NftStaking() {
     const [displayData2, setDisplayData2] = useState([]);
     const [count3, setCount3] = useState(0);
     const [displayData3, setDisplayData3] = useState([]);
+    const [sNft, setSNft] = useState({});
     const [sPoolInfo, setSPoolInfo] = useState({});
     const [sEpochs, setSEpochs] = useState([]);
     const [sEpochInfo, setSEpochInfo] = useState([]);
@@ -198,6 +199,11 @@ export default function NftStaking() {
 
     const activateNft = (unit) => {
         setActivatedNft(unit);
+    }
+
+    const handleNftDetail = (unit) => {
+        setSNft(unit);
+        setPageFlag(2);
     }
 
     const createTokenDom = (address) => {
@@ -300,7 +306,14 @@ export default function NftStaking() {
                 setDisplayData3(allStakingPools.slice(0, 4));
                 let cnt3 = allStakingPools.length / 4;
                 cnt3 = Number(cnt3.toFixed(0));
-                setCount2(cnt3);
+                setCount3(cnt3);
+            } else {
+                const allStakingPools = await getAllStakingPools(provider, 0, boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+                setAllStakes(allStakingPools);
+                setDisplayData3(allStakingPools.slice(0, 4));
+                let cnt3 = allStakingPools.length / 4;
+                cnt3 = Number(cnt3.toFixed(0));
+                setCount3(cnt3);
             }
         }
     }
@@ -327,7 +340,7 @@ export default function NftStaking() {
                                 return (
                                     <Grid item md={3} sm={6} sx={{ alignItems: "center", mb: 2 }}>
                                         <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                            <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                                            <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => handleNftDetail(unit)}></img>
                                             <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.gName + " #" + unit.tokenId}</Typography>
                                             <Button size="small" variant="contained" color="primary" onClick={() => handleGNftMint(unit.gName, unit.tokenId, unit.price, unit.tokenAddr)}>Mint</Button>
                                         </Item>
@@ -461,9 +474,11 @@ export default function NftStaking() {
                                             <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
                                                 Your Stake
                                             </TableCell>
-                                            <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
-                                                Details
-                                            </TableCell>
+                                            {activatedNft.tokenId &&
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Details
+                                                </TableCell>
+                                            }
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -488,18 +503,22 @@ export default function NftStaking() {
                                                             </h3>
                                                         </TableCell>
                                                         <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
-                                                            {unit.isStaked ? unit.apr : "no stake"}
+                                                            <h3 className="font-medium text-lg">
+                                                                {unit.isStaked ? unit.apr : "no stake"}
+                                                            </h3>
                                                         </TableCell>
                                                         <TableCell align="center" style={{ color: "white", paddingTop: 5, paddingBottom: 5 }}>
                                                             <h3 className="font-medium text-lg">
                                                                 {unit.isStaked ? unit.amount : "no stake"}
                                                             </h3>
                                                         </TableCell>
-                                                        <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
-                                                            <Button>
-                                                                <KeyboardArrowRight onClick={() => handleStakeDetail(3, { ...unit, sIndex: index })} />
-                                                            </Button>
-                                                        </TableCell>
+                                                        {activatedNft.tokenId &&
+                                                            <TableCell align="center" style={{ paddingTop: 5, paddingBottom: 5 }}>
+                                                                <Button>
+                                                                    <KeyboardArrowRight onClick={() => handleStakeDetail(3, { ...unit, sIndex: index })} />
+                                                                </Button>
+                                                            </TableCell>
+                                                        }
                                                     </TableRow>
                                                 )
                                             })
@@ -535,7 +554,7 @@ export default function NftStaking() {
                                     return (
                                         <Grid item md={2} sm={6} sx={{ alignItems: "center", mb: 2 }}>
                                             <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                                <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                                                <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => handleNftDetail(unit)}></img>
                                                 <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.gName + " #" + unit.tokenId}</Typography>
                                                 {activatedNft.tokenId === unit.tokenId &&
                                                     <Typography sx={{ color: "gold", mt: 0.5 }}>Activated</Typography>
@@ -571,12 +590,12 @@ export default function NftStaking() {
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", alignItems: "center", mb: 2, flexDirection: "row" }}>
-                            <img src="/samples/nft1.png" alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
+                            <img src={"https://gateway.pinata.cloud/ipfs/" + sNft.url + "/" + sNft.tokenId + ".png"} alt="nft image" width={isMobile ? 140 : 180} style={{ borderRadius: 8 }}></img>
                             <Paper sx={{ background: "transparent", ml: 3 }}>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT ID: 001</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT Group: A</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Mint Date: 07/23/2023</Typography>
-                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Owner: 0x294052....</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT ID: #{sNft.tokenId}</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>NFT Group: {sNft.gName}</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Mint Token: {sNft.tokenAddr.substr(0, 16)}...</Typography>
+                                <Typography variant="h4" sx={{ color: "white", fontSize: "18px", mb: 1 }}>Mint Price: {sNft.price}</Typography>
                             </Paper>
                         </Grid>
                     </Grid>
@@ -779,7 +798,7 @@ export default function NftStaking() {
             {activatedNft.tokenId &&
                 <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto", position: "fixed", left: 10, top: "35%" }}>
                     <Typography sx={{ color: "gold", mb: 1 }}>Activated NFT</Typography>
-                    <img src={"https://gateway.pinata.cloud/ipfs/" + activatedNft.url + "/" + activatedNft.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => setPageFlag(2)}></img>
+                    <img src={"https://gateway.pinata.cloud/ipfs/" + activatedNft.url + "/" + activatedNft.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => handleNftDetail(activatedNft)}></img>
                     <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
                 </Item>
             }

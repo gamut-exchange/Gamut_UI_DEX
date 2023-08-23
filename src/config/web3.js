@@ -1390,7 +1390,7 @@ export const getAllNfts = async (provider, groupList, contractAddr) => {
             } else {
                 let isOwner = await nftContract.methods["ownerOf"](j).call();
                 if (isOwner) {
-                    mintedNfts[mintedNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl };
+                    mintedNfts[mintedNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl, price: groupList[i].mintPrice, tokenAddr: groupList[i].mintToken };
 
                 }
             }
