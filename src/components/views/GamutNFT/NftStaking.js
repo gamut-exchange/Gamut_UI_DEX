@@ -151,6 +151,7 @@ export default function NftStaking() {
     const [sEpochInfo, setSEpochInfo] = useState([]);
     const [mopen1, setMopen1] = useState(false);
     const [mopen2, setMopen2] = useState(false);
+    const [stakingFlag, setStakingFlag] = useState(0);
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -195,6 +196,14 @@ export default function NftStaking() {
     const handleGNftMint = async (name, id, price, tokenAddr) => {
         const provider = await connector.getProvider();
         await mintNft(provider, name, id, price, tokenAddr, contractAddresses[selected_chain]["gamutNFT"], account);
+    }
+
+    const handleStakeModal = (flag) => {
+        if (flag == 0)
+            setStakingFlag(0);
+        else
+            setStakingFlag(1);
+        setMopen1(true);
     }
 
     const activateNft = (unit) => {
@@ -621,13 +630,13 @@ export default function NftStaking() {
                         <Grid item md={12} sx={{ alignItems: "center", mb: 2 }}>
                             {!sPoolInfo.isStaked &&
                                 <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                                    <Button variant="contained" color="success" onClick={() => setMopen1(true)} >stake</Button>
+                                    <Button variant="contained" color="success" onClick={() => handleStakeModal(0)} >stake</Button>
                                 </Grid>
                             }
                             {(sPoolInfo.isStaked && sPoolInfo.nftId === activatedNft.tokenId) &&
                                 <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                                    <Button variant="contained" color="success" onClick={() => setMopen1(true)}>stake</Button>
-                                    <Button variant="contained" color="error" sx={{ ml: 2 }}>unstake</Button>
+                                    <Button variant="contained" color="success" onClick={() => handleStakeModal(0)}>stake</Button>
+                                    <Button variant="contained" color="error" sx={{ ml: 2 }} onClick={() => handleStakeModal(1)}>unstake</Button>
                                 </Grid>
                             }
                             <Item
@@ -802,7 +811,7 @@ export default function NftStaking() {
                     <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
                 </Item>
             }
-            <GStakeModal mopen={mopen1} handleClose={handleClose1} activatedNft={activatedNft} sPoolInfo={sPoolInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
+            <GStakeModal mopen={mopen1} handleClose={handleClose1} stakingFlag={stakingFlag} activatedNft={activatedNft} sPoolInfo={sPoolInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
             <GBoostMintModal mopen={mopen2} handleClose={handleClose2} activatedNft={activatedNft} sEpochInfo={sEpochInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
         </div>
     );

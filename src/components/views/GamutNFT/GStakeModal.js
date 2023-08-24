@@ -74,7 +74,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInfo, contractAddr }) {
+export default function GStakeModal({ mopen, handleClose, stakingFlag, activatedNft, sPoolInfo, contractAddr }) {
 
     const selected_chain = useSelector((state) => state.selectedChain);
     const uniList = useSelector((state) => state.tokenList);
@@ -143,7 +143,7 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
 
     const confirmStaking = async () => {
         const provider = await connector.getProvider();
-        executeStaking(provider, sPoolInfo.poolId, amount, activatedNft.tokenId, sPoolInfo.address, contractAddr, account);
+        executeStaking(provider, stakingFlag, sPoolInfo.poolId, amount, activatedNft.tokenId, sPoolInfo.address, contractAddr, account);
     }
 
     return (
@@ -162,6 +162,8 @@ export default function GStakeModal({ mopen, handleClose, activatedNft, sPoolInf
                         <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
                     </Item>
                 </Grid>
+                {stakingFlag == 0 && <Typography variant="h6" sx={{ color:"white" }}>Stake Token</Typography>}
+                {stakingFlag == 1 && <Typography variant="h6" sx={{ color:"white" }}>Unstake Token</Typography>}
                 <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                     {createTokenDom(sPoolInfo?.address)}
                     <BootstrapInput

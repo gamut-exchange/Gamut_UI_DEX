@@ -4,7 +4,7 @@ export const contractAddresses = {
 	'kava': {
 		'router': '0xC04bf3d7f99DeADF808EB9095bf46dBc387EA34c',
 		'hedgeFactory': '0xdd05Ab7bFFA6929BA7Dd1571f3e8982D0CFb6469',
-		'gamutNFT': '0xF55ad2f6Cdd5C8fc5247da2fa78Eb908Bbf353e7'
+		'gamutNFT': '0x25813D11970181CD790373e3a571Ec5Cd8Ba034F'
 	}
 }
 

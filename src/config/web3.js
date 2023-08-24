@@ -1448,11 +1448,11 @@ export const getPoolEpochs = async (provider, boostToEpochList, nftId, poolId, c
         let pInfo = await nftContract.methods["getPoolInfo"](nftId, myEpochs[i].id).call();
         let tbInfo = await nftContract.methods["stakingTBoosts"](myEpochs[i].boost_id).call();
         let bInfo = await nftContract.methods["getTBoostInfo"](nftId, myEpochs[i].boost_id).call();
-        // let pendingReward = await nftContract.methods['pendingReward'](nftId, myEpochs[i].id).call();
+        let pendingReward = await nftContract.methods['pendingReward'](nftId, myEpochs[i].id).call();
         // console.log(pendingReward);
         result.push({
             epochId: myEpochs[i].epoch_id, boostId: myEpochs[i].boost_id, decimal: epochInfo.decimal, precisionFactor: epochInfo.precisionFactor, rewardStartBlock: epochInfo.rewardStartBlock, rewardEndBlock: epochInfo.rewardEndBlock,
-            rewardPerBlock: epochInfo.rewardPerBlock, rewardToken: epochInfo.rewardToken, totalReward: epochInfo.totalReward, boost1: pInfo.boost1, boost2: bInfo.boost2, pendingReward: 0,
+            rewardPerBlock: epochInfo.rewardPerBlock, rewardToken: epochInfo.rewardToken, totalReward: epochInfo.totalReward, boost1: pInfo.boost1, boost2: bInfo.boost2, pendingReward: pendingReward,
             tStakingToken: tbInfo.tStakingToken, boostType: tbInfo.boostType, maxBoost: tbInfo.maxBoost
         });
     }
@@ -1469,13 +1469,17 @@ export const mintNft = async (provider, groupName, tokenId, mintPrice, tokenAddr
     await nftContract.methods["mintNFT"](groupName, tokenId, weiVal).send({ from: account });
 }
 
-export const executeStaking = async (provider, poolId, amount, tokenId, tokenAddr, contractAddr, account) => {
+export const executeStaking = async (provider, stakingFlag, poolId, amount, tokenId, tokenAddr, contractAddr, account) => {
     let web3 = new Web3(provider);
     let tokenContract = new web3.eth.Contract(erc20ABI, tokenAddr);
     let nftContract = new web3.eth.Contract(nftABI, contractAddr);
     let weiVal = await toWeiVal(provider, tokenAddr, amount);
-    await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
-    await nftContract.methods["stake"](poolId, weiVal, tokenId).send({ from: account });
+    if (stakingFlag == 0) {
+        await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
+        await nftContract.methods["stake"](poolId, weiVal, tokenId).send({ from: account });
+    } else {
+        await nftContract.methods["unstake"](poolId, weiVal, tokenId).send({ from: account });
+    }
 }
 
 export const executeBMint = async (provider, boostId, nftId, amount, tokenId, tokenAddr, contractAddr, account) => {
