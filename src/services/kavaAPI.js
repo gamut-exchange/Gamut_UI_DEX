@@ -3,7 +3,7 @@ import axios from "axios";
 export const getKavaERC20 = (address) => {
   const options = {
     method: "GET",
-    url: `https://explorer.kava.io/api?address=${address}`, // Test Address: 0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b
+    url: `https://kavascan.com/api?address=${address}`, // Test Address: 0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b
     params: {
       module: "account",
       action: "tokenlist",
@@ -29,7 +29,7 @@ export const getKavaTx = (address, limit) => {
   // console.log("Addresswa:", address);
   const options = {
     method: "GET",
-    url: `https://explorer.kava.io/api?address=${address}`, //0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b
+    url: `https://kavascan.com/api?address=${address}`, //0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b
     params: {
       module: "account",
       action: "txlist",

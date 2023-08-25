@@ -36,6 +36,8 @@ import {
     getAllStakingPools,
     getPoolEpochs,
     mintNft,
+    executeClaimEpoch,
+    numFormat,
 } from "../../../config/web3";
 import { poolList, boostToEpochList, contractAddresses, nftGroupList } from "../../../config/constants";
 import GStakeModal from "./GStakeModal";
@@ -224,6 +226,11 @@ export default function NftStaking() {
         setPageFlag(2);
     }
 
+    const handleClaim = async (boost_to_epoch_id) => {
+        const provider = await connector.getProvider();
+        executeClaimEpoch(provider, activatedNft.tokenId, boost_to_epoch_id, contractAddresses[selected_chain]["gamutNFT"], account);
+    }
+
     const createTokenDom = (address) => {
         let tokenItem = uniList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
         let poolItem = poolList[selected_chain].filter((item) => { return item.address.toLowerCase() === address.toLowerCase() });
@@ -305,7 +312,7 @@ export default function NftStaking() {
 
     const getInfo = async () => {
         const provider = await connector.getProvider();
-        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], contractAddresses[selected_chain]["gamutNFT"], account);
         if (allNfts) {
             setUnMitedNfts(allNfts[0]);
             setMintedNfts(allNfts[1]);
@@ -385,24 +392,7 @@ export default function NftStaking() {
                         container
                         sx={{ pl: 0, borderTop: "1px solid rgba(118, 118, 144, 0.4)", paddingTop: "1rem", marginTop: "0.5rem" }}
                     >
-                        <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
-                            <Item
-                                elevation={1}
-                                style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 18px", minWidth: "180px" }}
-                            >
-                                <Stack direction="row" spacing={1} alignItems="start">
-                                    <div className="flex flex-col">
-                                        <FormLabel component="legend" sx={{ fontSize: 10, display: "flex", fontWeight: "bold", color: "#1c63eb" }}>FILTER BY</FormLabel>
-                                        <Stack direction="row" spacing={1} sx={{ mt: 0.4 }}>
-                                            <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Finished</Typography>
-                                            <AntSwitch defaultChecked onChange={handleStatus} inputProps={{ 'aria-label': 'ant design' }} />
-                                            <Typography style={{ color: "white", fontSize: 14, display: "flex", alignItems: "center" }}>Live</Typography>
-                                        </Stack>
-                                    </div>
-                                </Stack>
-                            </Item>
-                        </Grid>
-                        <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+                        <Grid item={true} xs={12} sm={6} md={4} sx={{ mt: 2 }} className="home__mainC">
                             <Item
                                 elevation={1}
                                 style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", marginLeft: 0, minWidth: "180px" }}
@@ -418,7 +408,7 @@ export default function NftStaking() {
                                 </Stack>
                             </Item>
                         </Grid>
-                        <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+                        <Grid item={true} xs={12} sm={6} md={4} sx={{ mt: 2 }} className="home__mainC">
                             <Item
                                 elevation={1}
                                 style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth: "180px" }}
@@ -452,7 +442,7 @@ export default function NftStaking() {
                                 </Stack>
                             </Item>
                         </Grid>
-                        <Grid item={true} xs={12} sm={6} md={3} sx={{ mt: 2 }} className="home__mainC">
+                        <Grid item={true} xs={12} sm={6} md={4} sx={{ mt: 2 }} className="home__mainC">
                             <Item
                                 elevation={1}
                                 style={{ backgroundColor: "transparent", boxShadow: "0px 0px 0px 0px", padding: "0px 16px", minWidth: "180px" }}
@@ -666,6 +656,9 @@ export default function NftStaking() {
                                                     Reward Token
                                                 </TableCell>
                                                 <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
+                                                    Pending Reward
+                                                </TableCell>
+                                                <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
                                                     Outstanding Reward
                                                 </TableCell>
                                                 {sPoolInfo.isStaked &&
@@ -712,11 +705,14 @@ export default function NftStaking() {
                                                                 {createTokenDom(item?.rewardToken)}
                                                             </TableCell>
                                                             <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
+                                                                {numFormat(item?.pendingReward)}
+                                                            </TableCell>
+                                                            <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
                                                                 {Number(item.boost2) === 0 ? "NO" : "YES"}
                                                             </TableCell>
                                                             {sPoolInfo.isStaked &&
                                                                 <TableCell align="center" style={{ color: "white", paddingTop: 10, paddingBottom: 10 }}>
-                                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }}>Claim</Button>
+                                                                    <Button variant="outlined" size="small" color="warning" sx={{ ml: 1, fontSize: "12px", padding: "4px 4px 2px", alignItems: "center" }} onClick={() => handleClaim(item.boostToEpochId)}>Claim</Button>
                                                                 </TableCell>
                                                             }
                                                         </TableRow>

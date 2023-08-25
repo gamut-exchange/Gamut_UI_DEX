@@ -545,7 +545,7 @@ export default function Swap() {
     if (pricesData && pricesData.prices) {
       var result = [];
       const poolTokenPrices = pricesData.prices;
-      if (poolAddress.length === 1) {
+      if (poolAddress?.length === 1) {
         poolTokenPrices.map(item => {
           if (item.token0.id.toLowerCase() === inToken["address"].toLowerCase()) {
             result.push({
@@ -560,7 +560,7 @@ export default function Swap() {
           }
           return null;
         });
-      } else if (poolAddress.length === 2) {
+      } else if (poolAddress?.length === 2) {
         for (var i = 1; i < poolTokenPrices.length; i++) {
           if (poolTokenPrices[i].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
             for (var j = i - 1; j >= 0; j--)
@@ -581,7 +581,7 @@ export default function Swap() {
               }
           }
         }
-      } else if (poolAddress.length === 3) {
+      } else if (poolAddress?.length === 3) {
         for (var ii = 2; ii < poolTokenPrices.length; ii++) {
           if (poolTokenPrices[ii].pool.id.toLowerCase() === poolAddress[0].toLowerCase()) {
             var tempArr = [];
@@ -718,15 +718,15 @@ export default function Swap() {
     abiDecoder.addABI(routerABI);
     getKavaTx(account, 150).then(async (response) => {
       let filteredThx = response;
-      filteredThx.map((item) => {
+      filteredThx?.map((item) => {
         item.raw_input = abiDecoder.decodeMethod(item.input);
       });
 
-      filteredThx = await filteredThx.filter((item) => {
+      filteredThx = await filteredThx?.filter((item) => {
         return (item.raw_input !== undefined && (item.raw_input.name === "swap" || item.raw_input.name === "batchSwap"));
       });
 
-      filteredThx.map(async (item) => {
+      filteredThx?.map(async (item) => {
         if (item.raw_input.name === "swap") {
           let item_token1 = uniList[selected_chain].filter((unit) => {
             return unit.address.toLowerCase() === item.raw_input.params[0].value.tokenIn.toLowerCase();

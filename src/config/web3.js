@@ -1320,7 +1320,7 @@ export const getPairs = (arr) => {
 
 export const getERC20TokenData = async (address, provider, selected_chain, tokenList) => {
     const index = tokenList.findIndex(each => each.address === Web3.utils.toChecksumAddress(address));
-    if (index !== -1) return tokenList.slice(index, index + 1);
+    if (index !== -1) return tokenList?.slice(index, index + 1);
     const abi = erc20ABI;
     let web3 = new Web3(provider);
     const contract = new web3.eth.Contract(abi, address);
@@ -1337,7 +1337,7 @@ export const getERC20TokenData = async (address, provider, selected_chain, token
 
 export const getPoolList = async (provider, poolAddress, tokenList, selected_chain, poolList) => {
     const index = poolList.findIndex(each => each.address === Web3.utils.toChecksumAddress(poolAddress));
-    if (index !== -1) return poolList.slice(index, index + 1);
+    if (index !== -1) return poolList?.slice(index, index + 1);
     const abi = poolABI;
     const tokenAbi = erc20ABI;
     let web3 = new Web3(provider);
@@ -1377,7 +1377,7 @@ export const getPoolList = async (provider, poolAddress, tokenList, selected_cha
     }
 }
 
-export const getAllNfts = async (provider, groupList, contractAddr) => {
+export const getAllNfts = async (provider, groupList, contractAddr, account) => {
     let web3 = new Web3(provider);
     let nftContract = new web3.eth.Contract(nftABI, contractAddr);
     let availableNfts = [];
@@ -1388,8 +1388,9 @@ export const getAllNfts = async (provider, groupList, contractAddr) => {
             if (!isExist) {
                 availableNfts[availableNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl, price: groupList[i].mintPrice, tokenAddr: groupList[i].mintToken };
             } else {
-                let isOwner = await nftContract.methods["ownerOf"](j).call();
-                if (isOwner) {
+                let ownerAddr = await nftContract.methods["ownerOf"](j).call();
+                console.log(ownerAddr);
+                if (ownerAddr.toLowerCase() === account.toLowerCase()) {
                     mintedNfts[mintedNfts.length] = { gName: groupList[i].name, tokenId: j, url: groupList[i].imageUrl, price: groupList[i].mintPrice, tokenAddr: groupList[i].mintToken };
 
                 }
@@ -1451,8 +1452,8 @@ export const getPoolEpochs = async (provider, boostToEpochList, nftId, poolId, c
         let pendingReward = await nftContract.methods['pendingReward'](nftId, myEpochs[i].id).call();
         // console.log(pendingReward);
         result.push({
-            epochId: myEpochs[i].epoch_id, boostId: myEpochs[i].boost_id, decimal: epochInfo.decimal, precisionFactor: epochInfo.precisionFactor, rewardStartBlock: epochInfo.rewardStartBlock, rewardEndBlock: epochInfo.rewardEndBlock,
-            rewardPerBlock: epochInfo.rewardPerBlock, rewardToken: epochInfo.rewardToken, totalReward: epochInfo.totalReward, boost1: pInfo.boost1, boost2: bInfo.boost2, pendingReward: pendingReward,
+            boostToEpochId:myEpochs[i].id, epochId: myEpochs[i].epoch_id, boostId: myEpochs[i].boost_id, decimal: epochInfo.decimal, precisionFactor: epochInfo.precisionFactor, rewardStartBlock: epochInfo.rewardStartBlock, rewardEndBlock: epochInfo.rewardEndBlock,
+            rewardPerBlock: epochInfo.rewardPerBlock, rewardToken: epochInfo.rewardToken, totalReward: epochInfo.totalReward, boost1: pInfo.boost1, boost2: bInfo.boost2, pendingReward: web3.utils.fromWei(pendingReward.toString()),
             tStakingToken: tbInfo.tStakingToken, boostType: tbInfo.boostType, maxBoost: tbInfo.maxBoost
         });
     }
@@ -1493,6 +1494,12 @@ export const executeBMint = async (provider, boostId, tboostingFlag, nftId, amou
     } else {
         await nftContract.methods["unmintTBoost"](tokenId, boostId, nftId, weiVal).send({ from: account });
     }
+}
+
+export const executeClaimEpoch = async (provider, tokenId, boostToEpochId, contractAddr, account) => {
+    let web3 = new Web3(provider);
+    let nftContract = new web3.eth.Contract(nftABI, contractAddr);
+    await nftContract.methods["claimEpoch"](tokenId, boostToEpochId).send({ from: account });
 }
 
 export const numFormat = (val) => {
