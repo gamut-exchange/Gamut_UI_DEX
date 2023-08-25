@@ -74,7 +74,7 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-export default function GBoostMintModal({ mopen, handleClose, activatedNft, sEpochInfo, contractAddr }) {
+export default function GBoostMintModal({ mopen, handleClose, tboostingFlag, activatedNft, sEpochInfo, contractAddr }) {
 
     const selected_chain = useSelector((state) => state.selectedChain);
     const uniList = useSelector((state) => state.tokenList);
@@ -151,10 +151,10 @@ export default function GBoostMintModal({ mopen, handleClose, activatedNft, sEpo
         const provider = await connector.getProvider();
         if (Number(sEpochInfo.boostType) === 0) {
             if (nftId.length !== 0)
-                executeBMint(provider, sEpochInfo.boostId, nftId, 0, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
+                executeBMint(provider, sEpochInfo.boostId, tboostingFlag, nftId, 0, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
         } else if (Number(sEpochInfo.boostType) === 1) {
             if (Number(amount) !== 0)
-                executeBMint(provider, sEpochInfo.boostId, 0, amount, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
+                executeBMint(provider, sEpochInfo.boostId, tboostingFlag, 0, amount, activatedNft.tokenId, sEpochInfo.tStakingToken, contractAddr, account);
         }
     }
 
@@ -174,6 +174,8 @@ export default function GBoostMintModal({ mopen, handleClose, activatedNft, sEpo
                         <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + activatedNft.gName + " #" + activatedNft.tokenId}</Typography>
                     </Item>
                 </Grid>
+                {tboostingFlag == 0 && <Typography>Increase Boost</Typography>}
+                {tboostingFlag == 1 && <Typography>Decrease Boost</Typography>}
                 {Number(sEpochInfo.boostType) == 0 &&
                     <div style={{ backgroundColor: "#12122c", marginTop: "24px" }}>
                         <Typography variant="h6">{sEpochInfo.tStakingToken.substr(0, 16)}...</Typography>

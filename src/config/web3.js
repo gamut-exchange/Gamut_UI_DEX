@@ -1474,7 +1474,7 @@ export const executeStaking = async (provider, stakingFlag, poolId, amount, toke
     let tokenContract = new web3.eth.Contract(erc20ABI, tokenAddr);
     let nftContract = new web3.eth.Contract(nftABI, contractAddr);
     let weiVal = await toWeiVal(provider, tokenAddr, amount);
-    if (stakingFlag == 0) {
+    if (stakingFlag === 0) {
         await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
         await nftContract.methods["stake"](poolId, weiVal, tokenId).send({ from: account });
     } else {
@@ -1482,13 +1482,17 @@ export const executeStaking = async (provider, stakingFlag, poolId, amount, toke
     }
 }
 
-export const executeBMint = async (provider, boostId, nftId, amount, tokenId, tokenAddr, contractAddr, account) => {
+export const executeBMint = async (provider, boostId, tboostingFlag, nftId, amount, tokenId, tokenAddr, contractAddr, account) => {
     let web3 = new Web3(provider);
     let tokenContract = new web3.eth.Contract(erc20ABI, tokenAddr);
     let nftContract = new web3.eth.Contract(nftABI, contractAddr);
     let weiVal = await toWeiVal(provider, tokenAddr, amount);
-    await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
-    await nftContract.methods["mintTBoost"](tokenId, boostId, nftId, weiVal).send({ from: account });
+    if (tboostingFlag === 0) {
+        await tokenContract.methods["approve"](contractAddr, weiVal).send({ from: account });
+        await nftContract.methods["mintTBoost"](tokenId, boostId, nftId, weiVal).send({ from: account });
+    } else {
+        await nftContract.methods["unmintTBoost"](tokenId, boostId, nftId, weiVal).send({ from: account });
+    }
 }
 
 export const numFormat = (val) => {

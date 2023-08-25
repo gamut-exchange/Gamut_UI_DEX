@@ -152,6 +152,7 @@ export default function NftStaking() {
     const [mopen1, setMopen1] = useState(false);
     const [mopen2, setMopen2] = useState(false);
     const [stakingFlag, setStakingFlag] = useState(0);
+    const [tboostingFlag, setTboostingFlag] = useState(0);
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
@@ -204,6 +205,14 @@ export default function NftStaking() {
         else
             setStakingFlag(1);
         setMopen1(true);
+    }
+
+    const handleTboostingModal = (flag) => {
+        if (flag == 0)
+            setTboostingFlag(0);
+        else
+            setTboostingFlag(1);
+        setMopen2(true);
     }
 
     const activateNft = (unit) => {
@@ -798,8 +807,8 @@ export default function NftStaking() {
                             </Paper>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", justifyContent: "right", mb: 1 }}>
-                            <Button variant="contained" color="success" onClick={() => setMopen2(true)} >Increase Boost</Button>
-                            {Number(sEpochInfo.boost2) !== 0 && <Button variant="contained" color="error" sx={{ ml: 2 }}>Decrease Boost</Button>}
+                            <Button variant="contained" color="success" onClick={() => handleTboostingModal(0)} >Increase Boost</Button>
+                            {Number(sEpochInfo.boost2) !== 0 && <Button variant="contained" color="error" sx={{ ml: 2 }} onClick={() => handleTboostingModal(1)}>Decrease Boost</Button>}
                         </Grid>
                     </Grid>
                 </Grid>
@@ -812,7 +821,7 @@ export default function NftStaking() {
                 </Item>
             }
             <GStakeModal mopen={mopen1} handleClose={handleClose1} stakingFlag={stakingFlag} activatedNft={activatedNft} sPoolInfo={sPoolInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
-            <GBoostMintModal mopen={mopen2} handleClose={handleClose2} activatedNft={activatedNft} sEpochInfo={sEpochInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
+            <GBoostMintModal mopen={mopen2} handleClose={handleClose2} tboostingFlag={tboostingFlag} activatedNft={activatedNft} sEpochInfo={sEpochInfo} contractAddr={contractAddresses[selected_chain]["gamutNFT"]} />
         </div>
     );
 }
