@@ -62,7 +62,8 @@ export const farmingPoolList = {
 
 export const nftGroupList = {
 	'kava': [
-		{name:"A", startTokenId:1, lastTokenId:12, mintPrice:0.01, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'QmeeNib5pgJKSrC1tKhUpFCYdLnmGb2iUp8VVPmMq5RLgG', backingValue: 0.005, backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1692950579, multiplier: 100000}
+		{name:"A", startTokenId:1, lastTokenId:12, mintPrice:0.01, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'QmeeNib5pgJKSrC1tKhUpFCYdLnmGb2iUp8VVPmMq5RLgG', backingValue: 0.005, backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1692950579, multiplier: 100000},
+		{name:"B", startTokenId:13, lastTokenId:25, mintPrice:0.015, mintToken:'0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', imageUrl: 'Qma6ZWgpt4nqvCF2up7VYeYvMLQ93KCVzmxC2kDfpKahma', backingValue: 0.005, backingToken: '0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b', backingUnlockTimestamp: 1692950579, multiplier: 100000},
 	]
 }
 

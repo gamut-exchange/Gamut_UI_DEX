@@ -32,7 +32,7 @@ import {
 import { makeStyles } from "@mui/styles";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
-    getAllNfts,
+    getUserNfts,
     getAllStakingPools,
     getPoolEpochs,
     mintNft,
@@ -145,8 +145,6 @@ export default function NftStaking() {
     const [displayData1, setDisplayData1] = useState([]);
     const [count2, setCount2] = useState(0);
     const [displayData2, setDisplayData2] = useState([]);
-    const [count3, setCount3] = useState(0);
-    const [displayData3, setDisplayData3] = useState([]);
     const [sNft, setSNft] = useState({});
     const [sPoolInfo, setSPoolInfo] = useState({});
     const [sEpochs, setSEpochs] = useState([]);
@@ -181,11 +179,7 @@ export default function NftStaking() {
     }
 
     const handlePChange1 = (e, p) => {
-        setDisplayData1(unMintedNfts.slice((p - 1) * 4, (p - 1) * 4 + 4));
-    }
-
-    const handlePChange2 = (e, p) => {
-        setDisplayData2(mintedNfts.slice((p - 1) * 4, (p - 1) * 4 + 4));
+        setDisplayData1(mintedNfts.slice((p - 1) * 4, (p - 1) * 4 + 4));
     }
 
     const handleClose1 = () => {
@@ -196,9 +190,9 @@ export default function NftStaking() {
         setMopen2(false);
     }
 
-    const handleGNftMint = async (name, id, price, tokenAddr) => {
+    const handleGNftMint = async (group) => {
         const provider = await connector.getProvider();
-        await mintNft(provider, name, id, price, tokenAddr, contractAddresses[selected_chain]["gamutNFT"], account);
+        await mintNft(provider, group.name, group.startTokenId, group.lastTokenId, group.mintPrice, group.mintToken, contractAddresses[selected_chain]["gamutNFT"], account);
     }
 
     const handleStakeModal = (flag) => {
@@ -229,6 +223,13 @@ export default function NftStaking() {
     const handleClaim = async (boost_to_epoch_id) => {
         const provider = await connector.getProvider();
         executeClaimEpoch(provider, activatedNft.tokenId, boost_to_epoch_id, contractAddresses[selected_chain]["gamutNFT"], account);
+    }
+
+    const executeClaimAll = async () => {
+        for (let i = 0; i < sEpochs.length; i++) {
+            if (Number(sEpochs[i].pendingReward) !== 0)
+                await handleClaim(sEpochs[i].boostToEpochId);
+        }
     }
 
     const createTokenDom = (address) => {
@@ -312,33 +313,28 @@ export default function NftStaking() {
 
     const getInfo = async () => {
         const provider = await connector.getProvider();
-        const allNfts = await getAllNfts(provider, nftGroupList[selected_chain], contractAddresses[selected_chain]["gamutNFT"], account);
-        if (allNfts) {
-            setUnMitedNfts(allNfts[0]);
-            setMintedNfts(allNfts[1]);
-            setDisplayData1(allNfts[0].slice(0, 4));
-            setDisplayData2(allNfts[1].slice(0, 4));
-            let cnt1 = allNfts[0].length / 4;
+        const myNfts = await getUserNfts(provider, nftGroupList[selected_chain], contractAddresses[selected_chain]["gamutNFT"], account);
+        if (myNfts) {
+            setMintedNfts(myNfts[0]);
+            setDisplayData1(myNfts[0].slice(0, 4));
+            let cnt1 = myNfts[0].length / 4;
             cnt1 = Number(cnt1.toFixed(0));
             setCount1(cnt1);
-            let cnt2 = allNfts[1].length / 4;
-            cnt2 = Number(cnt2.toFixed(0));
-            setCount2(cnt2);
-            if (allNfts[1].length !== 0) {
-                setActivatedNft(allNfts[1][0]);
-                const allStakingPools = await getAllStakingPools(provider, allNfts[1][0].tokenId, boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
+            if (myNfts[0].length !== 0) {
+                setActivatedNft(myNfts[0][0]);
+                const allStakingPools = await getAllStakingPools(provider, myNfts[0][0].tokenId, boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
                 setAllStakes(allStakingPools);
-                setDisplayData3(allStakingPools.slice(0, 4));
-                let cnt3 = allStakingPools.length / 4;
-                cnt3 = Number(cnt3.toFixed(0));
-                setCount3(cnt3);
+                setDisplayData2(allStakingPools.slice(0, 4));
+                let cnt2 = allStakingPools.length / 4;
+                cnt2 = Number(cnt2.toFixed(0));
+                setCount2(cnt2);
             } else {
                 const allStakingPools = await getAllStakingPools(provider, 0, boostToEpochList[selected_chain], contractAddresses[selected_chain]["gamutNFT"]);
                 setAllStakes(allStakingPools);
-                setDisplayData3(allStakingPools.slice(0, 4));
-                let cnt3 = allStakingPools.length / 4;
-                cnt3 = Number(cnt3.toFixed(0));
-                setCount3(cnt3);
+                setDisplayData2(allStakingPools.slice(0, 4));
+                let cnt2 = allStakingPools.length / 4;
+                cnt2 = Number(cnt2.toFixed(0));
+                setCount2(cnt2);
             }
         }
     }
@@ -361,13 +357,13 @@ export default function NftStaking() {
                         container
                     >
                         <Grid md={10} sm={12} container sx={{ display: "flex", justifyContent: "center" }}>
-                            {displayData1.map(unit => {
+                            {nftGroupList[selected_chain].map(unit => {
                                 return (
                                     <Grid item md={3} sm={6} sx={{ alignItems: "center", mb: 2 }}>
                                         <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
-                                            <img src={"https://gateway.pinata.cloud/ipfs/" + unit.url + "/" + unit.tokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => handleNftDetail(unit)}></img>
-                                            <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.gName + " #" + unit.tokenId}</Typography>
-                                            <Button size="small" variant="contained" color="primary" onClick={() => handleGNftMint(unit.gName, unit.tokenId, unit.price, unit.tokenAddr)}>Mint</Button>
+                                            <img src={"https://gateway.pinata.cloud/ipfs/" + unit.imageUrl + "/" + unit.startTokenId + ".png"} alt="nft image" width={130} style={{ borderRadius: 8 }} onClick={() => handleNftDetail(unit)}></img>
+                                            <Typography sx={{ color: "white", mt: 0.5 }}>{"Group " + unit.name}</Typography>
+                                            <Button size="small" variant="contained" color="primary" onClick={() => handleGNftMint(unit)}>Mint</Button>
                                         </Item>
                                     </Grid>
                                 )
@@ -383,11 +379,6 @@ export default function NftStaking() {
                             </Button>
                         </Grid>
                     </Grid>
-                    {unMintedNfts.length !== 0 &&
-                        <Grid container sx={{ justifyContent: "center" }}>
-                            <Pagination count={count1} sx={{ button: { color: '#ffffff' }, marginTop: "6px", marginBottom: "6px" }} color="primary" shape="rounded" onChange={handlePChange1} />
-                        </Grid>
-                    }
                     <Grid
                         container
                         sx={{ pl: 0, borderTop: "1px solid rgba(118, 118, 144, 0.4)", paddingTop: "1rem", marginTop: "0.5rem" }}
@@ -491,7 +482,7 @@ export default function NftStaking() {
                                     </TableHead>
                                     <TableBody>
                                         {allStakes.length !== 0 &&
-                                            displayData3.map((unit, index) => {
+                                            displayData2.map((unit, index) => {
                                                 return (
                                                     <TableRow
                                                         sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -552,13 +543,13 @@ export default function NftStaking() {
                             <Button variant="contained" color="primary" onClick={() => setPageFlag(0)}><ArrowBack fontSize="medium" /></Button>
                         </Grid>
                         <Grid item md={12} sx={{ display: "flex", justifyContent: "center", flexDirection: "row", alignItems: "center", marginBottom: "12px" }}>
-                            {displayData2.length == 0 &&
+                            {displayData1.length == 0 &&
                                 <Grid>
                                     <Typography variant="h6" sx={{ color: "white" }}>There are no minted NFTs.</Typography>
                                 </Grid>
                             }
-                            {displayData2.length != 0 &&
-                                displayData2.map(unit => {
+                            {displayData1.length != 0 &&
+                                displayData1.map(unit => {
                                     return (
                                         <Grid item md={2} sm={6} sx={{ alignItems: "center", mb: 2 }}>
                                             <Item style={{ boxShadow: "0px 0px 0px 0px", padding: 12, maxWidth: "160px", margin: "0 auto" }}>
@@ -576,9 +567,9 @@ export default function NftStaking() {
                                 })
                             }
                         </Grid>
-                        {displayData2.length != 0 &&
+                        {displayData1.length != 0 &&
                             <Grid container sx={{ alignItems: "center", justifyContent: "center" }}>
-                                <Pagination count={count2} sx={{ button: { color: '#ffffff' }, marginTop: "6px", marginBottom: "6px" }} color="primary" shape="rounded" onChange={handlePChange2} />
+                                <Pagination count={count2} sx={{ button: { color: '#ffffff' }, marginTop: "6px", marginBottom: "6px" }} color="primary" shape="rounded" onChange={handlePChange1} />
                             </Grid>
                         }
                     </Grid>
@@ -663,7 +654,7 @@ export default function NftStaking() {
                                                 </TableCell>
                                                 {sPoolInfo.isStaked &&
                                                     <TableCell align="center" style={{ color: "white", paddingTop: 12, paddingBottom: 12 }}>
-                                                        <Button variant="outlined" color="warning" size="small">Claim All</Button>
+                                                        <Button variant="outlined" color="warning" size="small" onClick={executeClaimAll}>Claim All</Button>
                                                     </TableCell>
                                                 }
                                             </TableRow>
