@@ -712,9 +712,9 @@ export const calculateSwap = async (inToken, poolData, input) => {
     console.log('Amount In: ', ammount.toString());
     console.log('Balance Out: ', balance_to.toString());
     console.log('Weight Out: ', weight_to.toString());
-    console.log('Scale a: ', scaling_factor_a.toString());
-    console.log('Scale b: ', scaling_factor_b.toString());
-    console.log('Scale ouz: ', scaling_factor_out.toString());
+    console.log('Scale from: ', decimal_from.toString());
+    console.log('Scale to: ', decimal_to.toString());
+    
 
     let bIn = ammount / 10 ** decimal_from;
     let pbA = balance_to / 10 ** decimal_to;
