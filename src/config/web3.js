@@ -709,7 +709,7 @@ export const calculateSwap = async (inToken, poolData, input) => {
 
     console.log('Balance In: ', balance_from.toString());
     console.log('Weight In: ', weight_from.toString());
-    console.log('Amount In: ', amount.toString());
+    console.log('Amount In: ', ammount.toString());
     console.log('Balance Out: ', balance_to.toString());
     console.log('Weight Out: ', weight_to.toString());
     console.log('Scale a: ', scaling_factor_a.toString());
